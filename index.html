@@ -3643,16 +3643,22 @@ Ticks are spaced at $5,000\\,\\mathrm{km\\,s^{-1}}$ (major) and $1,000\\,\\mathr
   document.getElementById('caption-modal').style.display = 'block';
 }
 
-document.getElementById('btn-pub-export').addEventListener('click', exportPublicationFigure);
-document.getElementById('btn-close-modal').addEventListener('click', () => {
-  document.getElementById('caption-modal').style.display = 'none';
+document.getElementById('btn-pub-export')?.addEventListener('click', exportPublicationFigure);
+document.getElementById('btn-close-modal')?.addEventListener('click', () => {
+  const modal = document.getElementById('caption-modal');
+  if (modal) modal.style.display = 'none';
 });
-document.getElementById('btn-copy-latex').addEventListener('click', () => {
+document.getElementById('btn-copy-latex')?.addEventListener('click', () => {
   const ta = document.getElementById('latex-code');
-  ta.select();
-  navigator.clipboard.writeText(ta.value);
-  document.getElementById('btn-copy-latex').textContent = 'Copied!';
-  setTimeout(() => document.getElementById('btn-copy-latex').textContent = 'Copy LaTeX Code', 2000);
+  if (ta) {
+    ta.select();
+    navigator.clipboard.writeText(ta.value);
+    const btn = document.getElementById('btn-copy-latex');
+    if (btn) {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy LaTeX Code', 2000);
+    }
+  }
 });
 
 // ==========================================
@@ -3679,11 +3685,12 @@ function switchScienceEngine(key) {
     if (simState.quiverVisible) updateQuiverField();
   }
 }
-document.getElementById('sel-science-engine').addEventListener('change', e => switchScienceEngine(e.target.value));
-document.getElementById('engine-banner').addEventListener('click', () => {
+document.getElementById('sel-science-engine')?.addEventListener('change', e => switchScienceEngine(e.target.value));
+document.getElementById('engine-banner')?.addEventListener('click', () => {
   const keys = Object.keys(ENGINES);
   const nextIdx = (keys.indexOf(currentEngineKey) + 1) % keys.length;
-  document.getElementById('sel-science-engine').value = keys[nextIdx];
+  const sel = document.getElementById('sel-science-engine');
+  if (sel) sel.value = keys[nextIdx];
   switchScienceEngine(keys[nextIdx]);
 });
 switchScienceEngine('cf4-wf');
@@ -3694,21 +3701,24 @@ function toggleTheme(targetTheme = null) {
 
   const darkHud = document.getElementById('dark-telemetry-hud');
   const paperTitle = document.getElementById('paper-title-tag');
+  const themeIcon = document.getElementById('theme-icon');
+  const themeLabel = document.getElementById('theme-label');
+  const colormapSel = document.getElementById('sel-colormap');
 
   if (currentTheme === 'white') {
     renderer.setClearColor(0xffffff, 1.0);
-    document.getElementById('theme-icon').textContent = '☀️';
-    document.getElementById('theme-label').textContent = 'White Mode';
+    if (themeIcon) themeIcon.textContent = '☀️';
+    if (themeLabel) themeLabel.textContent = 'White Mode';
     simState.colormap = 'ink';
-    document.getElementById('sel-colormap').value = 'ink';
+    if (colormapSel) colormapSel.value = 'ink';
     if (darkHud) darkHud.style.display = 'none';
     if (paperTitle) paperTitle.style.display = 'block';
   } else {
     renderer.setClearColor(0x020406, 1.0);
-    document.getElementById('theme-icon').textContent = '🌙';
-    document.getElementById('theme-label').textContent = 'Dark Mode';
+    if (themeIcon) themeIcon.textContent = '🌙';
+    if (themeLabel) themeLabel.textContent = 'Dark Mode';
     simState.colormap = 'vweb';
-    document.getElementById('sel-colormap').value = 'vweb';
+    if (colormapSel) colormapSel.value = 'vweb';
     if (darkHud) darkHud.style.display = 'flex';
     if (paperTitle) paperTitle.style.display = 'none';
   }
@@ -3734,25 +3744,31 @@ function toggleTheme(targetTheme = null) {
   }
 }
 window.toggleTheme = toggleTheme;
-document.getElementById('btn-theme-toggle').addEventListener('click', () => toggleTheme());
+document.getElementById('btn-theme-toggle')?.addEventListener('click', () => toggleTheme());
 
 function toggleCleanMode() {
   cleanMode = !cleanMode;
-  document.getElementById('panel').style.opacity = cleanMode ? '0' : '1';
-  document.getElementById('cam-shortcuts').style.opacity = cleanMode ? '0' : '1';
-  document.getElementById('topbar').style.opacity = cleanMode ? '0.35' : '1';
-  document.getElementById('clean-label').textContent = cleanMode ? 'Exit (C)' : 'Clean (C)';
+  const p = document.getElementById('panel');
+  if (p) p.style.opacity = cleanMode ? '0' : '1';
+  const cam = document.getElementById('cam-shortcuts');
+  if (cam) cam.style.opacity = cleanMode ? '0' : '1';
+  const tb = document.getElementById('topbar');
+  if (tb) tb.style.opacity = cleanMode ? '0.35' : '1';
+  const cl = document.getElementById('clean-label');
+  if (cl) cl.textContent = cleanMode ? 'Exit (C)' : 'Clean (C)';
 }
-document.getElementById('btn-clean-mode').addEventListener('click', toggleCleanMode);
+document.getElementById('btn-clean-mode')?.addEventListener('click', toggleCleanMode);
 
-document.getElementById('btn-explore-toggle').addEventListener('click', () => {
+document.getElementById('btn-explore-toggle')?.addEventListener('click', () => {
   const panel = document.getElementById('panel');
+  if (!panel) return;
+  const btn = document.getElementById('btn-explore-toggle');
   if (panel.style.display === 'none') {
     panel.style.display = 'flex';
-    document.getElementById('btn-explore-toggle').classList.add('active');
+    if (btn) btn.classList.add('active');
   } else {
     panel.style.display = 'none';
-    document.getElementById('btn-explore-toggle').classList.remove('active');
+    if (btn) btn.classList.remove('active');
   }
 });
 
@@ -3798,31 +3814,31 @@ if (chkInsetTab) {
   });
 }
 
-document.getElementById('chk-chevrons').addEventListener('change', e => {
+document.getElementById('chk-chevrons')?.addEventListener('change', e => {
   simState.chevronsVisible = e.target.checked;
   rebuildStreamlines();
 });
-document.getElementById('chk-galaxies').addEventListener('change', e => {
+document.getElementById('chk-galaxies')?.addEventListener('change', e => {
   simState.galaxiesVisible = e.target.checked;
   if (galaxyPointsMesh) galaxyPointsMesh.visible = simState.galaxiesVisible;
 });
-document.getElementById('chk-watershed-shells').addEventListener('change', e => {
+document.getElementById('chk-watershed-shells')?.addEventListener('change', e => {
   simState.watershedShellsVisible = e.target.checked;
   watershedGroup.visible = simState.watershedShellsVisible;
 });
-document.getElementById('chk-halos').addEventListener('change', e => {
+document.getElementById('chk-halos')?.addEventListener('change', e => {
   simState.halosVisible = e.target.checked;
   buildChromaticHalos();
 });
-document.getElementById('chk-floor-grid').addEventListener('change', e => {
+document.getElementById('chk-floor-grid')?.addEventListener('change', e => {
   simState.floorGridVisible = e.target.checked;
   buildRulerBox();
 });
-document.getElementById('chk-equator-grid').addEventListener('change', e => {
+document.getElementById('chk-equator-grid')?.addEventListener('change', e => {
   simState.equatorGridVisible = e.target.checked;
   buildRulerBox();
 });
-document.getElementById('chk-zoa').addEventListener('change', e => {
+document.getElementById('chk-zoa')?.addEventListener('change', e => {
   simState.zoaVisible = e.target.checked;
   buildZoneOfAvoidance();
 });
@@ -3830,68 +3846,71 @@ if (document.getElementById('sel-zoa-mode')) {
   document.getElementById('sel-zoa-mode').addEventListener('change', e => {
     simState.zoaMode = e.target.value;
     simState.zoaVisible = e.target.value !== 'off';
-    document.getElementById('chk-zoa').checked = simState.zoaVisible;
+    const chkZ = document.getElementById('chk-zoa');
+    if (chkZ) chkZ.checked = simState.zoaVisible;
     buildZoneOfAvoidance();
   });
 }
 
 // Labels & Astrometry Event Listeners
-document.getElementById('sel-label-tier').addEventListener('change', e => {
+document.getElementById('sel-label-tier')?.addEventListener('change', e => {
   simState.labelTier = e.target.value;
   buildCallouts();
 });
-document.getElementById('chk-lbl-superclusters').addEventListener('change', e => {
+document.getElementById('chk-lbl-superclusters')?.addEventListener('change', e => {
   simState.showSuperclusters = e.target.checked;
   buildCallouts();
 });
-document.getElementById('chk-lbl-clusters').addEventListener('change', e => {
+document.getElementById('chk-lbl-clusters')?.addEventListener('change', e => {
   simState.showNamedClusters = e.target.checked;
   buildCallouts();
 });
-document.getElementById('chk-lbl-filaments').addEventListener('change', e => {
+document.getElementById('chk-lbl-filaments')?.addEventListener('change', e => {
   simState.showFilaments = e.target.checked;
   buildCallouts();
 });
-document.getElementById('chk-lbl-voids').addEventListener('change', e => {
+document.getElementById('chk-lbl-voids')?.addEventListener('change', e => {
   simState.showVoids = e.target.checked;
   buildCallouts();
 });
-document.getElementById('chk-range-rings').addEventListener('change', e => {
+document.getElementById('chk-range-rings')?.addEventListener('change', e => {
   simState.showRangeRings = e.target.checked;
   buildRangeRings();
 });
-document.getElementById('chk-floor-rings').addEventListener('change', e => {
+document.getElementById('chk-floor-rings')?.addEventListener('change', e => {
   simState.showFloorRings = e.target.checked;
   buildRangeRings();
 });
-document.getElementById('sel-label-contrast').addEventListener('change', e => {
+document.getElementById('sel-label-contrast')?.addEventListener('change', e => {
   simState.labelBacking = e.target.value;
   buildCallouts();
   buildRangeRings();
   buildRulerBox();
 });
-document.getElementById('sel-marker-style').addEventListener('change', e => {
+document.getElementById('sel-marker-style')?.addEventListener('change', e => {
   simState.markerStyle = e.target.value;
   buildCallouts();
 });
-document.getElementById('rng-leader-len').addEventListener('input', e => {
+document.getElementById('rng-leader-len')?.addEventListener('input', e => {
   simState.leaderLen = parseFloat(e.target.value);
-  document.getElementById('v-leader-len').textContent = simState.leaderLen;
+  const vEl = document.getElementById('v-leader-len');
+  if (vEl) vEl.textContent = simState.leaderLen;
   buildCallouts();
 });
 
 // Flow Controls Event Listeners
-document.getElementById('sel-colormap').addEventListener('change', e => {
+document.getElementById('sel-colormap')?.addEventListener('change', e => {
   simState.colormap = e.target.value;
   rebuildStreamlines();
 });
 
-document.getElementById('sel-seed-mode').addEventListener('change', e => {
+document.getElementById('sel-seed-mode')?.addEventListener('change', e => {
   simState.seedMode = e.target.value;
   const isBrush = simState.seedMode === 'brush';
-  document.getElementById('row-brush-radius').style.display = isBrush ? 'flex' : 'none';
-  brushMesh.visible = isBrush;
-  if (isBrush) {
+  const brushRow = document.getElementById('row-brush-radius');
+  if (brushRow) brushRow.style.display = isBrush ? 'flex' : 'none';
+  if (brushMesh) brushMesh.visible = isBrush;
+  if (isBrush && brushMesh) {
     brushMesh.scale.set(simState.brushRadius, simState.brushRadius, simState.brushRadius);
     transformControls.attach(brushMesh);
   } else if (transformControls.object === brushMesh) {
@@ -3900,63 +3919,71 @@ document.getElementById('sel-seed-mode').addEventListener('change', e => {
   rebuildStreamlines();
 });
 
-document.getElementById('rng-brush-radius').addEventListener('input', e => {
+document.getElementById('rng-brush-radius')?.addEventListener('input', e => {
   simState.brushRadius = parseFloat(e.target.value);
-  document.getElementById('v-brush-rad').textContent = simState.brushRadius;
-  brushMesh.scale.set(simState.brushRadius, simState.brushRadius, simState.brushRadius);
+  const vEl = document.getElementById('v-brush-rad');
+  if (vEl) vEl.textContent = simState.brushRadius;
+  if (brushMesh) brushMesh.scale.set(simState.brushRadius, simState.brushRadius, simState.brushRadius);
   rebuildStreamlines();
 });
 
-document.getElementById('rng-flow-growth').addEventListener('input', e => {
+document.getElementById('rng-flow-growth')?.addEventListener('input', e => {
   simState.flowGrowth = parseFloat(e.target.value) / 100.0;
-  document.getElementById('v-flow-growth').textContent = Math.round(simState.flowGrowth * 100) + '%';
+  const vEl = document.getElementById('v-flow-growth');
+  if (vEl) vEl.textContent = Math.round(simState.flowGrowth * 100) + '%';
   rebuildStreamlines();
 });
 
-document.getElementById('sel-integ-dir').addEventListener('change', e => {
+document.getElementById('sel-integ-dir')?.addEventListener('change', e => {
   simState.integDir = e.target.value;
   rebuildStreamlines();
 });
 
-document.getElementById('chk-flow-particles').addEventListener('change', e => {
+document.getElementById('chk-flow-particles')?.addEventListener('change', e => {
   simState.flowParticlesActive = e.target.checked;
   if (flowParticlesMesh) flowParticlesMesh.visible = simState.flowParticlesActive;
   else if (simState.flowParticlesActive) buildFlowParticles();
 });
 
-document.getElementById('rng-particle-speed').addEventListener('input', e => {
+document.getElementById('rng-particle-speed')?.addEventListener('input', e => {
   simState.particleSpeed = parseFloat(e.target.value);
-  document.getElementById('v-particle-spd').textContent = simState.particleSpeed + 'x';
+  const vEl = document.getElementById('v-particle-spd');
+  if (vEl) vEl.textContent = simState.particleSpeed + 'x';
 });
 
-document.getElementById('rng-particle-count').addEventListener('input', e => {
+document.getElementById('rng-particle-count')?.addEventListener('input', e => {
   simState.particleCount = parseInt(e.target.value);
-  document.getElementById('v-particle-cnt').textContent = simState.particleCount;
+  const vEl = document.getElementById('v-particle-cnt');
+  if (vEl) vEl.textContent = simState.particleCount;
   buildFlowParticles();
 });
 
-document.getElementById('rng-lines').addEventListener('input', e => {
+document.getElementById('rng-lines')?.addEventListener('input', e => {
   simState.linesCount = parseInt(e.target.value);
-  document.getElementById('v-lines').textContent = simState.linesCount;
+  const vEl = document.getElementById('v-lines');
+  if (vEl) vEl.textContent = simState.linesCount;
   const hudStream = document.getElementById('hud-stream-count');
   if (hudStream) hudStream.textContent = simState.linesCount.toLocaleString();
 });
 
-document.getElementById('rng-opac').addEventListener('input', e => {
+document.getElementById('rng-opac')?.addEventListener('input', e => {
   simState.lineOpac = parseFloat(e.target.value) / 100.0;
-  document.getElementById('v-opac').textContent = e.target.value + '%';
+  const vEl = document.getElementById('v-opac');
+  if (vEl) vEl.textContent = e.target.value + '%';
   rebuildStreamlines();
 });
 
-document.getElementById('rng-dt').addEventListener('input', e => {
+document.getElementById('rng-dt')?.addEventListener('input', e => {
   simState.dt = parseFloat(e.target.value);
-  document.getElementById('v-dt').textContent = simState.dt;
+  const vEl = document.getElementById('v-dt');
+  if (vEl) vEl.textContent = simState.dt;
 });
 
 // Reveal Hidden Vela 1-Click Sequence
-document.getElementById('btn-reveal-vela').addEventListener('click', () => {
+document.getElementById('btn-reveal-vela')?.addEventListener('click', () => {
   switchScienceEngine('vela-zoa');
-  document.getElementById('sel-science-engine').value = 'vela-zoa';
+  const selEngine = document.getElementById('sel-science-engine');
+  if (selEngine) selEngine.value = 'vela-zoa';
   if (currentTheme !== 'dark') toggleTheme('dark');
   const velaPos = sgToThree(LANDMARKS[7].pos.x, LANDMARKS[7].pos.y, LANDMARKS[7].pos.z);
   setCameraView(velaPos.clone().add(new THREE.Vector3(4500, 3000, 5000)), velaPos.clone(), 1600);

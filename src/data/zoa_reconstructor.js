@@ -1,8 +1,14 @@
-/**
  * @file zoa_reconstructor.js
- * @description 3D Zone of Avoidance (ZoA) Obscuration Reconstruction Model, Infrared / 21cm HI
- * Corridor Piercing (MeerKAT Vela, Parkes HIZOA Norma, Puppis), Wiener-Filter Inpainting
+ * @description ZRT EXPERIMENTAL ZOA RECONSTRUCTION: 3D Zone of Avoidance (ZoA) Obscuration Model,
+ * Infrared / 21cm HI Corridor Piercing (MeerKAT Vela, Parkes HIZOA Norma, Puppis), Wiener-Filter Inpainting
  * across dust-obscured regions, and Synthetic Control Benchmarking.
+ * 
+ * SCIENTIFIC CLASSIFICATION & PROVENANCE NOTICE:
+ * - This module is classified as "ZRT EXPERIMENTAL ZOA RECONSTRUCTION" and is NOT the official
+ *   2026 CF4++ZOA data release product unless instantiated with the full hybrid input compilation
+ *   (65,518 CF4++ peculiar velocity distances + 8,283 ZOA redshifts, including 2,176 MeerKAT HI redshifts).
+ * - Scientific Reference: Hollinger et al. (2026), "Vela Supercluster in the Cosmicflows-4 Hybrid Reconstruction",
+ *   arXiv:2603.09339.
  * 
  * Astrophysical Formulations:
  * 1. Obscuration Geometry:
@@ -27,6 +33,17 @@
  * 
  * @module data/zoa_reconstructor
  */
+
+export const RECONSTRUCTION_STATUS = Object.freeze({
+  TYPE: 'ZRT_EXPERIMENTAL_ZOA_RECONSTRUCTION',
+  OFFICIAL_CF4_DATASET: false,
+  REQUIRED_INPUT_CATALOGS: [
+    'CF4++ Peculiar Velocity Compilation (N=65,518)',
+    'ZOA Spectroscopic Redshifts (N=8,283)',
+    'MeerKAT H I Redshifts (N=2,176)'
+  ],
+  PRIMARY_CITATION: 'Hollinger et al. 2026 (arXiv:2603.09339)'
+});
 
 import {
   equatorialToGalactic,

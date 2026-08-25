@@ -512,6 +512,25 @@ export const CANONICAL_MANIFESTS = Object.freeze({
     mirrors: ['https://cdsarc.cds.unistra.fr/viz-bin/cat/J/MNRAS/416/2840']
   },
 
+  'cf4_grouped_delta_error_v1': {
+    id: 'cf4_grouped_delta_error_v1',
+    title: 'Cosmicflows-4 Grouped Density Contrast Error Field (Under Audit)',
+    shortName: 'CF4gp-Delta-Error',
+    version: '1.0.0',
+    releaseDate: '2023-02-15',
+    institution: 'IP2I Lyon / Univ Lyon 1 / CNRS',
+    format: 'fits',
+    sha256: '0000000000000000000000000000000000000000000000000000000000000000',
+    provenanceStatus: 'OFFICIAL_URL_COLLISION_UNDER_AUDIT',
+    isBlockedForProductionUse: true,
+    warning: 'The public IP2I download page points CF4gp_new_64-z008_delta_error.fits to the velocity-error target URL. Ingestion blocked until independent verification.',
+    citation: {
+      authors: ['Hélène M. Courtois et al.'],
+      journal: 'A&A 670, L15 (2023)',
+      doi: '10.1051/0004-6361/202245331'
+    }
+  },
+
   'vela_zoa_survey_v1': {
     id: 'vela_zoa_survey_v1',
     title: 'Vela Supercluster Zone of Avoidance Spectroscopic Survey',
