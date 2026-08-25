@@ -1,0 +1,32 @@
+{
+  "N": 64,
+  "dx_Mpc_h": 15.625,
+  "half_extent_Mpc_h": 500.0,
+  "half_extent_kms": 37300.0,
+  "velocity_scale": 52.0,
+  "coordinate_system": "Supergalactic Cartesian",
+  "units": "km/s",
+  "bulk_flow_individual_kms": [
+    98.6763687133789,
+    414.24163818359375,
+    33.382747650146484
+  ],
+  "bulk_flow_grouped_kms": [
+    3.1004486083984375,
+    248.8895721435547,
+    -29.487781524658203
+  ],
+  "bulk_flow_individual_mag": 427.1388244628906,
+  "bulk_flow_grouped_mag": 250.64947509765625,
+  "v_ind_max": 2619.8134765625,
+  "v_grp_max": 2099.138671875,
+  "v_ind_rms": 468.8570861816406,
+  "v_grp_rms": 321.45709228515625,
+  "source": "IP2I Lyon CF4 WF/CR (Hoffman et al. 2024 MNRAS 527)",
+  "files": {
+    "individual_velocity": "cf4_velocity_individual_64.bin",
+    "grouped_velocity": "cf4_velocity_grouped_64.bin",
+    "individual_density": "cf4_density_individual_64.bin",
+    "grouped_density": "cf4_density_grouped_64.bin"
+  }
+}

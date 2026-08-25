@@ -1,0 +1,7 @@
+{
+  "name": "zrt-cosmicflows-workbench",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ZRT Cosmicflows Workbench - Cosmological Export, Validation Gates, and Reproducibility Architecture",
+  "private": true
+}

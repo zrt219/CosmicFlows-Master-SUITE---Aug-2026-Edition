@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Python cache & testing
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local logs & dumps
+*.log
+dump_console.py
+extract_and_check.js
+extracted_script.js
+take_screenshot.js
+screenshot*.png
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.agents/
