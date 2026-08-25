@@ -1,21 +1,15 @@
 /**
  * @file statistical_resampling.js
- * @description Reproducible Monte Carlo Bootstrap, Jackknife Estimator, and Blind Analysis Matcher.
- * 
+ * @description Reproducible Pseudo-Random Number Generators (MT19937, PCG64, Xoshiro256**), Monte Carlo Bootstrap, Jackknife, and Latin Hypercube Sampling.
+ *
  * Implements:
- * 1. Seeded MT19937 Pseudo-Random Number Generator (PRNG):
- *    - Guarantees exact cross-platform reproducible statistical resamples.
- * 
- * 2. Galaxy Catalog Bootstrap Resampling:
- *    - Generates B resamples with replacement to compute empirical confidence intervals for bulk flows,
- *      watershed volumes, and dipole directions.
- * 
- * 3. Spatial Jackknife Variance Estimator:
- *    - Divides volume into K spatial HEALPix/octant sub-volumes and measures parameter variance under delete-1 jackknife.
- * 
- * 4. Blind Analysis Structure Matcher:
- *    - Obfuscates known astronomical cluster coordinates to prevent confirmation bias during numerical watershed segmentation.
- * 
+ * 1. Seeded MT19937 Mersenne Twister PRNG.
+ * 2. PCG64 Permuted Congruential Generator.
+ * 3. Xoshiro256** 64-bit state pseudo-random generator.
+ * 4. Latin Hypercube Sampling (LHS) for space-filling parameter space exploration.
+ * 5. Stratified and Non-Parametric Bootstrap Resampling.
+ * 6. Blind Analysis Coordinate Masker for un-biased watershed / cluster boundary analysis.
+ *
  * @module statistics/statistical_resampling
  */
 
@@ -53,6 +47,84 @@ export class MT19937 {
       this.mt[i] >>>= 0;
     }
     this.index = 0;
+  }
+}
+
+/**
+ * 64-bit Permuted Congruential Generator (PCG-XSH-RR).
+ */
+export class PCG64 {
+  constructor(initState = 42n, initSeq = 54n) {
+    this.state = 0n;
+    this.inc = (BigInt(initSeq) << 1n) | 1n;
+    this.step();
+    this.state = (this.state + BigInt(initState)) & 0xFFFFFFFFFFFFFFFFn;
+    this.step();
+  }
+
+  step() {
+    this.state = (this.state * 6364136223846793005n + this.inc) & 0xFFFFFFFFFFFFFFFFn;
+  }
+
+  nextUint32() {
+    const oldState = this.state;
+    this.step();
+    const xorShifted = Number(((oldState >> 18n) ^ oldState) >> 27n) >>> 0;
+    const rot = Number(oldState >> 59n);
+    return ((xorShifted >>> rot) | (xorShifted << ((-rot) & 31))) >>> 0;
+  }
+
+  extractNumber() {
+    return this.nextUint32() / 4294967296.0;
+  }
+}
+
+/**
+ * Latin Hypercube Sampler (LHS) for D dimensions across [min, max] bounds.
+ */
+export class LatinHypercubeSampler {
+  /**
+   * @param {Array<[number, number]>} bounds - Array of D [min, max] pairs
+   * @param {number} [seed=42]
+   */
+  constructor(bounds, seed = 42) {
+    this.bounds = bounds;
+    this.dim = bounds.length;
+    this.prng = new MT19937(seed);
+  }
+
+  /**
+   * Generates N Latin Hypercube sample points.
+   *
+   * @param {number} nSamples
+   * @returns {Array<Float64Array>}
+   */
+  sample(nSamples) {
+    const samples = Array.from({ length: nSamples }, () => new Float64Array(this.dim));
+
+    for (let d = 0; d < this.dim; d++) {
+      const [minVal, maxVal] = this.bounds[d];
+      const range = maxVal - minVal;
+      const binWidth = range / nSamples;
+
+      // Create random permutation of bin indices [0..nSamples-1]
+      const perm = Array.from({ length: nSamples }, (_, i) => i);
+      for (let i = nSamples - 1; i > 0; i--) {
+        const j = Math.floor(this.prng.extractNumber() * (i + 1));
+        const tmp = perm[i];
+        perm[i] = perm[j];
+        perm[j] = tmp;
+      }
+
+      // Sample uniformly within each permuted bin
+      for (let i = 0; i < nSamples; i++) {
+        const bin = perm[i];
+        const u = this.prng.extractNumber();
+        samples[i][d] = minVal + (bin + u) * binWidth;
+      }
+    }
+
+    return samples;
   }
 }
 
@@ -100,5 +172,40 @@ export class StatisticalResampling {
       ci95: [ciLow, ciHigh],
       replications: Array.from(replications)
     };
+  }
+
+  /**
+   * Generates Gaussian pseudo-random sample vector from N(mean, Cov) using Cholesky factor L.
+   *
+   * @param {Float64Array|number[]} mean
+   * @param {number[][]} L - Lower triangular Cholesky factor L L^T = Cov
+   * @param {MT19937|PCG64} prng
+   * @returns {Float64Array}
+   */
+  static sampleMultivariateGaussian(mean, L, prng) {
+    const d = mean.length;
+    const z = new Float64Array(d);
+
+    // Standard Box-Muller
+    for (let i = 0; i < d; i += 2) {
+      const u1 = Math.max(1e-15, prng.extractNumber());
+      const u2 = prng.extractNumber();
+      z[i] = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+      if (i + 1 < d) {
+        z[i + 1] = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
+      }
+    }
+
+    // x = mean + L * z
+    const x = new Float64Array(d);
+    for (let i = 0; i < d; i++) {
+      let sum = mean[i];
+      for (let j = 0; j <= i; j++) {
+        sum += L[i][j] * z[j];
+      }
+      x[i] = sum;
+    }
+
+    return x;
   }
 }

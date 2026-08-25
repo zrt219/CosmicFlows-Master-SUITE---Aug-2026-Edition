@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Automated Test Suite for eROSITA Multi-Wavelength Hot Gas Overlays (R3)
 
@@ -54,7 +54,8 @@ class TestErositaOverlaysStructure:
         """Verify erositaGroup / hot gas mesh group is added to Three.js scene."""
         res = cdp.evaluate("""
         (function() {
-            const eroGroup = window.erositaGroup || (scene && scene.children.find(c => c.name === 'erositaGroup' || c.name === 'erositaGasGroup'));
+            const s = window.scene || window.cosmicflows.scene;
+            const eroGroup = window.erositaGroup || (s && s.children.find(c => c.name === 'erositaGroup' || c.name === 'erositaGasGroup'));
             if (!eroGroup) return { found: false };
             return {
                 found: true,
@@ -157,15 +158,17 @@ class TestErositaDualThemeShaders:
         (function() {
             // Switch to white mode
             window.toggleTheme('white');
-            const eroGroup = window.erositaGroup || (scene && scene.children.find(c => c.name === 'erositaGroup'));
+            // Re-fetch erositaGroup after rebuild (buildErositaOverlays creates a new group)
+            let eroGroup = window.erositaGroup;
             let whiteBlending = null;
             if (eroGroup && eroGroup.children.length > 0) {
                 const mat = eroGroup.children[0].material;
                 whiteBlending = mat ? mat.blending : null;
             }
             
-            // Switch to dark mode
+            // Switch to dark mode — must re-fetch reference after rebuild
             window.toggleTheme('dark');
+            eroGroup = window.erositaGroup;
             let darkBlending = null;
             if (eroGroup && eroGroup.children.length > 0) {
                 const mat = eroGroup.children[0].material;
@@ -190,8 +193,9 @@ class TestErositaMemoryAndDisposal:
         res = cdp.evaluate("""
         (function() {
             const ero = window.cosmicflows.erosita;
-            const geo0 = renderer ? renderer.info.memory.geometries : 0;
-            const tex0 = renderer ? renderer.info.memory.textures : 0;
+            const r = window.renderer || window.cosmicflows.renderer;
+            const geo0 = r ? r.info.memory.geometries : 0;
+            const tex0 = r ? r.info.memory.textures : 0;
             
             for (let i = 0; i < 10; i++) {
                 ero.setVisible(false);
@@ -199,8 +203,8 @@ class TestErositaMemoryAndDisposal:
                 if (ero.rebuild) ero.rebuild();
             }
             
-            const geo1 = renderer ? renderer.info.memory.geometries : 0;
-            const tex1 = renderer ? renderer.info.memory.textures : 0;
+            const geo1 = r ? r.info.memory.geometries : 0;
+            const tex1 = r ? r.info.memory.textures : 0;
             
             return {
                 geo0: geo0,
@@ -214,3 +218,4 @@ class TestErositaMemoryAndDisposal:
         """)
         assert res["geoDelta"] <= 2, f"Geometries must not leak across rebuilds: delta={res['geoDelta']}"
         assert res["texDelta"] <= 1, f"Textures must not leak across rebuilds: delta={res['texDelta']}"
+

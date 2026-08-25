@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 import time
 import socket
 import threading
@@ -53,10 +53,21 @@ def cdp_session():
 def cdp(cdp_session):
     """
     Function-scoped fixture wrapping session CDP client.
-    Clears logs before test and checks for fatal errors.
+    Clears logs before test and ensures page health.
     """
     cdp_session.clear_logs() if hasattr(cdp_session, 'clear_logs') else None
+    try:
+        is_ready = cdp_session.evaluate("!!(window.cosmicflows && window.cosmicflows.timeEngine)")
+    except Exception:
+        is_ready = False
+
+    if not is_ready:
+        cdp_session.send_cdp("Page.navigate", {"url": "http://localhost:8000"})
+        cdp_session.wait_for_condition("document.readyState === 'complete' && !!(window.cosmicflows && window.cosmicflows.timeEngine)", timeout=10.0)
+        time.sleep(0.5)
+
     yield cdp_session
     # Assert no uncaught JS exceptions
     if cdp_session.uncaught_exceptions:
         pytest.fail(f"Uncaught JavaScript exceptions: {cdp_session.uncaught_exceptions}")
+

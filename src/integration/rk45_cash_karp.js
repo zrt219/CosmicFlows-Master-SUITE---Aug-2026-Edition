@@ -492,6 +492,10 @@ export class RK45CashKarpIntegrator {
     });
   }
 
+  integrate(fieldFn, seedPos, overrideOptions = {}) {
+    return this.trace(fieldFn, seedPos, overrideOptions);
+  }
+
   trace(fieldFn, seedPos, overrideOptions = {}) {
     const opts = {
       initialStep: this.initialStep,

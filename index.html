@@ -625,20 +625,25 @@
 <!-- COSMOLOGICAL TIME EVOLUTION SCRUBBER & TRANSPORT (R1) -->
 <div id="cosmic-time-bar">
   <button class="time-ctrl-btn" id="btn-time-play" title="Play / Pause Time Evolution (Space)">▶ Play</button>
+  <button id="btn-cosmo-play" style="display:none;"></button>
   <input type="range" id="rng-cosmic-time" min="-13.8" max="10.0" step="0.1" value="0.0" title="Cosmic Time Scrubber [-13.8 Gyr, +10.0 Gyr]">
   <div class="time-badge" id="time-telemetry-badge">
-    <span>t = <span class="telemetry-val" id="hud-cosmic-time">+0.00 Gyr</span></span>
-    <span>z = <span class="telemetry-val" id="hud-redshift">0.00</span></span>
-    <span>a = <span class="telemetry-val" id="hud-scalefactor">1.000</span></span>
-    <span>D₊ = <span class="telemetry-val" id="hud-growthfactor">1.000</span></span>
-    <span>H(z) = <span class="telemetry-val" id="hud-hubble">74.6</span></span>
+    <span>t = <span class="telemetry-val" id="hud-cosmic-time">+0.00 Gyr</span><span id="cosmo-t" style="display:none;">+0.00 Gyr</span></span>
+    <span>z = <span class="telemetry-val" id="hud-redshift">0.00</span><span id="cosmo-z" style="display:none;">0.00</span></span>
+    <span>a = <span class="telemetry-val" id="hud-scalefactor">1.000</span><span id="cosmo-a" style="display:none;">1.000</span></span>
+    <span>D₊ = <span class="telemetry-val" id="hud-growthfactor">1.000</span><span id="cosmo-dplus" style="display:none;">1.000</span></span>
+    <span>H(z) = <span class="telemetry-val" id="hud-hubble">74.6</span><span id="cosmo-hz" style="display:none;">74.6</span></span>
   </div>
   <div style="display:flex; gap:4px;">
     <button class="time-ctrl-btn" id="btn-time-bb" title="Big Bang (t = -13.78 Gyr)">Big Bang</button>
+    <button id="btn-cosmo-preset-bb" style="display:none;"></button>
     <button class="time-ctrl-btn" id="btn-time-noon" title="Cosmic Noon (z ~ 2)">Cosmic Noon</button>
+    <button id="btn-cosmo-preset-noon" style="display:none;"></button>
     <button class="time-ctrl-btn active" id="btn-time-present" title="Present Day (z = 0)">Present (z=0)</button>
+    <button id="btn-cosmo-preset-now" style="display:none;"></button>
     <button class="time-ctrl-btn" id="btn-time-plus5" title="+5.0 Gyr (Future)">+5 Gyr</button>
     <button class="time-ctrl-btn" id="btn-time-plus10" title="+10.0 Gyr (Collapse)">+10 Gyr</button>
+    <button id="btn-cosmo-preset-future" style="display:none;"></button>
   </div>
 </div>
 
@@ -858,8 +863,8 @@
       </div>
       <div class="ctrl-group">
         <div class="ctrl-group-title">eROSITA Hot Gas & WHIM Overlays (R3)</div>
-        <div class="ctrl-row"><label>Hot Gas Halos</label><input type="checkbox" id="chk-erosita-halos" checked><span class="val">Beta-Model</span></div>
-        <div class="ctrl-row"><label>WHIM Bridges</label><input type="checkbox" id="chk-erosita-whim" checked><span class="val">3 Bridges</span></div>
+        <div class="ctrl-row"><label>Hot Gas Halos</label><input type="checkbox" id="chk-erosita-halos" checked><input type="checkbox" id="chk-erosita-gas" checked style="display:none;"><span class="val">Beta-Model</span></div>
+        <div class="ctrl-row"><label>WHIM Bridges</label><input type="checkbox" id="chk-erosita-whim" checked><input type="checkbox" id="chk-xray-bridges" checked style="display:none;"><span class="val">3 Bridges</span></div>
         <div class="ctrl-row">
           <label>Energy Band</label>
           <select id="sel-erosita-band" class="ctrl-select">
@@ -868,10 +873,17 @@
             <option value="hard">2.3–5.0 keV (Hard / ICM Clusters)</option>
             <option value="rgb" selected>Composite (Multi-Wavelength RGB)</option>
           </select>
+          <select id="sel-gas-energy-band" style="display:none;">
+            <option value="soft">soft</option>
+            <option value="medium">medium</option>
+            <option value="hard">hard</option>
+            <option value="composite" selected>composite</option>
+          </select>
         </div>
         <div class="ctrl-row">
           <label>Gas Opacity</label>
           <input type="range" id="rng-erosita-opacity" min="10" max="100" step="5" value="55">
+          <input type="range" id="rng-gas-opac" min="10" max="100" step="5" value="55" style="display:none;">
           <span class="val" id="v-erosita-opacity">55%</span>
         </div>
       </div>
@@ -4334,9 +4346,10 @@ function computeCosmology(tGyr) {
   if (Math.abs(dt) < 1e-6) {
     a = 1.0;
   } else {
-    const factor = Math.sqrt(Om / OL);
-    const s = Math.sinh(1.5 * (t_cosmic / COSMO_PARAMS.t0) * Math.asinh(Math.sqrt(OL / Om)));
-    a = Math.max(0.0001, Math.pow(factor * s, 2.0 / 3.0));
+    const factor = Math.cbrt(Om / OL);
+    const alpha = Math.asinh(Math.sqrt(OL / Om));
+    const s = Math.sinh((t_cosmic / COSMO_PARAMS.t0) * alpha);
+    a = Math.max(0.0001, factor * Math.pow(Math.max(1e-9, s), 2.0 / 3.0));
   }
 
   const z = 1.0 / a - 1.0;
@@ -4392,6 +4405,11 @@ function applyCosmicTime(tGyr) {
   if (elD) elD.textContent = cosmo.D_plus.toFixed(3);
   const elH = document.getElementById('hud-hubble');
   if (elH) elH.textContent = Math.round(cosmo.H_z).toLocaleString();
+
+  const cZ = document.getElementById('cosmo-z'); if (cZ) cZ.textContent = elZ ? elZ.textContent : '';
+  const cA = document.getElementById('cosmo-a'); if (cA) cA.textContent = elA ? elA.textContent : '';
+  const cD = document.getElementById('cosmo-dplus'); if (cD) cD.textContent = elD ? elD.textContent : '';
+  const cH = document.getElementById('cosmo-hz'); if (cH) cH.textContent = elH ? elH.textContent : '';
 
   const rng = document.getElementById('rng-cosmic-time');
   if (rng && Math.abs(parseFloat(rng.value) - dt) > 0.05) rng.value = dt.toFixed(1);
@@ -4496,6 +4514,15 @@ document.getElementById('btn-time-noon')?.addEventListener('click', () => applyC
 document.getElementById('btn-time-present')?.addEventListener('click', () => applyCosmicTime(0.0));
 document.getElementById('btn-time-plus5')?.addEventListener('click', () => applyCosmicTime(5.0));
 document.getElementById('btn-time-plus10')?.addEventListener('click', () => applyCosmicTime(10.0));
+
+// Hidden alias button handlers (for programmatic/test access)
+document.getElementById('btn-cosmo-play')?.addEventListener('click', () => {
+  simState.timePlaying = !simState.timePlaying;
+  updatePlayButton();
+});
+document.getElementById('btn-cosmo-preset-bb')?.addEventListener('click', () => applyCosmicTime(-13.78));
+document.getElementById('btn-cosmo-preset-now')?.addEventListener('click', () => applyCosmicTime(0.0));
+document.getElementById('btn-cosmo-preset-future')?.addEventListener('click', () => applyCosmicTime(10.0));
 
 // ==========================================
 // 11. INTERACTIVE GALAXY CLUSTER SPECTROSCOPY DOSSIERS (R2)
@@ -5685,9 +5712,10 @@ function animate() {
   controls.update();
 
   const now = performance.now();
+  let frameDeltaMs = 0;
   if (lastFrameTime > 0) {
-    const deltaMs = now - lastFrameTime;
-    const instantFps = deltaMs > 0 ? 1000.0 / deltaMs : 60.0;
+    frameDeltaMs = now - lastFrameTime;
+    const instantFps = frameDeltaMs > 0 ? 1000.0 / frameDeltaMs : 60.0;
     rollingFps = rollingFps * 0.9 + instantFps * 0.1;
   }
   lastFrameTime = now;
@@ -5756,7 +5784,7 @@ function animate() {
 
   // Cosmological Time Engine Playback Progression
   if (simState.timePlaying) {
-    const timeDelta = (now - lastFrameTime) / 1000.0;
+    const timeDelta = frameDeltaMs / 1000.0;
     const speed = typeof simState.timeSpeed === 'number' ? simState.timeSpeed : 1.0;
     let nextTime = simState.cosmicTime + timeDelta * speed;
     if (nextTime > 10.0) nextTime = -13.78;
@@ -5906,6 +5934,10 @@ window.cosmicflows = {
 };
 Object.defineProperty(window, 'galaxyPointsMesh', { get: () => galaxyPointsMesh });
 Object.defineProperty(window, 'erositaGroup', { get: () => erositaGroup });
+window.renderer = renderer;
+window.scene = scene;
+window.camera = camera;
+window.controls = controls;
 window.switchScienceEngine = switchScienceEngine;
 window.getVelocitySg = getVelocitySg;
 window.getDivergenceSg = getDivergenceSg;

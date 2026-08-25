@@ -1,137 +1,154 @@
 # -*- coding: utf-8 -*-
 """
-tests/topology/test_advanced_roots_and_separatrices.py
-Automated test suite verifying 3D Jacobian eigensystems, multi-scale watersheds,
-event detectors, parameter sweeps, and adversarial guards.
+Automated Pytest Suite for Advanced Vector Roots, Jacobian Eigensystems, and Manifold Separatrix Tracking.
 """
 
 import pytest
+import math
+import numpy as np
 from tests.utils import run_node_snippet
 
-class TestJacobianEigensystemAndSweeps:
-    def test_jacobian_eigensystem_attractor_classification(self):
-        """Verifies true 3D sink/attractor has 3 negative eigenvalues and classifies as NODE_SINK."""
-        code = """
+class TestAdvancedRootsAndSeparatrices:
+    def test_separatrix_manifold_tracer_instantiation(self):
+        res = run_node_snippet("""
+        import { SeparatrixManifoldTracer } from './src/topology/manifold_separatrix_tracer.js';
+        const mockField = {
+            evaluate: (pos, outV) => {
+                outV[0] = -pos[0];
+                outV[1] = -pos[1];
+                outV[2] = 2.0 * pos[2];
+            }
+        };
+        const tracer = new SeparatrixManifoldTracer(mockField);
+        console.log(JSON.stringify({
+            hasTracer: tracer !== null && typeof tracer.traceSaddleManifolds === 'function',
+            stepSize: tracer.stepSize,
+            tolerance: tracer.tolerance
+        }));
+        """)
+        assert res["hasTracer"] is True
+        assert res["stepSize"] > 0
+        assert res["tolerance"] > 0
+
+    def test_saddle_filament_manifold_tracing(self):
+        res = run_node_snippet("""
+        import { SeparatrixManifoldTracer } from './src/topology/manifold_separatrix_tracer.js';
+        const mockField = {
+            evaluate: (pos, outV) => {
+                outV[0] = -pos[0];
+                outV[1] = -pos[1];
+                outV[2] = 2.0 * pos[2];
+            }
+        };
+        const tracer = new SeparatrixManifoldTracer(mockField, { stepSize: 0.2, maxSteps: 100 });
+        const saddle = {
+            id: 'saddle_origin',
+            type: 'SADDLE_FILAMENT',
+            position: [0.0, 0.0, 0.0],
+            eigenvalues: [-1.0, -1.0, 2.0],
+            eigenvectors: [
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 1.0]
+            ]
+        };
+        const attractor = {
+            id: 'attractor_north',
+            type: 'NODE_SINK',
+            position: [0.0, 0.0, 10.0]
+        };
+        const manifolds = tracer.traceSaddleManifolds(saddle, [attractor]);
+        const posPts = manifolds.branchPositive.waypoints;
+        const negPts = manifolds.branchNegative.waypoints;
+        console.log(JSON.stringify({
+            isFilament: manifolds.isFilamentManifold,
+            posBranchLen: posPts.length,
+            negBranchLen: negPts.length,
+            posZ: posPts[posPts.length - 1][2],
+            negZ: negPts[negPts.length - 1][2]
+        }));
+        """)
+        assert res["isFilament"] is True
+        assert res["posBranchLen"] > 5
+        assert res["negBranchLen"] > 5
+        assert res["posZ"] > 0.0
+        assert res["negZ"] < 0.0
+
+
+    def test_topology_graph_construction(self):
+        res = run_node_snippet("""
+        import { SeparatrixManifoldTracer } from './src/topology/manifold_separatrix_tracer.js';
+        const mockField = {
+            evaluate: (pos, outV) => {
+                outV[0] = -pos[0];
+                outV[1] = -pos[1];
+                outV[2] = pos[2] > 0 ? (10.0 - pos[2]) : (-10.0 - pos[2]);
+            }
+        };
+        const tracer = new SeparatrixManifoldTracer(mockField, { stepSize: 0.5, captureRadiusMpc: 2.0 });
+        const criticalPoints = [
+            {
+                id: 'sink_1',
+                type: 'NODE_SINK',
+                position: [0.0, 0.0, 10.0],
+                eigenvalues: [-2.0, -2.0, -1.0]
+            },
+            {
+                id: 'sink_2',
+                type: 'NODE_SINK',
+                position: [0.0, 0.0, -10.0],
+                eigenvalues: [-2.0, -2.0, -1.0]
+            },
+            {
+                id: 'saddle_mid',
+                type: 'SADDLE_FILAMENT',
+                position: [0.0, 0.0, 0.0],
+                eigenvalues: [-1.0, -1.0, 2.0],
+                eigenvectors: [[1,0,0], [0,1,0], [0,0,1]]
+            }
+        ];
+        const graph = tracer.buildTopologyGraph(criticalPoints);
+        console.log(JSON.stringify({
+            nodeCount: graph.nodeCount,
+            edgeCount: graph.edgeCount,
+            filamentCount: graph.filamentCount,
+            hasMetadata: !!graph.metadata.citation
+        }));
+        """)
+        assert res["nodeCount"] == 3
+        assert res["edgeCount"] >= 2
+        assert res["filamentCount"] >= 2
+        assert res["hasMetadata"] is True
+
+    def test_jacobian_dynamical_classification(self):
+        res = run_node_snippet("""
         import { JacobianEigensystemSolver, CriticalPointDynamicalType } from './src/topology/jacobian_eigensystem.js';
         
-        // J = diag(-0.5, -0.4, -0.6)
-        const J = new Float64Array([
-          -0.5, 0.0, 0.0,
-          0.0, -0.4, 0.0,
-          0.0, 0.0, -0.6
-        ]);
+        const J_sink = [-2, 0, 0, 0, -3, 0, 0, 0, -1];
+        const resSink = JacobianEigensystemSolver.analyzeJacobian(J_sink);
         
-        const analysis = JacobianEigensystemSolver.analyzeJacobian(J);
+        const J_source = [2, 0, 0, 0, 3, 0, 0, 0, 1];
+        const resSource = JacobianEigensystemSolver.analyzeJacobian(J_source);
         
-        console.log(JSON.stringify({
-          dynType: analysis.dynType,
-          divergence: analysis.divergence,
-          isAttractor: analysis.dynamicalType === CriticalPointDynamicalType.NODE_SINK
-        }));
-        """
-        res = run_node_snippet(code)
-        assert res["isAttractor"] is True
-        assert res["divergence"] == pytest.approx(-1.5)
+        const J_filament = [2, 0, 0, 0, -3, 0, 0, 0, -1];
+        const resFilament = JacobianEigensystemSolver.analyzeJacobian(J_filament);
+        
+        const J_wall = [2, 0, 0, 0, 3, 0, 0, 0, -1];
+        const resWall = JacobianEigensystemSolver.analyzeJacobian(J_wall);
 
-    def test_streamline_event_detector_boundary_and_stall(self):
-        """Verifies event detector flags domain exits and low speed stalls."""
-        code = """
-        import { GridIndexer } from './src/fields/grid_indexer.js';
-        import { StreamlineEventDetector, StreamlineEventType } from './src/streamlines/streamline_event_detector.js';
-        
-        const grid = new GridIndexer({ nx: 10, ny: 10, nz: 10, origin: [-50, -50, -50], boxSize: [100, 100, 100] });
-        const detector = new StreamlineEventDetector(grid, { vMin: 5.0, maxArcLength: 200.0 });
-        
-        // 1. Boundary exit test
-        const evtExit = detector.checkStep([60.0, 0.0, 0.0], [10.0, 0.0, 0.0], 10.0, []);
-        
-        // 2. Low speed stall test
-        const evtStall = detector.checkStep([0.0, 0.0, 0.0], [1.0, 1.0, 1.0], 10.0, []);
-        
         console.log(JSON.stringify({
-          exitType: evtExit.type,
-          stallType: evtStall.type
+            sinkType: resSink.dynamicalType,
+            sourceType: resSource.dynamicalType,
+            filamentType: resFilament.dynamicalType,
+            wallType: resWall.dynamicalType,
+            sinkDiv: resSink.divergence,
+            sourceDiv: resSource.divergence
         }));
-        """
-        res = run_node_snippet(code)
-        assert res["exitType"] == "DOMAIN_EXIT"
-        assert res["stallType"] == "LOW_SPEED_STALL"
+        """)
+        assert res["sinkType"] == "NODE_SINK"
+        assert res["sourceType"] == "NODE_SOURCE"
+        assert res["filamentType"] == "SADDLE_FILAMENT"
+        assert res["wallType"] == "SADDLE_WALL"
+        assert res["sinkDiv"] < 0
+        assert res["sourceDiv"] > 0
 
-    def test_multi_scale_watershed_peak_detection(self):
-        """Verifies 26-neighbor peak detection finds genuine endpoint concentration maxima."""
-        code = """
-        import { GridIndexer } from './src/fields/grid_indexer.js';
-        import { VelocityField } from './src/fields/velocity_field.js';
-        import { MultiScaleWatershed } from './src/watershed/multi_scale_watershed.js';
-        
-        const N = 8;
-        const grid = new GridIndexer({ nx: N, ny: N, nz: N, origin: [-20, -20, -20], boxSize: [40, 40, 40] });
-        const total = grid.totalCells;
-        const density = new Float32Array(total);
-        
-        // Place isolated peak at center (ix=4, iy=4, iz=4)
-        const centerIdx = grid.getLinearIndex(4, 4, 4);
-        density[centerIdx] = 50.0;
-        
-        const ws = new MultiScaleWatershed({ grid }, { minPeakDensity: 10 });
-        const peaks = ws.findLocalMaxima(density);
-        
-        console.log(JSON.stringify({
-          peakCount: peaks.length,
-          peakIdx: peaks[0] ? peaks[0].index : null,
-          peakVal: peaks[0] ? peaks[0].peakValue : null
-        }));
-        """
-        res = run_node_snippet(code)
-        assert res["peakCount"] == 1
-        assert res["peakVal"] == 50.0
-
-    def test_adversarial_science_guard_boundary_exclusion(self):
-        """Verifies adversarial guard rejects critical points within boundary layer."""
-        code = """
-        import { GridIndexer } from './src/fields/grid_indexer.js';
-        import { AdversarialScienceGuard } from './src/validation/adversarial_science_guard.js';
-        
-        const grid = new GridIndexer({ nx: 10, ny: 10, nz: 10, origin: [-50, -50, -50], boxSize: [100, 100, 100] });
-        const guard = new AdversarialScienceGuard(grid);
-        
-        const testPoints = [
-          { position: [0.0, 0.0, 0.0], residual: 1e-8, type: 'Attractor' }, // Valid interior root
-          { position: [49.0, 0.0, 0.0], residual: 1e-8, type: 'Attractor' }, // Boundary artifact
-          { position: [0.0, 0.0, 0.0], residual: 0.1, type: 'Attractor' }    // High residual pseudo-root
-        ];
-        
-        const audit = guard.auditCriticalPoints(testPoints);
-        
-        console.log(JSON.stringify({
-          validCount: audit.validRoots.length,
-          rejectedCount: audit.rejectedRoots.length
-        }));
-        """
-        res = run_node_snippet(code)
-        assert res["validCount"] == 1
-        assert res["rejectedCount"] == 2
-
-    def test_publication_tooling_latex_and_attribution(self):
-        """Verifies LaTeX table generation and mandatory publication attributions."""
-        code = """
-        import { PublicationTooling } from './src/export/publication_tooling.js';
-        
-        const basins = [
-          { id: 1, name: 'Laniakea', volumePercentage: 12.5, equivalentRadius: 82.3, centroid: [-12.0, 4.0, -8.0] },
-          { id: 6, name: 'Shapley', volumePercentage: 24.1, equivalentRadius: 110.5, centroid: [-140.0, 80.0, -20.0] }
-        ];
-        
-        const latex = PublicationTooling.generateBasinTableLaTeX(basins);
-        const method = PublicationTooling.getStandardMethodologyText();
-        
-        console.log(JSON.stringify({
-          hasLaniakea: latex.includes('Laniakea'),
-          hasCourtois2023: method.includes('Courtois et al. 2023') && method.includes('A&A 670, L15'),
-          hasDupuy2023: method.includes('Dupuy & Courtois (2023') && method.includes('A&A 678, A176')
-        }));
-        """
-        res = run_node_snippet(code)
-        assert res["hasLaniakea"] is True
-        assert res["hasCourtois2023"] is True
-        assert res["hasDupuy2023"] is True

@@ -24,9 +24,9 @@ export class ProvActivity {
     this.algorithm = algorithm;
     this.parameters = parameters;
     this.used = [];
-    this.startTime = new Date().toISOString();
-    this.endTime = null;
-    this.wasAssociatedWith = null;
+    this.startTime = parameters.startTime || null;
+    this.endTime = parameters.endTime || null;
+    this.wasAssociatedWith = parameters.wasAssociatedWith || null;
   }
 
   complete() {
@@ -54,6 +54,11 @@ export class LineageGraph {
     return activity;
   }
 
+  recordActivity(id, parameters = {}) {
+    const algorithm = parameters.algorithm || id;
+    return this.addActivity(id, algorithm, parameters);
+  }
+
   recordDerivation(targetEntityId, sourceEntityId, activityId) {
     const target = this.entities.get(targetEntityId);
     const source = this.entities.get(sourceEntityId);
@@ -70,16 +75,19 @@ export class LineageGraph {
     }
   }
 
-  toJSONLD() {
-    return {
+  toJSONLD(options = {}) {
+    const doc = {
       '@context': {
         'prov': 'http://www.w3.org/ns/prov#',
         'zrt': 'https://zrt.science/ontology/cosmicflows#'
       },
       'entities': Array.from(this.entities.values()),
       'activities': Array.from(this.activities.values()),
-      'agents': Array.from(this.agents.values()),
-      'generatedAt': new Date().toISOString()
+      'agents': Array.from(this.agents.values())
     };
+    if (options.includeTimestamp || options.timestamp) {
+      doc.generatedAt = options.timestamp || new Date().toISOString();
+    }
+    return doc;
   }
 }

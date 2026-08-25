@@ -399,6 +399,10 @@ export class RK4Integrator {
    * @param {Array<number>} seedPos
    * @param {Object} [overrideOptions={}]
    */
+  integrate(fieldFn, seedPos, overrideOptions = {}) {
+    return this.trace(fieldFn, seedPos, overrideOptions);
+  }
+
   trace(fieldFn, seedPos, overrideOptions = {}) {
     const opts = {
       dt: this.dt,

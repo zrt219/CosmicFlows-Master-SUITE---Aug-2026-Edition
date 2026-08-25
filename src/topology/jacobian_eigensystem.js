@@ -75,3 +75,30 @@ export class JacobianEigensystemSolver {
     };
   }
 }
+
+export class JacobianEigensystem {
+  diagonalizeSymmetric3x3(S) {
+    let arr;
+    if (Array.isArray(S)) {
+      if (Array.isArray(S[0])) {
+        arr = [S[0][0], S[0][1], S[0][2], S[1][0], S[1][1], S[1][2], S[2][0], S[2][1], S[2][2]];
+      } else {
+        arr = S;
+      }
+    } else {
+      arr = Array.from(S);
+    }
+    const eigen = EigenSystem3D.fromSymmetricMatrix(new Float64Array(arr));
+    const pairs = [
+      { val: eigen.lambda1, vec: eigen.eigenvectors[0] },
+      { val: eigen.lambda2, vec: eigen.eigenvectors[1] },
+      { val: eigen.lambda3, vec: eigen.eigenvectors[2] }
+    ].sort((a, b) => a.val - b.val);
+
+    return {
+      eigenvalues: [pairs[0].val, pairs[1].val, pairs[2].val],
+      eigenvectors: [pairs[0].vec, pairs[1].vec, pairs[2].vec]
+    };
+  }
+}
+
