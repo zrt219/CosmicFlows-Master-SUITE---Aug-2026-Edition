@@ -1,8 +1,8 @@
 /**
  * @file tricubic_interpolator.js
- * @description High-precision 3D Tricubic polynomial field interpolator utilizing
- * 64-point local cubic Hermite splines and Catmull-Rom convolution with C^1 continuous
- * first and second derivatives for cosmological scalar and vector fields.
+ * @description High-precision 3D Tensor-product tricubic Catmull-Rom interpolator
+ * with validated C^1 continuity and analytical within-cell first and second derivatives
+ * for cosmological scalar and vector fields.
  * 
  * Mathematical Formulation:
  * Inside each grid cell (ix, iy, iz) with local normalized coordinates (u, v, w) in [0, 1]^3:

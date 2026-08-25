@@ -1073,7 +1073,7 @@ class TestKineticSanitySuiteAndLinearContinuity:
         res = run_node_eval("""
         import { GridIndexer, BoundaryMode } from './src/fields/grid_indexer.js';
         import { FieldDifferentialOperators } from './src/fields/field_differential_operators.js';
-        import { CF4_VELOCITY_SCALE_FACTOR } from './src/coordinates/scientific_types.js';
+        import { CosmologicalParameters } from './src/coordinates/scientific_types.js';
         
         const grid = new GridIndexer({
           nx: 16, ny: 16, nz: 16,
@@ -1083,7 +1083,8 @@ class TestKineticSanitySuiteAndLinearContinuity:
           boundaryMode: BoundaryMode.PERIODIC
         });
         const total = grid.totalCells;
-        const h0f = CF4_VELOCITY_SCALE_FACTOR; // 52.0 km/s / (Mpc/h)
+        const cosmo = new CosmologicalParameters({ H0: 74.6, omegaM: 0.315, scaleFactorA: 1.0 });
+        const continuityCoeff = cosmo.continuityCoefficient; // a * H0 * f ~ 39.09 km/s/(Mpc/h)
 
         // Generate synthetic gravitational collapse field:
         // Phi = -A * cos(kx*x) * cos(ky*y) * cos(kz*z)
@@ -1113,13 +1114,13 @@ class TestKineticSanitySuiteAndLinearContinuity:
 
               // div(v) = -3 * A * k^2 * cos(kx) * cos(ky) * cos(kz)
               // In linear theory, delta = -div(v) / h0f = (3 * A * k^2 / h0f) * cos(kx) * cos(ky) * cos(kz)
-              density[idx] = (3.0 * A * k * k / h0f) * Math.cos(k * x) * Math.cos(k * y) * Math.cos(k * z);
+              density[idx] = (3.0 * A * k * k / continuityCoeff) * Math.cos(k * x) * Math.cos(k * y) * Math.cos(k * z);
             }
           }
         }
 
         const ops = new FieldDifferentialOperators(grid);
-        const dossier = ops.generateKineticSanityMaps({ vx, vy, vz, density }, { h0f });
+        const dossier = ops.generateKineticSanityMaps({ vx, vy, vz, density }, { cosmology: cosmo });
 
         console.log(JSON.stringify({
           isLinearConsistent: dossier.continuityAudit.isLinearConsistent,
@@ -1141,3 +1142,51 @@ class TestKineticSanitySuiteAndLinearContinuity:
         fractions = res["fractions"]
         total_pct = fractions["voidPct"] + fractions["sheetPct"] + fractions["filamentPct"] + fractions["knotPct"]
         assert math.isclose(total_pct, 100.0, rel_tol=1e-5)
+
+class TestTricubicC1FaceCrossingAndConvergence:
+    """Tests rigorous C^1 face-crossing continuity and analytical derivative agreement for Tricubic Catmull-Rom."""
+
+    def test_c1_face_crossing_continuity(self):
+        """Verify f(x^-) ~= f(x^+) and grad(f)(x^-) ~= grad(f)(x^+) across voxel boundaries."""
+        res = run_node_eval("""
+        import { GridIndexer, BoundaryMode } from './src/fields/grid_indexer.js';
+        import { TricubicInterpolator } from './src/interpolation/tricubic_interpolator.js';
+
+        const grid = new GridIndexer({
+          nx: 8, ny: 8, nz: 8,
+          origin: [-20, -20, -20],
+          boxSize: [40, 40, 40],
+          boundaryMode: BoundaryMode.CLAMP
+        });
+        const total = grid.totalCells;
+        const data = new Float64Array(total);
+
+        for (let i = 0; i < total; i++) {
+          const [ix, iy, iz] = grid.get3DIndices(i);
+          const [x, y, z] = grid.getNodeCoord(ix, iy, iz);
+          data[i] = Math.sin(0.15 * x) * Math.cos(0.15 * y) + 0.1 * z;
+        }
+
+        const tri = new TricubicInterpolator(grid, data);
+
+        // Test across internal cell boundary at x = 0.0 (between cell ix=3 and ix=4)
+        const eps = 1e-5;
+        const y = 2.5, z = -1.5;
+
+        const valMinus = tri.interpolate(data, 0.0 - eps, y, z);
+        const valPlus = tri.interpolate(data, 0.0 + eps, y, z);
+
+        const gradMinus = tri.interpolateGradient(data, 0.0 - eps, y, z);
+        const gradPlus = tri.interpolateGradient(data, 0.0 + eps, y, z);
+
+        console.log(JSON.stringify({
+          valJump: Math.abs(valPlus - valMinus),
+          gradXJump: Math.abs(gradPlus[0] - gradMinus[0]),
+          gradYJump: Math.abs(gradPlus[1] - gradMinus[1]),
+          gradZJump: Math.abs(gradPlus[2] - gradMinus[2])
+        }));
+        """)
+        assert res["valJump"] < 1e-4, f"C0 jump across face: {res['valJump']}"
+        assert res["gradXJump"] < 1e-3, f"C1 normal derivative jump across face: {res['gradXJump']}"
+        assert res["gradYJump"] < 1e-3, f"C1 tangential derivative jump across face: {res['gradYJump']}"
+        assert res["gradZJump"] < 1e-3, f"C1 tangential derivative jump across face: {res['gradZJump']}"

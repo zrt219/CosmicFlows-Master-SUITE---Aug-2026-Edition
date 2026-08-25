@@ -222,48 +222,54 @@
   #dark-telemetry-hud .hud-row { display: flex; gap: 12px; }
   #dark-telemetry-hud .hud-val { color: var(--accent-cyan); font-weight: 700; font-family: ui-monospace, "SF Mono", monospace; }
 
-  /* 8-TAB FLOATING SCIENCE & LAYER DRAWER */
+  /* 10-TAB FLOATING SCIENCE & LAYER DRAWER */
   #panel {
-    position: absolute; top: 92px; left: 20px;
-    width: 520px;
+    position: absolute; top: 76px; left: 16px;
+    width: 480px; max-width: calc(100vw - 32px);
     background: var(--panel-bg);
     border: 1.5px solid var(--panel-border);
     border-radius: 10px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.6);
+    box-shadow: 0 16px 45px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.6);
     backdrop-filter: blur(24px);
-    z-index: 12;
-    max-height: calc(100vh - 170px);
+    z-index: 35;
+    max-height: calc(100vh - 140px);
     display: flex; flex-direction: column;
+    overflow: hidden;
     transition: transform 0.25s ease, opacity 0.25s ease;
   }
   .panel-top {
-    padding: 13px 18px; display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 16px; display: flex; align-items: center; justify-content: space-between;
     background: var(--panel-header); border-bottom: 1.5px solid var(--panel-border);
-    border-radius: 9px 9px 0 0;
+    border-radius: 9px 9px 0 0; flex-shrink: 0;
   }
   .panel-top h2 {
-    font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--text-bright); font-weight: 800; display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-bright); font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;
   }
   .panel-top button {
     background: var(--panel-bg); border: 1.5px solid var(--panel-border); color: var(--text-bright);
-    border-radius: 5px; cursor: pointer; font-size: 15px; padding: 4px 10px; font-weight: 800;
+    border-radius: 5px; cursor: pointer; font-size: 14px; padding: 2px 9px; font-weight: 800;
   }
   .panel-top button:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 
-  /* TABS BAR: 5x2 Clean Grid */
+  #panel-body {
+    display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
+  }
+
+  /* TABS BAR: 5x2 Clean Responsive Grid */
   .tabs {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-    padding: 9px;
+    gap: 4px;
+    padding: 7px;
     background: var(--panel-header);
     border-bottom: 1.5px solid var(--panel-border);
+    flex-shrink: 0;
   }
   .tab-btn {
-    padding: 8px 4px; font-family: inherit; font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.04em; background: rgba(0,0,0,0.08); border: 1.5px solid var(--panel-border);
-    border-radius: 6px; color: var(--text-main); cursor: pointer; transition: all 0.15s ease;
+    padding: 7px 2px; font-family: inherit; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.03em; background: rgba(0,0,0,0.08); border: 1.5px solid var(--panel-border);
+    border-radius: 5px; color: var(--text-main); cursor: pointer; transition: all 0.15s ease;
     text-align: center; white-space: nowrap; font-weight: 700;
   }
   .tab-btn:hover { color: var(--text-bright); border-color: var(--accent-cyan); background: rgba(2, 132, 199, 0.16); }
@@ -275,7 +281,7 @@
 
   /* TAB CONTENT PANES */
   .tab-content {
-    padding: 18px 20px; overflow-y: auto; flex: 1; max-height: 560px;
+    padding: 14px 16px; overflow-y: auto; flex: 1; min-height: 0;
   }
   .tab-content::-webkit-scrollbar { width: 7px; }
   .tab-content::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
@@ -283,26 +289,26 @@
   .pane.active { display: block; }
 
   /* CONTROL ROWS */
-  .ctrl-group { margin-bottom: 18px; }
+  .ctrl-group { margin-bottom: 16px; }
   .ctrl-group-title {
-    font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-bright);
-    margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; font-weight: 800;
+    font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-bright);
+    margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; font-weight: 800;
     border-bottom: 1px solid var(--panel-border); padding-bottom: 4px;
   }
   .ctrl-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; font-size: 13px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; font-size: 13px;
   }
   .ctrl-row label { color: var(--text-bright); flex: 1; font-weight: 700; white-space: nowrap; font-size: 13px; }
   .ctrl-row input[type=range] {
     flex: 1.2; accent-color: var(--accent-cyan); height: 6px; background: rgba(125,140,160,0.3); border-radius: 3px; cursor: pointer;
   }
   .ctrl-row .val {
-    width: auto; min-width: 60px; text-align: right; color: var(--accent-cyan); font-variant-numeric: tabular-nums;
+    width: auto; min-width: 55px; text-align: right; color: var(--accent-cyan); font-variant-numeric: tabular-nums;
     font-size: 13px; flex-shrink: 0; font-weight: 800; white-space: nowrap; font-family: ui-monospace, "SF Mono", monospace;
   }
   .ctrl-row select, .ctrl-select {
     flex: 1; background: var(--panel-bg); border: 1.5px solid var(--panel-border); color: var(--text-bright);
-    font-family: inherit; font-size: 12.5px; padding: 7px 10px; border-radius: 5px; outline: none; font-weight: 700;
+    font-family: inherit; font-size: 12px; padding: 6px 9px; border-radius: 5px; outline: none; font-weight: 700;
   }
   .ctrl-row input[type=checkbox] {
     accent-color: var(--accent-cyan); cursor: pointer; width: 18px; height: 18px;
@@ -310,8 +316,8 @@
 
   button.action-btn {
     background: var(--panel-header); border: 1.5px solid var(--panel-border); color: var(--text-bright);
-    font-family: inherit; font-size: 12px; letter-spacing: 0.03em; text-transform: uppercase;
-    padding: 9px 12px; border-radius: 5px; cursor: pointer; transition: all 0.15s;
+    font-family: inherit; font-size: 11.5px; letter-spacing: 0.03em; text-transform: uppercase;
+    padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: all 0.15s;
     text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;
     font-weight: 800;
   }
@@ -321,10 +327,10 @@
 
   /* EPISTEMIC LEGEND FOOTER */
   #epistemic-bar {
-    position: absolute; bottom: 8px; left: 24px; z-index: 10;
-    display: flex; gap: 12px; font-size: 8px; color: var(--text-dim);
+    position: absolute; bottom: 12px; left: 16px; z-index: 10;
+    display: flex; gap: 10px; font-size: 8.5px; color: var(--text-dim);
     background: var(--panel-bg); border: 1px solid var(--panel-border);
-    padding: 3px 10px; border-radius: 3px; backdrop-filter: blur(8px);
+    padding: 4px 10px; border-radius: 4px; backdrop-filter: blur(8px);
   }
   #epistemic-bar span b { color: var(--text-bright); }
 
@@ -394,21 +400,22 @@
 
   /* BOTTOM-RIGHT CINEMATIC CAMERA HUD */
   #cam-shortcuts {
-    position: absolute; bottom: 20px; right: 20px; z-index: 10;
-    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+    position: absolute; bottom: 12px; right: 16px; z-index: 20;
+    display: flex; flex-direction: column; gap: 4px; align-items: flex-end;
+    pointer-events: auto;
   }
-  .cam-btn-row { display: flex; gap: 5px; }
+  .cam-btn-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
   .cam-btn {
-    background: var(--panel-bg); border: 1px solid var(--panel-border); color: var(--text-dim);
-    font-family: inherit; font-size: 8.5px; padding: 5px 9px; border-radius: 3px; cursor: pointer;
-    backdrop-filter: blur(8px); transition: all 0.15s; font-weight: 700;
+    background: var(--panel-bg); border: 1.5px solid var(--panel-border); color: var(--text-bright);
+    font-family: inherit; font-size: 9.5px; padding: 4px 8px; border-radius: 4px; cursor: pointer;
+    backdrop-filter: blur(10px); transition: all 0.15s; font-weight: 700;
   }
-  .cam-btn:hover { color: var(--text-bright); border-color: var(--accent-cyan); background: var(--panel-header); }
-  .cam-btn.nature-hero { border-color: #0284c7; color: #0284c7; font-weight: 800; background: rgba(2, 132, 199, 0.08); }
+  .cam-btn:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); background: var(--panel-header); }
+  .cam-btn.nature-hero { border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800; background: rgba(2, 132, 199, 0.12); }
   #kbd-legend {
-    font-size: 8px; color: var(--text-dim); text-align: right; line-height: 1.6; opacity: 0.85;
+    font-size: 8px; color: var(--text-dim); text-align: right; line-height: 1.5; opacity: 0.85;
   }
-  #kbd-legend kbd { border: 1px solid var(--panel-border); border-radius: 2px; padding: 0 4px; color: var(--text-bright); }
+  #kbd-legend kbd { border: 1px solid var(--panel-border); border-radius: 2px; padding: 0 3px; color: var(--text-bright); }
 
   /* LOADING */
   #loading {
@@ -419,25 +426,28 @@
 
   /* COSMOLOGICAL TIME TRANSPORT BAR (R1) */
   #cosmic-time-bar {
-    position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-    z-index: 20; display: flex; align-items: center; gap: 10px;
-    background: var(--panel-bg); border: 1px solid var(--panel-border);
-    padding: 7px 18px; border-radius: 30px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.18); backdrop-filter: blur(16px);
-    transition: all 0.25s ease;
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    z-index: 20; display: flex; align-items: center; gap: 8px;
+    background: var(--panel-bg); border: 1.5px solid var(--panel-border);
+    padding: 5px 14px; border-radius: 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2); backdrop-filter: blur(16px);
+    transition: all 0.25s ease; white-space: nowrap;
   }
   .time-badge {
-    font-size: 8.5px; font-weight: 700; color: var(--accent-cyan);
+    font-size: 9px; font-weight: 700; color: var(--accent-cyan);
     letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
-    display: flex; gap: 8px; align-items: center;
+    display: flex; gap: 6px; align-items: center;
   }
   .time-badge span.telemetry-val { color: var(--text-bright); font-weight: 800; }
   .time-ctrl-btn {
     background: var(--panel-header); border: 1px solid var(--panel-border);
-    color: var(--text-bright); font-family: inherit; font-size: 8.5px;
-    padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 700;
+    color: var(--text-bright); font-family: inherit; font-size: 9px;
+    padding: 3px 7px; border-radius: 4px; cursor: pointer; font-weight: 700;
     transition: all 0.15s;
   }
+  .time-ctrl-btn:hover { border-color: var(--accent-cyan); }
+  .time-ctrl-btn.active { background: rgba(2, 132, 199, 0.18); border-color: var(--accent-cyan); }
+  #rng-cosmic-time { width: 120px; cursor: pointer; accent-color: var(--accent-cyan); }
   .time-ctrl-btn:hover { border-color: var(--accent-cyan); }
   .time-ctrl-btn.active { background: rgba(2, 132, 199, 0.18); border-color: var(--accent-cyan); }
   #rng-cosmic-time { width: 130px; cursor: pointer; accent-color: var(--accent-cyan); }
@@ -684,20 +694,21 @@
     <button id="btn-collapse" title="Collapse Panel">−</button>
   </div>
   
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="tab-engines">Engines</button>
-    <button class="tab-btn" data-tab="tab-labels">Labels</button>
-    <button class="tab-btn" data-tab="tab-galaxies">Data</button>
-    <button class="tab-btn" data-tab="tab-structures">Structures</button>
-    <button class="tab-btn" data-tab="tab-bulk">Bulk Flow</button>
-    <button class="tab-btn" data-tab="tab-tfr">TFR</button>
-    <button class="tab-btn" data-tab="tab-sandbox">Sandbox</button>
-    <button class="tab-btn" data-tab="tab-slices">Slices</button>
-    <button class="tab-btn" data-tab="tab-streamlines">Flow</button>
-    <button class="tab-btn" data-tab="tab-compute">Compute</button>
-  </div>
+  <div id="panel-body">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-engines">Engines</button>
+      <button class="tab-btn" data-tab="tab-labels">Labels</button>
+      <button class="tab-btn" data-tab="tab-galaxies">Data</button>
+      <button class="tab-btn" data-tab="tab-structures">Structures</button>
+      <button class="tab-btn" data-tab="tab-bulk">Bulk Flow</button>
+      <button class="tab-btn" data-tab="tab-tfr">TFR</button>
+      <button class="tab-btn" data-tab="tab-sandbox">Sandbox</button>
+      <button class="tab-btn" data-tab="tab-slices">Slices</button>
+      <button class="tab-btn" data-tab="tab-streamlines">Flow</button>
+      <button class="tab-btn" data-tab="tab-compute">Compute</button>
+    </div>
 
-  <div class="tab-content" id="panel-body">
+    <div class="tab-content">
     
     <!-- TAB 1: SCIENTIFIC ENGINES & COMPARATOR -->
     <div class="pane active" id="tab-engines">
@@ -886,6 +897,7 @@
         </div>
         <div class="ctrl-row" style="margin-top:6px;"><label>3D Dipole Vector</label><input type="checkbox" id="chk-bulk-arrow" checked><span class="val">Resultant</span></div>
       </div>
+    </div>
 
     <!-- TAB 5: SANDBOX ("WHAT-IF") -->
     <div class="pane" id="tab-sandbox">
@@ -1289,6 +1301,7 @@
       </div>
     </div>
 
+    </div>
   </div>
 </div>
 
@@ -4046,9 +4059,10 @@ document.querySelectorAll('.cam-btn').forEach(btn => {
 // Panel Collapse
 const panelBody = document.getElementById('panel-body');
 const btnCollapse = document.getElementById('btn-collapse');
-btnCollapse.addEventListener('click', () => {
+btnCollapse?.addEventListener('click', () => {
+  if (!panelBody) return;
   if (panelBody.style.display === 'none') {
-    panelBody.style.display = 'block';
+    panelBody.style.display = 'flex';
     btnCollapse.textContent = '−';
   } else {
     panelBody.style.display = 'none';

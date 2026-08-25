@@ -32,7 +32,8 @@ import {
   EigenSystem3D,
   RunManifest,
   ScientificUnits,
-  CF4_VELOCITY_SCALE_FACTOR,
+  CF4_PUBLIC_VELOCITY_SCALE,
+  CosmologicalParameters,
   sha256Hex
 } from '../coordinates/scientific_types.js';
 
@@ -446,20 +447,18 @@ export class FieldDifferentialOperators {
   }
 
   /**
-   * Computes discrete 3D kinetic energy density grid:
-   *   E_k = 0.5 * rho_bar * (1 + delta) * ||v||^2 in (M_sun / (Mpc/h)^3) * (km/s)^2.
+   * Computes discrete specific kinetic energy grid: e_k = 0.5 * ||v||^2 in (km/s)^2.
+   * When delta is provided without background mass density rho_bar, computes density-weighted proxy:
+   *   e_k_weighted = 0.5 * (1 + delta) * ||v||^2.
    * 
    * @param {Float32Array|Float64Array} vxBuffer
    * @param {Float32Array|Float64Array} vyBuffer
    * @param {Float32Array|Float64Array} vzBuffer
-   * @param {Float32Array|Float64Array} [densityBuffer] Optional density contrast delta. If null, uniform delta=0 is assumed.
-   * @param {number} [omegaM=0.31] Matter density parameter.
-   * @returns {Float64Array} Kinetic energy density grid.
+   * @param {Float32Array|Float64Array} [densityBuffer] Optional density contrast delta.
+   * @returns {Float64Array} Specific kinetic energy grid in (km/s)^2.
    */
-  computeKineticEnergyGrid(vxBuffer, vyBuffer, vzBuffer, densityBuffer = null, omegaM = 0.31) {
+  computeSpecificKineticEnergyGrid(vxBuffer, vyBuffer, vzBuffer, densityBuffer = null) {
     const total = this.grid.totalCells;
-    const RHO_CRIT_0 = 2.77536627e11; // M_sun / (Mpc/h)^3
-    const rhoBar = omegaM * RHO_CRIT_0;
     const energy = new Float64Array(total);
 
     for (let i = 0; i < total; i++) {
@@ -467,12 +466,36 @@ export class FieldDifferentialOperators {
       const vy = vyBuffer[i];
       const vz = vzBuffer[i];
       const vSq = vx * vx + vy * vy + vz * vz;
-      const delta = densityBuffer ? Math.max(-1.0, densityBuffer[i]) : 0.0;
-      const rho = rhoBar * (1.0 + delta);
-      energy[i] = 0.5 * rho * vSq;
+      const weight = densityBuffer ? (1.0 + Math.max(-1.0, densityBuffer[i])) : 1.0;
+      energy[i] = 0.5 * weight * vSq;
     }
 
     return energy;
+  }
+
+  /**
+   * Computes physical kinetic energy density grid: E_k = 0.5 * rho_bar * (1 + delta) * ||v||^2
+   * in (M_sun / (Mpc/h)^3) * (km/s)^2 requiring explicit background cosmology.
+   */
+  computePhysicalKineticEnergyDensityGrid(vxBuffer, vyBuffer, vzBuffer, densityBuffer = null, omegaM = 0.315) {
+    const total = this.grid.totalCells;
+    const RHO_CRIT_0 = 2.77536627e11; // M_sun / (Mpc/h)^3
+    const rhoBar = omegaM * RHO_CRIT_0;
+    const specificKE = this.computeSpecificKineticEnergyGrid(vxBuffer, vyBuffer, vzBuffer, densityBuffer);
+    const energyDensity = new Float64Array(total);
+
+    for (let i = 0; i < total; i++) {
+      energyDensity[i] = rhoBar * specificKE[i];
+    }
+
+    return energyDensity;
+  }
+
+  /**
+   * Alias for backward compatibility.
+   */
+  computeKineticEnergyGrid(vxBuffer, vyBuffer, vzBuffer, densityBuffer = null, omegaM = 0.315) {
+    return this.computePhysicalKineticEnergyDensityGrid(vxBuffer, vyBuffer, vzBuffer, densityBuffer, omegaM);
   }
 
   /**
@@ -517,14 +540,15 @@ export class FieldDifferentialOperators {
   }
 
   /**
-   * Computes discrete Okubo-Weiss criterion grid: Q = 0.25 * (||omega||^2 - 2 * ||S||^2).
+   * Computes discrete 3D Q-criterion grid: Q = 0.5 * (||Omega||^2 - ||S||^2)
+   * where Omega is the antisymmetric vorticity tensor and S is the symmetric strain tensor.
    * 
    * @param {Float32Array|Float64Array} vxBuffer
    * @param {Float32Array|Float64Array} vyBuffer
    * @param {Float32Array|Float64Array} vzBuffer
-   * @returns {Float64Array} Okubo-Weiss parameter grid.
+   * @returns {Float64Array} 3D Q-criterion parameter grid.
    */
-  computeOkuboWeissGrid(vxBuffer, vyBuffer, vzBuffer) {
+  computeQCriterionGrid(vxBuffer, vyBuffer, vzBuffer) {
     const total = this.grid.totalCells;
 
     const dvx_dx = this.discreteDerivative(vxBuffer, 0);
@@ -542,26 +566,32 @@ export class FieldDifferentialOperators {
     const Q = new Float64Array(total);
 
     for (let i = 0; i < total; i++) {
-      // Vorticity
-      const ox = dvz_dy[i] - dvy_dz[i];
-      const oy = dvx_dz[i] - dvz_dx[i];
-      const oz = dvy_dx[i] - dvx_dy[i];
-      const omegaSq = ox * ox + oy * oy + oz * oz;
+      // Antisymmetric vorticity tensor components: Omega_ij = 0.5 * (dv_i/dx_j - dv_j/dx_i)
+      const w01 = 0.5 * (dvx_dy[i] - dvy_dx[i]);
+      const w02 = 0.5 * (dvx_dz[i] - dvz_dx[i]);
+      const w12 = 0.5 * (dvy_dz[i] - dvz_dy[i]);
+      const normOmegaSq = 2.0 * (w01 * w01 + w02 * w02 + w12 * w12);
 
-      // Symmetric Strain S_ij
+      // Symmetric Strain tensor components: S_ij = 0.5 * (dv_i/dx_j + dv_j/dx_i)
       const s00 = dvx_dx[i];
       const s11 = dvy_dy[i];
       const s22 = dvz_dz[i];
       const s01 = 0.5 * (dvx_dy[i] + dvy_dx[i]);
       const s02 = 0.5 * (dvx_dz[i] + dvz_dx[i]);
       const s12 = 0.5 * (dvy_dz[i] + dvz_dy[i]);
+      const normStrainSq = s00 * s00 + s11 * s11 + s22 * s22 + 2.0 * (s01 * s01 + s02 * s02 + s12 * s12);
 
-      const strainSq = s00 * s00 + s11 * s11 + s22 * s22 + 2.0 * (s01 * s01 + s02 * s02 + s12 * s12);
-
-      Q[i] = 0.25 * (omegaSq - 2.0 * strainSq);
+      Q[i] = 0.5 * (normOmegaSq - normStrainSq);
     }
 
     return Q;
+  }
+
+  /**
+   * Alias for computeQCriterionGrid for 3D flows.
+   */
+  computeOkuboWeissGrid(vxBuffer, vyBuffer, vzBuffer) {
+    return this.computeQCriterionGrid(vxBuffer, vyBuffer, vzBuffer);
   }
 
   /**
@@ -678,7 +708,10 @@ export class FieldDifferentialOperators {
     const vy = fields.vy;
     const vz = fields.vz;
     const density = fields.density || null;
-    const h0f = typeof options.h0f === 'number' ? options.h0f : CF4_VELOCITY_SCALE_FACTOR;
+    const cosmo = options.cosmology instanceof CosmologicalParameters 
+      ? options.cosmology 
+      : new CosmologicalParameters(typeof options.h0f === 'number' ? { H0: options.h0f / 0.524 } : {});
+    const continuityCoeff = cosmo.continuityCoefficient;
     const threshold = typeof options.webThreshold === 'number' ? options.webThreshold : 0.0;
 
     const total = this.grid.totalCells;
@@ -720,7 +753,7 @@ export class FieldDifferentialOperators {
       let divSqSum = 0.0;
 
       for (let i = 0; i < total; i++) {
-        const expectedDiv = -h0f * density[i];
+        const expectedDiv = -continuityCoeff * density[i];
         const actualDiv = divergenceGrid[i];
         const res = actualDiv - expectedDiv;
         residualGrid[i] = res;
@@ -734,7 +767,8 @@ export class FieldDifferentialOperators {
       const resStats = new FieldStatistics(residualGrid);
 
       continuityReport = {
-        h0f,
+        continuityCoefficient: continuityCoeff,
+        cosmology: { H0: cosmo.H0, omegaM: cosmo.omegaM, a: cosmo.scaleFactorA, f: cosmo.growthRateF },
         l2Residual,
         l2Divergence: l2Div,
         relativeResidual,
@@ -766,7 +800,9 @@ export class FieldDifferentialOperators {
       runId: `kinetic-sanity-${Date.now()}`,
       algorithmName: 'FieldDifferentialOperators.generateKineticSanityMaps',
       parameters: {
-        h0f,
+        continuityCoefficient: continuityCoeff,
+        H0: cosmo.H0,
+        omegaM: cosmo.omegaM,
         stencilOrder: this.stencilOrder,
         boundaryMode: this.grid.boundaryMode,
         webThreshold: threshold

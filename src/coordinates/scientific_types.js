@@ -136,9 +136,41 @@ export const BASIN_TAXONOMY = Object.freeze({
 });
 
 /**
- * Standard CF4 Wiener Filter velocity scale factor.
+ * Official IP2I CosmicFlows-4 public data product velocity decoding scale factor.
+ * Must be applied exactly once to raw public velocity and velocity-error grids.
+ * NOTE: This is a dataset decoding rule and is NEVER universally identical to H0*f.
+ */
+export const CF4_PUBLIC_VELOCITY_SCALE = 52.0;
+
+/**
+ * Backward-compatible alias for CF4_PUBLIC_VELOCITY_SCALE.
+ * @deprecated Use CF4_PUBLIC_VELOCITY_SCALE.
  */
 export const CF4_VELOCITY_SCALE_FACTOR = 52.0;
+
+/**
+ * Cosmological Parameters container for linear continuity and background dynamics.
+ */
+export class CosmologicalParameters {
+  /**
+   * @param {object} [params]
+   * @param {number} [params.H0=74.6] Hubble parameter H0 in km/s / (Mpc/h) [or km/s/Mpc when h factored].
+   * @param {number} [params.omegaM=0.315] Matter density parameter Omega_m.
+   * @param {number} [params.gamma=0.55] Growth index gamma where f(z) ~ Omega_m(z)^gamma.
+   * @param {number} [params.scaleFactorA=1.0] Scale factor a(t), default 1.0 at present epoch.
+   */
+  constructor(params = {}) {
+    this.H0 = params.H0 !== undefined ? params.H0 : 74.6;
+    this.omegaM = params.omegaM !== undefined ? params.omegaM : 0.315;
+    this.gamma = params.gamma !== undefined ? params.gamma : 0.55;
+    this.scaleFactorA = params.scaleFactorA !== undefined ? params.scaleFactorA : 1.0;
+    this.growthRateF = Math.pow(this.omegaM, this.gamma); // f ~ Omega_m^0.55 ~ 0.524
+    
+    // Linear perturbation theory continuity coefficient: C = a * H * f
+    this.continuityCoefficient = this.scaleFactorA * this.H0 * this.growthRateF;
+    Object.freeze(this);
+  }
+}
 
 /**
  * Validates that a numeric argument is finite and not NaN.
