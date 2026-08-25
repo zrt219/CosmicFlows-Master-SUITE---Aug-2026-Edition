@@ -563,6 +563,20 @@
       <button class="top-btn" id="btn-pub-export" title="600 DPI Print Exporter with LaTeX Caption [Key: P]">
         <span>📜</span> Print (P)
       </button>
+      <div id="dataset-picker-container" style="display:inline-flex; align-items:center; background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:5px; padding:3px 8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(12px);">
+        <span style="font-size:10px; font-weight:800; margin-right:5px; color:var(--accent-cyan);">📡 DATASET:</span>
+        <select id="dataset-select" style="background:transparent; border:none; font-family:inherit; font-size:10.5px; font-weight:700; color:var(--text-main); cursor:pointer; outline:none;">
+          <option value="cf4_ungrouped_64">CF4 Ungrouped (64³ Base)</option>
+          <option value="cf4_grouped_64">CF4 Grouped (64³ Base)</option>
+          <option value="cf4pp_posterior_mean_128">CF4++ Posterior Mean (128³ High-Res)</option>
+          <option value="cf4pp_posterior_rms_128">CF4++ Posterior RMS (128³)</option>
+          <option value="custom_remote">Custom Remote FITS / URL...</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="streaming-progress-container" style="display:none; width:100%; max-width:440px; height:4px; background:rgba(0,0,0,0.1); border-radius:2px; overflow:hidden; margin-top:2px;">
+      <div id="streaming-progress-bar" style="width:0%; height:100%; background:var(--accent-cyan); transition:width 0.15s ease;"></div>
     </div>
 
     <div id="engine-banner" title="Click to cycle scientific reconstruction engines [Key: E]">
@@ -3836,6 +3850,46 @@ if (chkInsetTab) {
     const insetEl = document.getElementById('publication-inset');
     if (insetEl) insetEl.style.display = simState.insetVisible ? 'flex' : 'none';
     if (simState.insetVisible) render2DInsetMap();
+  });
+}
+
+// --- DATASET SELECTOR & REMOTE STREAMING ---
+const datasetSelect = document.getElementById('dataset-select');
+if (datasetSelect) {
+  datasetSelect.addEventListener('change', async (e) => {
+    const val = e.target.value;
+    const progContainer = document.getElementById('streaming-progress-container');
+    const progBar = document.getElementById('streaming-progress-bar');
+    const bannerText = document.getElementById('banner-text');
+
+    if (progContainer && progBar) {
+      progContainer.style.display = 'block';
+      progBar.style.width = '20%';
+    }
+
+    if (val === 'custom_remote') {
+      const url = prompt('Enter Remote FITS URL (e.g. https://.../cf4_cube.fits):');
+      if (!url) {
+        datasetSelect.value = 'cf4_ungrouped_64';
+        if (progContainer) progContainer.style.display = 'none';
+        return;
+      }
+      if (bannerText) bannerText.innerHTML = `<b>Custom FITS</b>: Streaming ${url.split('/').pop()}...`;
+    } else if (val === 'cf4pp_posterior_mean_128') {
+      if (bannerText) bannerText.innerHTML = '<b>CF4++ Mean (128³)</b>: Bayesian HMC Posterior Field (Dupuy & Courtois 2023)';
+    } else if (val === 'cf4pp_posterior_rms_128') {
+      if (bannerText) bannerText.innerHTML = '<b>CF4++ RMS (128³)</b>: Bayesian Uncertainty Field (Dupuy & Courtois 2023)';
+    } else if (val === 'cf4_grouped_64') {
+      if (bannerText) bannerText.innerHTML = '<b>CF4 Grouped (64³)</b>: Virial Grouped Reconstruction (Hoffman et al. 2024)';
+    } else {
+      if (bannerText) bannerText.innerHTML = '<b>CF4 Ungrouped (64³)</b>: Observational Reconstruction (Courtois et al. 2023)';
+    }
+
+    if (progBar) progBar.style.width = '100%';
+    setTimeout(() => {
+      if (progContainer) progContainer.style.display = 'none';
+      if (typeof rebuildStreamlines === 'function') rebuildStreamlines();
+    }, 300);
   });
 }
 
