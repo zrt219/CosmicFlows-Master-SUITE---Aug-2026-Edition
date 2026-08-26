@@ -1374,6 +1374,9 @@ window.onerror = function(msg, url, line, col, error) {
       </button>
             <button class="top-btn" id="btn-tooltip-mode-toggle" data-tooltip="Toggle Tooltip Explainer Mode (Detailed / Minimal / Off)" title="Tooltip Mode"><span>💬</span> <b id="tooltip-mode-label">Tips: ON</b></button>
       <button class="top-btn" id="btn-primer-toggle" data-tooltip="Open Interactive Cosmography Primer & Theory Guide [Key: H]" title="Cosmography Primer [Key: H]"><span>📘</span> <b>Primer (H)</b></button>
+      <button class="top-btn" id="btn-camera-settings-toggle" data-tooltip="Camera navigation controls, presets, speed & accessibility [Key: V]" title="Camera Controls & Presets [Key: V]">
+        <span>🎥</span> <b>Camera (V)</b>
+      </button>
       <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut guide [Key: ?]" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
         <span>⌨️</span> <b>Shortcuts (?)</b>
       </button>
@@ -2842,6 +2845,10 @@ function applyCameraSettings() {
   camera.fov = CAM_SETTINGS.fov;
   camera.updateProjectionMatrix();
 }
+window.CAM_SETTINGS = CAM_SETTINGS;
+window.applyCameraSettings = applyCameraSettings;
+window.setCameraView = setCameraView;
+window.setCameraNatureRefView = setCameraNatureRefView;
 
 function setCameraNatureRefView() {
   setCameraView(new THREE.Vector3(-27000, 20500, 44000), new THREE.Vector3(-500, -800, 0), 1300);
@@ -5987,8 +5994,153 @@ const DOSSIER_LINKS = {
     youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
     youtubeTitle: 'Cosmic Repeller Dynamics in the Local Universe',
     bibtex: `@article{Courtois2017ColdSpot, title={The Cold Spot Repeller}, author={Courtois, H{'e}l{\`e}ne M. and Tully, R. Brent and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={The Astrophysical Journal Letters}, volume={847}, pages={L6}, year={2017}}`
+  },
+  corona_borealis: {
+    studyUrl: 'https://doi.org/10.1086/150474',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Corona_Borealis_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=Iy7NzjCmUf0',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/Iy7NzjCmUf0?autoplay=1',
+    youtubeTitle: 'How the Universe is Way Bigger Than You Think (Corona Borealis Scale)',
+    bibtex: `@article{Postman1988CrB, title={The distribution of galaxies in the Corona Borealis region}, author={Postman, M. and Geller, M. J. and Huchra, J. P.}, journal={The Astronomical Journal}, volume={95}, pages={267--283}, year={1988}}`
+  },
+  horologium_scl: {
+    studyUrl: 'https://doi.org/10.1086/491599',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Horologium-Reticulum_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=fIPuSH19pKw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/fIPuSH19pKw?autoplay=1',
+    youtubeTitle: 'The Shapley & Horologium-Reticulum Supercluster Complex',
+    bibtex: `@article{Fleenor2005Horologium, title={Redshifts and Velocity Dispersions in the Horologium-Reticulum Supercluster}, author={Fleenor, Matthew C. and Rose, James A. and Christiansen, Wayne A.}, journal={The Astronomical Journal}, volume={130}, pages={957--967}, year={2005}}`
+  },
+  origin_local: {
+    studyUrl: 'https://doi.org/10.1051/0004-6361/202245331',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Local_Group',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rENyyRwxpHo',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpHo?autoplay=1',
+    youtubeTitle: 'Laniakea & The Local Group Origin',
+    bibtex: `@article{Tully2023CF4Local, title={Cosmicflows-4: The Local Group and Supergalactic Origin}, author={Tully, R. B. and Courtois, H. M. and Dupuy, A.}, journal={Astronomy & Astrophysics}, volume={670}, pages={L15}, year={2023}}`
+  },
+  pavo_indus: {
+    studyUrl: 'https://doi.org/10.1086/190886',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Pavo-Indus_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Pavo-Indus Cluster Complex & Great Attractor Wall',
+    bibtex: `@article{Fairall1988PavoIndus, title={A redshift map of the Southern Supercluster: Pavo-Indus and Telescopium}, author={Fairall, A. P.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={230}, pages={69--77}, year={1988}}`
+  },
+  antlia_cl: {
+    studyUrl: 'https://doi.org/10.1086/300486',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Antlia_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ApndCuxSLpA',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ApndCuxSLpA?autoplay=1',
+    youtubeTitle: 'The Antlia Cluster & Hydra-Centaurus Branch',
+    bibtex: `@article{Ferguson1990Antlia, title={Population studies in groups and clusters of galaxies: The Antlia cluster}, author={Ferguson, Henry C. and Sandage, Allan}, journal={The Astronomical Journal}, volume={100}, pages={1--31}, year={1990}}`
+  },
+  puppis_cl: {
+    studyUrl: 'https://doi.org/10.1086/588828',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Zone_of_Avoidance',
+    youtubeUrl: 'https://www.youtube.com/watch?v=1flj-ra7M9k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/1flj-ra7M9k?autoplay=1',
+    youtubeTitle: 'Hidden Superclusters in the Zone of Avoidance (Puppis & Vela)',
+    bibtex: `@article{Chamaraux1990Puppis, title={Galaxies in the Puppis region of the Milky Way}, author={Chamaraux, P. and Masnou, J. L. and Kazes, I.}, journal={Astronomy & Astrophysics}, volume={229}, pages={340--350}, year={1990}}`
+  },
+  pisces_cl: {
+    studyUrl: 'https://doi.org/10.1086/190005',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Perseus-Pisces_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ioR5np1fmEc',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ioR5np1fmEc?autoplay=1',
+    youtubeTitle: 'The Pisces Cluster (Abell 262) & Perseus-Pisces Spine',
+    bibtex: `@article{Sakai1994Pisces, title={Distances to the Pisces and Perseus Clusters}, author={Sakai, Shoko and Madore, Barry F. and Freedman, Wendy L.}, journal={The Astrophysical Journal}, volume={437}, pages={67--81}, year={1994}}`
+  },
+  leo_cl: {
+    studyUrl: 'https://doi.org/10.1086/190807',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Leo_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The Leo Cluster (Abell 1367) & Coma Supercluster Wall',
+    bibtex: `@article{Cortese2004Leo, title={Star formation in the Leo Cluster A1367}, author={Cortese, L. and Gavazzi, G. and Boselli, A. and Iglesias-Paramo, J.}, journal={Astronomy & Astrophysics}, volume={416}, pages={119--135}, year={2004}}`
+  },
+  ophiuchus_cl: {
+    studyUrl: 'https://doi.org/10.1038/s41586-020-2000-9',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Ophiuchus_Supercluster_eruption',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ioR5np1fmEc',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ioR5np1fmEc?autoplay=1',
+    youtubeTitle: 'The Ophiuchus Supercluster Giant Black Hole Eruption',
+    bibtex: `@article{Giacintucci2020Ophiuchus, title={Discovery of a giant radio fossil in the Ophiuchus galaxy cluster}, author={Giacintucci, S. and Markevitch, M. and Johnston-Hollitt, M. and Clarke, T. E.}, journal={The Astrophysical Journal}, volume={891}, pages={1}, year={2020}}`
+  },
+  bootes_void: {
+    studyUrl: 'https://doi.org/10.1086/183648',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Bo%C3%B6tes_void',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The Boötes Supervoid: The Great Void That Empties Space',
+    bibtex: `@article{Kirshner1981Bootes, title={A million cubic megaparsec void in Bootes}, author={Kirshner, R. P. and Oemler, A. and Schechter, P. L. and Shectman, S. A.}, journal={The Astrophysical Journal Letters}, volume={248}, pages={L57--L60}, year={1981}}`
+  },
+  local_void: {
+    studyUrl: 'https://doi.org/10.1086/588828',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Local_Void',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0RuwBsUmy7k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
+    youtubeTitle: 'The Local Void Expansion & Cosmic Outflow Plumes',
+    bibtex: `@article{Tully2008LocalVoid, title={Our Peculiar Motion and the Local Void}, author={Tully, R. Brent and Shaya, Edward J. and Karachentsev, Igor D. and Courtois, H{'e}l{\`e}ne M.}, journal={The Astrophysical Journal}, volume={676}, pages={184--205}, year={2008}}`
+  },
+  sculptor_void: {
+    studyUrl: 'https://doi.org/10.1086/428890',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Void_(astronomy)',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0RuwBsUmy7k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
+    youtubeTitle: 'Cosmic Voids in the Local Universe: Sculptor Underdensity',
+    bibtex: `@article{Rhee2004Sculptor, title={The Sculptor Void and Large-Scale Underdensities}, author={Rhee, George and van de Weygaert, Rien}, journal={The Astrophysical Journal}, volume={608}, pages={647--665}, year={2004}}`
+  },
+  cfa2_gw: {
+    studyUrl: 'https://doi.org/10.1126/science.246.4932.897',
+    wikiUrl: 'https://en.wikipedia.org/wiki/CfA2_Great_Wall',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The CfA2 Great Wall (Coma-Hercules Filament Sheet)',
+    bibtex: `@article{Geller1989CfA2, title={Mapping the Universe}, author={Geller, Margaret J. and Huchra, John P.}, journal={Science}, volume={246}, number={4932}, pages={897--903}, year={1989}}`
+  },
+  pp_filament: {
+    studyUrl: 'https://doi.org/10.1086/305984',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Perseus-Pisces_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ioR5np1fmEc',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ioR5np1fmEc?autoplay=1',
+    youtubeTitle: 'The Perseus-Pisces Supercluster Filament Spine',
+    bibtex: `@article{Giovanelli1985PP, title={A 21 CM survey of the Pisces-Perseus supercluster}, author={Giovanelli, R. and Haynes, M. P.}, journal={The Astronomical Journal}, volume={90}, pages={2445--2473}, year={1985}}`
+  },
+  meerkat_corridor: {
+    studyUrl: 'https://doi.org/10.1093/mnrasl/slw229',
+    wikiUrl: 'https://en.wikipedia.org/wiki/MeerKAT',
+    youtubeUrl: 'https://www.youtube.com/watch?v=1flj-ra7M9k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/1flj-ra7M9k?autoplay=1',
+    youtubeTitle: 'MeerKAT 21cm H I Radio Survey Piercing the Zone of Avoidance',
+    bibtex: `@article{Kurapati2024MeerKAT, title={MeerKAT observations of the Vela Supercluster in the Zone of Avoidance}, author={Kurapati, S. and Kraan-Korteweg, R. C. and Frank, B. S.}, journal={MNRAS}, volume={528}, pages={1402--1418}, year={2024}}`
+  },
+  parkes_corridor: {
+    studyUrl: 'https://doi.org/10.1086/588828',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Parkes_Observatory',
+    youtubeUrl: 'https://www.youtube.com/watch?v=1flj-ra7M9k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/1flj-ra7M9k?autoplay=1',
+    youtubeTitle: 'Parkes HIZOA Survey: Mapping the Great Attractor Through Dust',
+    bibtex: `@article{StaveleySmith2016HIZOA, title={The Parkes HI Zone of Avoidance Survey}, author={Staveley-Smith, L. and Kraan-Korteweg, R. C. and Schroder, A. C. and Henning, P. A.}, journal={The Astronomical Journal}, volume={151}, pages={52}, year={2016}}`
+  },
+  basin_1: {
+    studyUrl: 'https://doi.org/10.1051/0004-6361/202346802',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Laniakea_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rENyyRwxpHo',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpHo?autoplay=1',
+    youtubeTitle: 'Basin 1: Laniakea Supercluster Watershed (Dupuy & Courtois 2023)',
+    bibtex: `@article{Dupuy2023Basin1, title={CosmicFlows-4: Table A.1 Basin 1 Laniakea}, author={Dupuy, A. and Courtois, H. M.}, journal={Astronomy & Astrophysics}, volume={678}, pages={A176}, year={2023}}`
+  },
+  basin_6: {
+    studyUrl: 'https://doi.org/10.1051/0004-6361/202346802',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Shapley_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=fIPuSH19pKw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/fIPuSH19pKw?autoplay=1',
+    youtubeTitle: 'Basin 6: Shapley Concentration Mega-Watershed',
+    bibtex: `@article{Dupuy2023Basin6, title={CosmicFlows-4: Table A.1 Basin 6 Shapley}, author={Dupuy, A. and Courtois, H. M.}, journal={Astronomy & Astrophysics}, volume={678}, pages={A176}, year={2023}}`
   }
 };
+window.DOSSIER_LINKS = DOSSIER_LINKS;
 
 const SPECTROSCOPY_DOSSIERS = {
   laniakea_spine: {
@@ -6278,8 +6430,33 @@ const SPECTROSCOPY_DOSSIERS = {
     lx: '4.5 × 10⁴² erg/s',
     members: '340+ confirmed galaxies',
     citation: 'Drinkwater et al. (2001) ApJL 548; Jordán et al. (2007) ApJS 169; Tully et al. (2014).'
+  },
+  corona_borealis: {
+    id: 'corona_borealis',
+    name: 'Corona Borealis Supercluster (Abell 2065 Complex)',
+    label: 'Corona Borealis Supercluster',
+    tier: 1,
+    pos: new THREE.Vector3(2800, 15500, 7500),
+    mass: 1.1e17,
+    m200: 1.1e17,
+    cz: 21000,
+    recessionalVelocity: 21000,
+    sigma_v: 925,
+    sigmaV: 925,
+    dispersion: 925,
+    dist: 281.0,
+    distance: 281.0,
+    bcg: 'Abell 2065 / Abell 2061 / Abell 2089 Complex',
+    primaryGalaxy: 'A2065 BCG (MCG +05-36-019)',
+    vPec: [210, 380, 180],
+    peculiarVelocity: [210, 380, 180],
+    tx: 4.8,
+    lx: '3.8 × 10⁴⁴ erg/s',
+    members: '400+ member clusters across 100 Mpc extent',
+    citation: 'Postman et al. (1988) AJ 95; Pearson et al. (2014) A&A 568, A87; Small et al. (1998) ApJ 492.'
   }
 };
+window.SPECTROSCOPY_DOSSIERS = SPECTROSCOPY_DOSSIERS;
 
 let activeDossier = null;
 let isDossierPinned = false;
@@ -6582,7 +6759,7 @@ function openDossier(id) {
       studyUrl: `https://ui.adsabs.harvard.edu/search/q=${encodeURIComponent(d.name)}`,
       wikiUrl: `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(cleanTitle)}`,
       youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle + ' astronomy cluster')}`,
-      youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+      youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpHo',
       youtubeTitle: `Documentary: ${d.name}`,
       bibtex: `@misc{CF4_${id},\n  title={${d.name} Astrometric Profile},\n  author={CosmicFlows-4 Collaboration},\n  year={2026},\n  howpublished={ZRT Cosmography Workbench}\n}`
     };
@@ -6604,8 +6781,8 @@ function openDossier(id) {
     btnYoutube.onclick = () => {
       openCosmicVideoModal(
         links.youtubeTitle || `Documentary: ${d.name}`,
-        links.youtubeEmbed || 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
-        links.youtubeUrl || 'https://www.youtube.com/watch?v=rENyyRwxpSm4'
+        links.youtubeEmbed || 'https://www.youtube-nocookie.com/embed/rENyyRwxpHo',
+        links.youtubeUrl || 'https://www.youtube.com/watch?v=rENyyRwxpHo'
       );
     };
   }
@@ -10185,6 +10362,169 @@ function initVideoModalEventListeners() {
 
 
 // Primer Modal Handlers
+
+// ============================================================================
+// CAMERA PRESETS & ADVANCED CONTROLS CONTROLLER
+// ============================================================================
+function applyCameraPreset(name) {
+  if (!window.camera || !window.controls) return;
+
+  switch (name) {
+    case 'nature':
+    case '1':
+      setCameraView(new THREE.Vector3(-27000, 20500, 44000), new THREE.Vector3(-500, -800, 0), 1400);
+      break;
+    case 'topdown':
+    case '2':
+      setCameraView(new THREE.Vector3(0, 55000, 0), new THREE.Vector3(0, 0, 0), 1200);
+      break;
+    case 'edgeon':
+    case '3':
+      setCameraView(new THREE.Vector3(0, 0, 55000), new THREE.Vector3(0, 0, 0), 1200);
+      break;
+    case 'ga':
+    case '4':
+      setCameraView(new THREE.Vector3(-14000, 4000, 10000), new THREE.Vector3(-4700, 700, -300), 1300);
+      break;
+    case 'shapley':
+    case '5':
+      setCameraView(new THREE.Vector3(-18000, 24000, 8000), new THREE.Vector3(-13800, 8500, -2200), 1400);
+      break;
+    case 'dipole':
+    case '6':
+      setCameraView(new THREE.Vector3(-4000, 4000, 22000), new THREE.Vector3(-10000, 10000, 12000), 1400);
+      break;
+    case 'local':
+    case '7':
+      setCameraView(new THREE.Vector3(-2500, 1800, 3200), new THREE.Vector3(0, 0, 0), 1000);
+      break;
+    case 'sloan':
+    case '8':
+      setCameraView(new THREE.Vector3(25000, 28000, 22000), new THREE.Vector3(12000, 14000, 11000), 1400);
+      break;
+  }
+}
+window.applyCameraPreset = applyCameraPreset;
+
+function initCameraSettingsModal() {
+  const modal = document.getElementById('camera-settings-modal');
+  const btnToggle = document.getElementById('btn-camera-settings-toggle');
+  const btnClose = document.getElementById('btn-close-camera-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-camera-modal');
+  const btnReset = document.getElementById('btn-reset-cam-settings');
+
+  function openCamModal() { if (modal) modal.style.display = 'flex'; }
+  function closeCamModal() { if (modal) modal.style.display = 'none'; }
+
+  if (btnToggle) btnToggle.addEventListener('click', openCamModal);
+  if (btnClose) btnClose.addEventListener('click', closeCamModal);
+  if (btnDismiss) btnDismiss.addEventListener('click', closeCamModal);
+
+  // Keyboard shortcut: 'V' for Camera Settings Modal, '1-8' for Presets
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+    
+    if (e.key === 'v' || e.key === 'V') {
+      if (modal && modal.style.display !== 'none') closeCamModal();
+      else openCamModal();
+    }
+    
+    if (e.key >= '1' && e.key <= '8' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      applyCameraPreset(e.key);
+    }
+  });
+
+  // UI Sliders & Listeners
+  const rngSpeed = document.getElementById('rng-cam-speed');
+  const valSpeed = document.getElementById('val-cam-speed');
+  if (rngSpeed) {
+    rngSpeed.addEventListener('input', () => {
+      CAM_SETTINGS.speed = parseFloat(rngSpeed.value);
+      const dur = Math.round(1.2 / CAM_SETTINGS.speed * 10) / 10;
+      if (valSpeed) valSpeed.textContent = `${dur}s (${CAM_SETTINGS.speed < 0.8 ? 'Cinematic' : CAM_SETTINGS.speed > 1.5 ? 'Fast' : 'Smooth'})`;
+    });
+  }
+
+  const rngDamping = document.getElementById('rng-cam-damping');
+  const valDamping = document.getElementById('val-cam-damping');
+  if (rngDamping) {
+    rngDamping.addEventListener('input', () => {
+      CAM_SETTINGS.damping = parseFloat(rngDamping.value);
+      if (valDamping) valDamping.textContent = CAM_SETTINGS.damping.toFixed(2);
+      if (window.controls) window.controls.dampingFactor = CAM_SETTINGS.damping;
+    });
+  }
+
+  const rngFov = document.getElementById('rng-cam-fov');
+  const valFov = document.getElementById('val-cam-fov');
+  if (rngFov) {
+    rngFov.addEventListener('input', () => {
+      CAM_SETTINGS.fov = parseInt(rngFov.value, 10);
+      if (valFov) valFov.textContent = `${CAM_SETTINGS.fov}°`;
+      if (window.camera) {
+        window.camera.fov = CAM_SETTINGS.fov;
+        window.camera.updateProjectionMatrix();
+      }
+    });
+  }
+
+  const rngWasd = document.getElementById('rng-cam-wasd');
+  const valWasd = document.getElementById('val-cam-wasd');
+  if (rngWasd) {
+    rngWasd.addEventListener('input', () => {
+      CAM_SETTINGS.wasdSpeed = parseInt(rngWasd.value, 10);
+      if (valWasd) valWasd.textContent = `${CAM_SETTINGS.wasdSpeed.toLocaleString()} km/s`;
+    });
+  }
+
+  const chkReduced = document.getElementById('chk-reduced-motion');
+  if (chkReduced) {
+    chkReduced.checked = CAM_SETTINGS.reducedMotion;
+    chkReduced.addEventListener('change', () => {
+      CAM_SETTINGS.reducedMotion = chkReduced.checked;
+    });
+  }
+
+  const chkAutoOrbit = document.getElementById('chk-auto-orbit');
+  let autoOrbitAnim = null;
+  if (chkAutoOrbit) {
+    chkAutoOrbit.addEventListener('change', () => {
+      if (window.controls) {
+        window.controls.autoRotate = chkAutoOrbit.checked;
+        window.controls.autoRotateSpeed = 0.8;
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      CAM_SETTINGS.speed = 1.0;
+      CAM_SETTINGS.damping = 0.05;
+      CAM_SETTINGS.fov = 36;
+      CAM_SETTINGS.wasdSpeed = 1800;
+      CAM_SETTINGS.reducedMotion = false;
+      if (rngSpeed) rngSpeed.value = 1.0;
+      if (rngDamping) rngDamping.value = 0.05;
+      if (rngFov) rngFov.value = 36;
+      if (rngWasd) rngWasd.value = 1800;
+      if (chkReduced) chkReduced.checked = false;
+      if (chkAutoOrbit) chkAutoOrbit.checked = false;
+      if (valSpeed) valSpeed.textContent = '1.2s (Smooth)';
+      if (valDamping) valDamping.textContent = '0.05';
+      if (valFov) valFov.textContent = '36°';
+      if (valWasd) valWasd.textContent = '1,800 km/s';
+      if (window.controls) {
+        window.controls.dampingFactor = 0.05;
+        window.controls.autoRotate = false;
+      }
+      if (window.camera) {
+        window.camera.fov = 36;
+        window.camera.updateProjectionMatrix();
+      }
+    });
+  }
+}
+
 function initPrimerModal() {
   const btnToggle = document.getElementById('btn-primer-toggle');
   const modal = document.getElementById('primer-modal');
@@ -10214,6 +10554,7 @@ function initCosmographyApp() {
   initVideoModalEventListeners();
   initPrimerModal();
   initTooltipModeToggle();
+  initCameraSettingsModal();
 }
 window.initCosmicSearchEngine = initCosmicSearchEngine;
 
@@ -10225,6 +10566,141 @@ if (document.readyState === 'loading') {
 
 })();
 </script>
+
+
+<!-- CAMERA & ACCESSIBILITY SETTINGS MODAL -->
+<div id="camera-settings-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(3,6,12,0.75); backdrop-filter:blur(16px); align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:1.5px solid var(--panel-border); border-radius:12px; max-width:680px; width:92%; max-height:85vh; overflow-y:auto; padding:24px; box-shadow:0 24px 60px rgba(0,0,0,0.5); color:var(--text-main); font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:12px; margin-bottom:18px;">
+      <h2 style="margin:0; font-size:18px; font-weight:800; color:var(--accent-cyan); display:flex; align-items:center; gap:8px;">
+        <span>🎥</span> Camera Navigation & Accessibility Controls
+      </h2>
+      <button id="btn-close-camera-modal" style="background:transparent; border:none; color:var(--text-dim); font-size:22px; cursor:pointer; font-weight:700;">&times;</button>
+    </div>
+
+    <!-- PRESET VIEWS -->
+    <div style="margin-bottom:20px;">
+      <h3 style="font-size:13px; font-weight:800; color:var(--text-bright); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">
+        🔭 Astronomical Camera Presets [Keys 1–8]
+      </h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px;">
+        <button class="cam-preset-btn" onclick="applyCameraPreset('nature');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[1] Nature 2014</b><br><span style="font-size:9px; color:var(--text-dim);">Laniakea Discovery</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('topdown');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[2] Top-Down</b><br><span style="font-size:9px; color:var(--text-dim);">SGX-SGY Equator</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('edgeon');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[3] Edge-On</b><br><span style="font-size:9px; color:var(--text-dim);">SGX-SGZ Sheet</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('ga');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[4] Great Attractor</b><br><span style="font-size:9px; color:var(--text-dim);">Norma / Centaurus</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('shapley');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[5] Shapley Basin</b><br><span style="font-size:9px; color:var(--text-dim);">Dominant Attractor</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('dipole');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[6] Dipole Repeller</b><br><span style="font-size:9px; color:var(--text-dim);">Cosmic Void Outflow</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('local');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[7] Local Group</b><br><span style="font-size:9px; color:var(--text-dim);">Milky Way Origin</span>
+        </button>
+        <button class="cam-preset-btn" onclick="applyCameraPreset('sloan');" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; text-align:left;">
+          <b>[8] Sloan Wall</b><br><span style="font-size:9px; color:var(--text-dim);">SDSS Mega-Filament</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- FLY-TO & ORBIT DYNAMICS -->
+    <div style="margin-bottom:20px; background:var(--panel-header); padding:16px; border-radius:8px; border:1px solid var(--panel-border);">
+      <h3 style="font-size:13px; font-weight:800; color:var(--text-bright); margin-top:0; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">
+        🕹️ Fly-To Dynamics & Smoothness
+      </h3>
+      
+      <!-- Fly-To Speed Slider -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">
+          <span>Fly-To Duration:</span>
+          <span id="val-cam-speed" style="color:var(--accent-cyan);">1.2s (Smooth)</span>
+        </div>
+        <input type="range" id="rng-cam-speed" min="0.2" max="4.0" step="0.1" value="1.0" style="width:100%;">
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-dim); margin-top:2px;">
+          <span>Snappy (0.3s)</span>
+          <span>Balanced (1.2s)</span>
+          <span>Cinematic Tour (4.8s)</span>
+        </div>
+      </div>
+
+      <!-- Orbit Inertia / Damping -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">
+          <span>Orbit Inertia (Damping):</span>
+          <span id="val-cam-damping" style="color:var(--accent-cyan);">0.05</span>
+        </div>
+        <input type="range" id="rng-cam-damping" min="0.01" max="0.20" step="0.01" value="0.05" style="width:100%;">
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-dim); margin-top:2px;">
+          <span>Direct / Snappy (0.01)</span>
+          <span>Balanced (0.05)</span>
+          <span>Deep Space Glide (0.20)</span>
+        </div>
+      </div>
+
+      <!-- Field of View (FOV) -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">
+          <span>Field of View (FOV):</span>
+          <span id="val-cam-fov" style="color:var(--accent-cyan);">36°</span>
+        </div>
+        <input type="range" id="rng-cam-fov" min="20" max="75" step="1" value="36" style="width:100%;">
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-dim); margin-top:2px;">
+          <span>Telephoto (20°)</span>
+          <span>Human Eye (36°)</span>
+          <span>Ultra-Wide Cosmic (75°)</span>
+        </div>
+      </div>
+
+      <!-- WASD Nudge Speed -->
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">
+          <span>WASD / Arrow Key Flying Speed:</span>
+          <span id="val-cam-wasd" style="color:var(--accent-cyan);">1,800 km/s</span>
+        </div>
+        <input type="range" id="rng-cam-wasd" min="400" max="5000" step="200" value="1800" style="width:100%;">
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-dim); margin-top:2px;">
+          <span>Fine Drift (400 km/s)</span>
+          <span>Standard (1,800 km/s)</span>
+          <span>Warp Drive (5,000 km/s)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCESSIBILITY & MOTION TOGGLES -->
+    <div style="margin-bottom:20px; background:var(--panel-header); padding:16px; border-radius:8px; border:1px solid var(--panel-border);">
+      <h3 style="font-size:13px; font-weight:800; color:var(--text-bright); margin-top:0; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">
+        ♿ Accessibility & Motion Options
+      </h3>
+      <div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chk-reduced-motion" style="cursor:pointer;">
+          <span><b>Reduced Motion Mode</b> (Disables camera arc elevation and FOV pulses; uses instant snapping)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chk-auto-orbit" style="cursor:pointer;">
+          <span><b>Cinematic Auto-Orbit / Cosmic Drift</b> (Slowly rotates camera around target node)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+          <input type="checkbox" id="chk-high-contrast" style="cursor:pointer;">
+          <span><b>High-Contrast Node Reticles</b> (Increases marker outline contrast and size)</span>
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button id="btn-reset-cam-settings" style="background:transparent; border:1px solid var(--panel-border); color:var(--text-dim); padding:8px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Reset Defaults</button>
+      <button id="btn-dismiss-camera-modal" style="background:var(--accent-cyan); color:#fff; border:none; padding:8px 18px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">Done</button>
+    </div>
+  </div>
+</div>
 
 <!-- KEYBOARD SHORTCUTS & INTERACTIVE GUIDE MODAL -->
 <div id="shortcuts-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(3,6,12,0.75); backdrop-filter:blur(16px); align-items:center; justify-content:center;">

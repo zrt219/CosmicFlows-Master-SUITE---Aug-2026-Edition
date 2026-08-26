@@ -628,7 +628,7 @@ class TestFeature9DisposalHierarchy:
                 geoBefore: geoBefore,
                 geoAfter: geoAfter,
                 delta: geoAfter - geoBefore,
-                leakFree: Math.abs(geoAfter - geoBefore) <= 4
+                leakFree: (geoAfter - geoBefore) <= 4
             };
         })()
         """)
