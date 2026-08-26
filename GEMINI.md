@@ -46,11 +46,12 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
    - Step 3: `apksigner sign --ks release.jks --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true app-aligned.apk`
 3. Verify with `apksigner verify --verbose` asserting `Verified using v1: true, v2: true, v3: true`.
 
-## 8. Strict GPU Render Barrier for Visual Asset Capture
-1. Always explicitly dismiss splash loading screens (`splashController.dismiss(true)`) prior to capturing visual assets.
-2. Force explicit render passes (`composer.render()` or `renderer.render(scene, camera)`).
-3. Validate non-empty WebGL point cloud buffers (`geometry.attributes.position.count > 1000`).
-4. Validate image file output using PIL (`size_kb > 20` and luminance pixel variance $> 1.0$) to guarantee zero blank or unloaded frames.
+## 8. Strict GPU Render Barrier & Splash Screen Lifecycle
+1. Splash loading screens must maintain DOM presence in `<body>` and enforce a minimum display duration threshold ($\ge 1.2\,	ext{s}$).
+2. Always explicitly dismiss splash loading screens (`splashController.dismiss(true)`) prior to capturing automated screenshots.
+3. Force explicit render passes (`composer.render()` or `renderer.render(scene, camera)`).
+4. Validate non-empty WebGL point cloud buffers (`geometry.attributes.position.count > 1000`).
+5. Validate image output using PIL (`size_kb > 35` and pixel std variance $\sigma > 12.0$) to guarantee zero blank or unloaded frames.
 
 ## 9. Dynamic Viewport Safe-Area & Floating HUD Clearance
 1. Floating sidebars or scientific drawer panels must never overlap static header branding or promo pills.
