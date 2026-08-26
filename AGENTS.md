@@ -77,3 +77,18 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
 2. Never rely on variable hoisting or compute derived statistical error adjustments before their root parameter definitions.
 3. Core WebGL bootstrap routines (`init()`, `animate()`, `rebuildStreamlines()`, `splashController.dismiss()`) must reside inside defensive try-catch error barriers so that any single non-critical formula or dataset parsing failure never blocks the 3D canvas animation loop or mouse/touch event listeners.
 
+## 14. Mandatory Pre-Commit Zero-Exception Gate
+1. Prior to committing code or publishing release builds, the codebase MUST pass the automated pre-commit quality gate (`python scripts/pre_commit_gate.py`).
+2. The runtime inspection must assert:
+   - **Zero Console Errors**: `console.error` count $= 0$.
+   - **Zero Unhandled Exceptions**: `window.onerror` and `unhandledrejection` count $= 0$.
+   - **Zero WebGL Context / Shader Failures**: No failed shader compilation or program link errors.
+3. Any unhandled runtime exception, missing asset 404, or unhandled rejection encountered during page load, engine switching, theme toggle, or animation loop constitutes a blocking failure (exit code 1).
+
+## 15. Automated Canvas Drag & Interaction Validation
+1. All 3D viewport canvas interactions (Three.js OrbitControls, pointer tracking, raycast picking) must be verified by automated synthetic pointer event tests (`scripts/check_canvas_drag.py`).
+2. **Drag Disambiguation Invariant**: Synthetic drag motions ($\Delta r \ge 5\,\text{px}$) must update camera view matrices without triggering raycast click events or opening inspection dossiers.
+3. **Click / Tap Invariant**: Discrete taps ($\Delta r < 5\,\text{px}, \Delta t < 350\,\text{ms}$) on cluster nodes must reliably trigger raycasting and modal inspection dossiers.
+4. **Interaction Liveness**: Canvas drag sequences must maintain 60 FPS performance budgets ($< 16.6\,\text{ms/frame}$) and must never leak pointer capture or lock the UI thread upon `pointerup` or `pointercancel`.
+
+
