@@ -428,16 +428,11 @@ $$
 where $k^2 \equiv |\mathbf{k}|^2 = k_1^2 + k_2^2 + k_3^2$.
 
 #### Rigorous Proof of $L^2$ Parseval Orthogonality:
-In the Hilbert space $L^2(\mathbb{T}^3)$, the inner product is given by:
+**Theorem 3.6.1 (Decoupling of Potential and Solenoidal Kinetic Energy):**
+In the Hilbert space $L^2(\mathbb{T}^3)$, applying Plancherel's theorem:
 
 $$
-\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}(\mathbf{x})\, d^3\mathbf{x}
-$$
-
-Applying Plancherel's theorem:
-
-$$
-\int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}(\mathbf{x})\, d^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}^*_{\text{sol}}(\mathbf{k})
+\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}^*(\mathbf{x})\, d^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}^*_{\text{sol}}(\mathbf{k})
 $$
 
 For $\mathbf{k} = \mathbf{0}$, $\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0}) = \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}$. For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
@@ -447,7 +442,7 @@ $$
 $$
 
 $$
-\therefore \quad \langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} \equiv 0 \quad \blacksquare
+\boxed{\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \frac{1}{V} \sum_{\mathbf{k}} 0 \equiv 0 \quad \blacksquare}
 $$
 
 Total kinetic energy $E_{\text{kin}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}(\mathbf{x})|^2 d^3\mathbf{x}$ partitions exactly:
