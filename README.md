@@ -58,7 +58,6 @@ The **ZRT CosmicFlows-4 Research Workbench** is an industrial-scale, mathematica
 
 ---
 
-
 ## 1.1 Project Inception & Step-by-Step Chronological Evolution
 
 The development of the **ZRT CosmicFlows-4 Research Workbench** represents an end-to-end engineering journey spanning mathematical physics, observational extragalactic astrophysics, GPU-accelerated WebGL visualization, distributed Web Worker multithreading, and automated scientific verification. Below is the complete step-by-step record of how this platform was built from first principles:
@@ -121,28 +120,36 @@ All operations across every module of the ZRT CosmicFlows Workbench strictly enf
 - Matter density contrast $\delta(\mathbf{x}) = \frac{\rho(\mathbf{x}) - \bar{\rho}}{\bar{\rho}}$ is strictly **dimensionless**.
 - Cross-dimensional operations (e.g. `position_Mpc_h + velocity_km_s`) are prohibited and will throw an immediate runtime `TypeError`. Any spatial displacement using velocity must specify an explicit time interval $\Delta t$ and conversion factor:
 
-  $$\Delta \mathbf{x}_{\text{Mpc}/h} = \mathbf{v}_{\text{km}/\text{s}} \times \frac{\Delta t}{a(t) \cdot (3.08567758149 \times 10^{19}\,\text{km}/(\text{Mpc}/h))}$$
+$$
+\Delta \mathbf{x}_{\text{Mpc}/h} = \mathbf{v}_{\text{km}/\text{s}} \times \frac{\Delta t}{a(t) \cdot (3.08567758149 \times 10^{19}\,\text{km}/(\text{Mpc}/h))}
+$$
 
 ### Rule 2: FITS Grid Storage vs Canonical ZRT Ordering
 For official Cosmicflows-4 binary arrays distributed by the IP2I Lyon consortium:
 - **Raw File Disk Layout**: $(\text{SGZ}, \text{SGY}, \text{SGX})$ (Fortran/FITS row-major slice format).
 - **Canonical ZRT Representation**: $(\text{SGX}, \text{SGY}, \text{SGZ})$ with 1D index mapping:
 
-  $$\text{index}(i_x, i_y, i_z) = i_x + N_x \cdot (i_y + N_y \cdot i_z)$$
+$$
+\text{index}(i_x, i_y, i_z) = i_x + N_x \cdot (i_y + N_y \cdot i_z)
+$$
 
 All internal derivatives, interpolators, streamlines, and visual shaders pass through a tested canonical axis-mapping layer.
 
 ### Rule 3: Exact $\times 52.0$ Velocity Scale Factor
 Official public CF4 velocity grids must be multiplied by exactly:
 
-$$52.0$$
+$$
+52.0
+$$
 
 before interpretation as physical peculiar velocities (in $\text{km}/\text{s}$). This scaling is applied exactly once to velocity and velocity-error grids. It is **never** applied to spatial coordinates, density contrast $\delta$, or watershed IDs, and is decoupled from cosmological growth rate parameters ($H_0 f$).
 
 ### Rule 4: Linear Continuity Diagnostic
 Linear cosmological perturbation theory yields:
 
-$$\nabla \cdot \mathbf{v}(\mathbf{x}) \approx -a H f \delta(\mathbf{x})$$
+$$
+\nabla \cdot \mathbf{v}(\mathbf{x}) \approx -a H f \delta(\mathbf{x})
+$$
 
 At present epoch ($a=1, H=H_0$), this diagnostic validates whether smoothed velocity divergence matches density contrast in linear regimes ($L_2$ residual $< 0.25$).
 
@@ -168,28 +175,42 @@ Let $\mathbf{x} = (x_1, x_2, x_3)^T \equiv (\text{SGX}, \text{SGY}, \text{SGZ})^
 
 The spatial velocity gradient tensor $J \in \mathbb{R}^{3 \times 3}$ is defined in Cartesian index notation as:
 
-$$J_{ij} \equiv \frac{\partial v_i}{\partial x_j} = \begin{pmatrix} \frac{\partial v_x}{\partial x} & \frac{\partial v_x}{\partial y} & \frac{\partial v_x}{\partial z} \\ \frac{\partial v_y}{\partial x} & \frac{\partial v_y}{\partial y} & \frac{\partial v_y}{\partial z} \\ \frac{\partial v_z}{\partial x} & \frac{\partial v_z}{\partial y} & \frac{\partial v_z}{\partial z} \end{pmatrix}$$
+$$
+J_{ij} \equiv \frac{\partial v_i}{\partial x_j} = \begin{pmatrix} \frac{\partial v_x}{\partial x} & \frac{\partial v_x}{\partial y} & \frac{\partial v_x}{\partial z} \\ \frac{\partial v_y}{\partial x} & \frac{\partial v_y}{\partial y} & \frac{\partial v_y}{\partial z} \\ \frac{\partial v_z}{\partial x} & \frac{\partial v_z}{\partial y} & \frac{\partial v_z}{\partial z} \end{pmatrix}
+$$
 
 #### Decomposition into Rate-of-Strain and Vorticity:
 
-$$J_{ij} = S_{ij} + \Omega_{ij}$$
+$$
+J_{ij} = S_{ij} + \Omega_{ij}
+$$
 
 where:
 
-$$S_{ij} \equiv \frac{1}{2}\left( \frac{\partial v_i}{\partial x_j} + \frac{\partial v_j}{\partial x_i} \right) = S_{ji}, \quad \Omega_{ij} \equiv \frac{1}{2}\left( \frac{\partial v_i}{\partial x_j} - \frac{\partial v_j}{\partial x_i} \right) = -\Omega_{ji}$$
+$$
+S_{ij} \equiv \frac{1}{2}\left( \frac{\partial v_i}{\partial x_j} + \frac{\partial v_j}{\partial x_i} \right) = S_{ji}, \quad \Omega_{ij} \equiv \frac{1}{2}\left( \frac{\partial v_i}{\partial x_j} - \frac{\partial v_j}{\partial x_i} \right) = -\Omega_{ji}
+$$
 
 The dual physical vorticity vector $\boldsymbol{\omega} \equiv \nabla \times \mathbf{v}$ satisfies:
 
-$$\Omega_{ij} = -\frac{1}{2}\epsilon_{ijk}\omega_k \iff \omega_i = -\epsilon_{ijk}\Omega_{jk}$$
+$$
+\Omega_{ij} = -\frac{1}{2}\epsilon_{ijk}\omega_k \iff \omega_i = -\epsilon_{ijk}\Omega_{jk}
+$$
 
-$$\omega^2 \equiv \mathrm{Tr}(\Omega \Omega^T) = -\mathrm{Tr}(\Omega^2) = \frac{1}{2}|\boldsymbol{\omega}|^2$$
+$$
+\omega^2 \equiv \mathrm{Tr}(\Omega \Omega^T) = -\mathrm{Tr}(\Omega^2) = \frac{1}{2}|\boldsymbol{\omega}|^2
+$$
 
 #### The Okubo-Weiss Parameter $Q$:
 Because $\mathrm{Tr}(S\Omega) = 0$ by symmetry contraction ($S_{ij}\Omega_{ij} = -S_{ji}\Omega_{ji} = 0$), expanding $\mathrm{Tr}(J^2)$ yields:
 
-$$\mathrm{Tr}(J^2) = \mathrm{Tr}((S+\Omega)^2) = \mathrm{Tr}(S^2) + \mathrm{Tr}(\Omega^2) = s^2 - \omega^2$$
+$$
+\mathrm{Tr}(J^2) = \mathrm{Tr}((S+\Omega)^2) = \mathrm{Tr}(S^2) + \mathrm{Tr}(\Omega^2) = s^2 - \omega^2
+$$
 
-$$Q \equiv s^2 - \omega^2 = \mathrm{Tr}(S^2) - \mathrm{Tr}(\Omega\Omega^T) = \mathrm{Tr}(J^2) = s^2 - \frac{1}{2}|\boldsymbol{\omega}|^2$$
+$$
+Q \equiv s^2 - \omega^2 = \mathrm{Tr}(S^2) - \mathrm{Tr}(\Omega\Omega^T) = \mathrm{Tr}(J^2) = s^2 - \frac{1}{2}|\boldsymbol{\omega}|^2
+$$
 
 - **Strain-Dominated Flow ($Q > Q_{\text{th}}$)**: Tidal elongation, filamentary stretching, and planar sheet compression ($s^2 > \omega^2$).
 - **Rotation-Dominated Vortex Core ($Q < -Q_{\text{th}}$)**: Coherent swirling halos, vortex filaments, and bound accretion cores ($\omega^2 > s^2$).
@@ -198,15 +219,23 @@ $$Q \equiv s^2 - \omega^2 = \mathrm{Tr}(S^2) - \mathrm{Tr}(\Omega\Omega^T) = \ma
 #### Principle Invariants and $(Q_J, R_J)$ Vieillefosse Diagnostics:
 The characteristic polynomial of $J$ is $\det(\lambda I - J) = \lambda^3 + P \lambda^2 + Q_J \lambda + R_J = 0$, where:
 
-$$P = -\mathrm{Tr}(J) = -\nabla \cdot \mathbf{v} = -\theta$$
+$$
+P = -\mathrm{Tr}(J) = -\nabla \cdot \mathbf{v} = -\theta
+$$
 
-$$Q_J = \frac{1}{2}\left[ (\mathrm{Tr}(J))^2 - \mathrm{Tr}(J^2) \right] = \frac{1}{2}(P^2 - s^2 + \omega^2) = \frac{1}{2}\left( P^2 - s^2 + \frac{1}{2}|\boldsymbol{\omega}|^2 \right)$$
+$$
+Q_J = \frac{1}{2}\left[ (\mathrm{Tr}(J))^2 - \mathrm{Tr}(J^2) \right] = \frac{1}{2}(P^2 - s^2 + \omega^2) = \frac{1}{2}\left( P^2 - s^2 + \frac{1}{2}|\boldsymbol{\omega}|^2 \right)
+$$
 
-$$R_J = -\det(J) = -\frac{1}{3}\mathrm{Tr}(J^3) - \frac{1}{2} P \mathrm{Tr}(J^2) - \frac{1}{6} P^3$$
+$$
+R_J = -\det(J) = -\frac{1}{3}\mathrm{Tr}(J^3) - \frac{1}{2} P \mathrm{Tr}(J^2) - \frac{1}{6} P^3
+$$
 
 For traceless flow ($P=0$), the Cardan discriminant $\Delta = 27 R_J^2 + 4 Q_J^3 = 0$ defines the **Vieillefosse Zero-Discriminant Boundary**:
 
-$$\frac{27}{4} R_J^2 + Q_J^3 = 0 \iff Q_J = -3\left(\frac{R_J}{2}\right)^{2/3}$$
+$$
+\frac{27}{4} R_J^2 + Q_J^3 = 0 \iff Q_J = -3\left(\frac{R_J}{2}\right)^{2/3}
+$$
 
 #### Section Citations:
 1. Okubo, A. (1970), *Deep Sea Research*, 17(3), 445–454. [DOI: 10.1016/0011-7471(70)90059-8](https://doi.org/10.1016/0011-7471(70)90059-8)
@@ -220,10 +249,16 @@ $$\frac{27}{4} R_J^2 + Q_J^3 = 0 \iff Q_J = -3\left(\frac{R_J}{2}\right)^{2/3}$$
 ### 3.2 Gravitational Tidal Tensors, Web Classification & Exact Zel'dovich Collapse
 
 In comoving coordinates, the cosmological Poisson equation relating gravitational potential $\Phi(\mathbf{x}, t)$ to matter density contrast $\delta(\mathbf{x}, t)$ is:
-$$\nabla^2 \Phi(\mathbf{x}, t) = 4\pi G \bar{\rho}(t) a^2(t) \delta(\mathbf{x}, t) = \frac{3}{2} \Omega_{m,0} H_0^2 a^{-1}(t) \delta(\mathbf{x}, t)$$
+
+$$
+\nabla^2 \Phi(\mathbf{x}, t) = 4\pi G \bar{\rho}(t) a^2(t) \delta(\mathbf{x}, t) = \frac{3}{2} \Omega_{m,0} H_0^2 a^{-1}(t) \delta(\mathbf{x}, t)
+$$
 
 The trace-free Gravitational Tidal Tensor $T_{ij}$ is defined as:
-$$T_{ij}(\mathbf{x}) \equiv \frac{\partial^2 \Phi}{\partial x_i \partial x_j} - \frac{1}{3} \nabla^2 \Phi \delta_{ij}$$
+
+$$
+T_{ij}(\mathbf{x}) \equiv \frac{\partial^2 \Phi}{\partial x_i \partial x_j} - \frac{1}{3} \nabla^2 \Phi \delta_{ij}
+$$
 
 Let $\lambda_1 \ge \lambda_2 \ge \lambda_3$ be the real ordered eigenvalues of the normalized deformation tensor $\mathcal{D}_{ij} = \partial_i \partial_j \Phi$. The cosmic web environment is categorized by threshold $\gamma_{\text{th}}$:
 
@@ -236,9 +271,16 @@ Let $\lambda_1 \ge \lambda_2 \ge \lambda_3$ be the real ordered eigenvalues of t
 
 #### Exact Zel'dovich Collapse Redshift:
 Under the Zel'dovich mapping $\mathbf{x}(\mathbf{q}, t) = \mathbf{q} - D(t) \nabla \Phi_0(\mathbf{q})$, physical collapse occurs when the Jacobian determinant $\mathcal{J} = \det(\delta_{ij} - D(t)\lambda_i) \to 0$. Along the primary axis:
-$$1 - D(t_{\text{coll}}) \lambda_1(\mathbf{q}) = 0 \implies D(t_{\text{coll}}) = \frac{1}{\lambda_1(\mathbf{q})}$$
+
+$$
+1 - D(t_{\text{coll}}) \lambda_1(\mathbf{q}) = 0 \implies D(t_{\text{coll}}) = \frac{1}{\lambda_1(\mathbf{q})}
+$$
+
 In an Einstein-de Sitter universe ($D(z) = \frac{1}{1+z}$ with $D(z=0)=1$):
-$$\boxed{1 + z_{\text{collapse}} = \lambda_1(\mathbf{q}) \iff z_{\text{collapse}} = \lambda_1(\mathbf{q}) - 1}$$
+
+$$
+\boxed{1 + z_{\text{collapse}} = \lambda_1(\mathbf{q}) \iff z_{\text{collapse}} = \lambda_1(\mathbf{q}) - 1}
+$$
 
 #### Section Citations:
 1. Zel'dovich, Ya. B. (1970), *Astronomy & Astrophysics*, 5, 84–89. [ADS: 1970A&A.....5...84Z](https://ui.adsabs.harvard.edu/abs/1970A%26A.....5...84Z)
@@ -252,16 +294,29 @@ $$\boxed{1 + z_{\text{collapse}} = \lambda_1(\mathbf{q}) \iff z_{\text{collapse}
 ### 3.3 Tidal Torque Theory (TTT) Protogalactic Angular Momentum Generation
 
 The total physical angular momentum $\mathbf{L}(t)$ of a protogalaxy occupying Lagrangian volume $V_L$ is:
-$$\mathbf{L}(t) = a^2(t) \bar{\rho}_0 \int_{V_L} (\mathbf{x}(\mathbf{q}, t) - \bar{\mathbf{x}}) \times \dot{\mathbf{x}}(\mathbf{q}, t)\, d^3\mathbf{q}$$
+
+$$
+\mathbf{L}(t) = a^2(t) \bar{\rho}_0 \int_{V_L} (\mathbf{x}(\mathbf{q}, t) - \bar{\mathbf{x}}) \times \dot{\mathbf{x}}(\mathbf{q}, t)\, d^3\mathbf{q}
+$$
 
 Expanding in the Zel'dovich regime and Taylor-expanding the external gravitational potential around the center of mass $\bar{\mathbf{q}}$:
-$$L_i(t) = -a^2(t)\dot{D}(t)\bar{\rho}_0 \epsilon_{ijk} \left.\frac{\partial^2 \Phi_0}{\partial q_k \partial q_l}\right|_{\bar{\mathbf{q}}} \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, d^3\mathbf{q}$$
+
+$$
+L_i(t) = -a^2(t)\dot{D}(t)\bar{\rho}_0 \epsilon_{ijk} \left.\frac{\partial^2 \Phi_0}{\partial q_k \partial q_l}\right|_{\bar{\mathbf{q}}} \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, d^3\mathbf{q}
+$$
 
 Defining the protohalo homogeneous inertia tensor $I_{jl} \equiv \bar{\rho}_0 \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, d^3\mathbf{q}$ and tidal tensor $T_{kl} = \partial_k \partial_l \Phi_0$:
-$$\boxed{L_i(t) = a^2(t) \dot{D}(t) \sum_{j,k,l} \epsilon_{ijk} T_{jl} I_{lk} = a^2(t) \dot{D}(t) \epsilon_{ijk} (T \cdot I)_{jk}}$$
+
+$$
+\boxed{L_i(t) = a^2(t) \dot{D}(t) \sum_{j,k,l} \epsilon_{ijk} T_{jl} I_{lk} = a^2(t) \dot{D}(t) \epsilon_{ijk} (T \cdot I)_{jk}}
+$$
 
 In Einstein-de Sitter cosmology ($a(t) \propto t^{2/3}, D(t) \propto t^{2/3} \implies \dot{D}(t) \propto t^{-1/3} \propto a^{-1/2}$):
-$$L(t) \propto a^2 \cdot a^{-1/2} = a^{3/2}(t) \propto t$$
+
+$$
+L(t) \propto a^2 \cdot a^{-1/2} = a^{3/2}(t) \propto t
+$$
+
 Protogalactic angular momentum grows **linearly with cosmic time** prior to non-linear turnaround ($t \le t_{\text{turn}}$).
 
 #### Section Citations:
@@ -276,13 +331,22 @@ Protogalactic angular momentum grows **linearly with cosmic time** prior to non-
 ### 3.4 3D Velocity Dispersion Tensors, Anisotropy & Spherical Jeans Mass Inversion
 
 For a velocity field smoothed over radius $R$, the spatial velocity dispersion tensor is:
-$$\sigma_{ij}^2(\mathbf{x}) = \langle v_i v_j \rangle_R - \langle v_i \rangle_R \langle v_j \rangle_R$$
+
+$$
+\sigma_{ij}^2(\mathbf{x}) = \langle v_i v_j \rangle_R - \langle v_i \rangle_R \langle v_j \rangle_R
+$$
 
 In spherical coordinates centered on a halo, the Binney (1980) orbital anisotropy parameter $\beta(r)$ is:
-$$\beta(r) = 1 - \frac{\sigma_\theta^2(r) + \sigma_\phi^2(r)}{2 \sigma_r^2(r)} = 1 - \frac{\sigma_t^2(r)}{\sigma_r^2(r)}$$
+
+$$
+\beta(r) = 1 - \frac{\sigma_\theta^2(r) + \sigma_\phi^2(r)}{2 \sigma_r^2(r)} = 1 - \frac{\sigma_t^2(r)}{\sigma_r^2(r)}
+$$
 
 Under steady-state collisionless Boltzmann equilibrium, the enclosed dynamical Jeans mass $M_{\text{Jeans}}(<r)$ is:
-$$\boxed{M_{\text{Jeans}}(<r) = -\frac{r \sigma_r^2(r)}{G} \left[ \frac{d \ln \rho(r)}{d \ln r} + \frac{d \ln \sigma_r^2(r)}{d \ln r} + 2\beta(r) \right]}$$
+
+$$
+\boxed{M_{\text{Jeans}}(<r) = -\frac{r \sigma_r^2(r)}{G} \left[ \frac{d \ln \rho(r)}{d \ln r} + \frac{d \ln \sigma_r^2(r)}{d \ln r} + 2\beta(r) \right]}
+$$
 
 #### Section Citations:
 1. Jeans, J. H. (1915), *MNRAS*, 76(2), 70–84. [DOI: 10.1093/mnras/76.2.70](https://doi.org/10.1093/mnras/76.2.70)
@@ -296,16 +360,33 @@ $$\boxed{M_{\text{Jeans}}(<r) = -\frac{r \sigma_r^2(r)}{G} \left[ \frac{d \ln \r
 ### 3.5 Exact Analytical Solutions for Dark Matter Haloes (SIS, Hernquist, NFW)
 
 #### 1. Singular Isothermal Sphere (SIS):
-$$\rho(r) = \frac{\sigma^2}{2\pi G r^2}, \quad \frac{d\ln\rho(r)}{d\ln r} = -2, \quad M(<r) = \frac{2\sigma^2 r}{G}, \quad V_c(r) = \sqrt{2}\sigma = \text{const}$$
+
+$$
+\rho(r) = \frac{\sigma^2}{2\pi G r^2}, \quad \frac{d\ln\rho(r)}{d\ln r} = -2, \quad M(<r) = \frac{2\sigma^2 r}{G}, \quad V_c(r) = \sqrt{2}\sigma = \text{const}
+$$
 
 #### 2. Hernquist (1990) Halo ($s = r/a_h$):
-$$\rho(r) = \frac{M a_h}{2\pi r (r + a_h)^3}, \quad M(<r) = M \frac{r^2}{(r + a_h)^2}, \quad \Phi(r) = -\frac{GM}{r + a_h}$$
-$$\sigma_r^2(s) = \frac{G M}{12 a_h} \left[ \frac{12 s(1+s)^3 \ln\left(\frac{1+s}{s}\right) - s\big(25 + 52s + 42s^2 + 12s^3\big)}{(1+s)^4} \right]$$
+
+$$
+\rho(r) = \frac{M a_h}{2\pi r (r + a_h)^3}, \quad M(<r) = M \frac{r^2}{(r + a_h)^2}, \quad \Phi(r) = -\frac{GM}{r + a_h}
+$$
+
+$$
+\sigma_r^2(s) = \frac{G M}{12 a_h} \left[ \frac{12 s(1+s)^3 \ln\left(\frac{1+s}{s}\right) - s\big(25 + 52s + 42s^2 + 12s^3\big)}{(1+s)^4} \right]
+$$
 
 #### 3. Navarro-Frenk-White (NFW 1996) Halo ($x = r/r_s$):
-$$\rho(r) = \frac{\rho_0}{x(1+x)^2}, \quad M(<r) = 4\pi \rho_0 r_s^3 \left[ \ln(1+x) - \frac{x}{1+x} \right], \quad \Phi(r) = -4\pi G \rho_0 r_s^2 \frac{\ln(1+x)}{x}$$
+
+$$
+\rho(r) = \frac{\rho_0}{x(1+x)^2}, \quad M(<r) = 4\pi \rho_0 r_s^3 \left[ \ln(1+x) - \frac{x}{1+x} \right], \quad \Phi(r) = -4\pi G \rho_0 r_s^2 \frac{\ln(1+x)}{x}
+$$
+
 Using the Spence Dilogarithm $\mathrm{Li}_2(z) = -\int_0^z \frac{\ln(1-t)}{t}\, dt$:
-$$\sigma_r^2(x) = \frac{1}{2} V_s^2 x(1+x)^2 \left[ \pi^2 - \ln x - \frac{1}{x} - \frac{1}{(1+x)^2} - \frac{6}{1+x} + \left( 1 + \frac{1}{x^2} - \frac{4}{x} - \frac{2}{1+x} \right) \ln(1+x) + 3\ln^2(1+x) + 6\mathrm{Li}_2(-x) \right]$$
+
+$$
+\sigma_r^2(x) = \frac{1}{2} V_s^2 x(1+x)^2 \left[ \pi^2 - \ln x - \frac{1}{x} - \frac{1}{(1+x)^2} - \frac{6}{1+x} + \left( 1 + \frac{1}{x^2} - \frac{4}{x} - \frac{2}{1+x} \right) \ln(1+x) + 3\ln^2(1+x) + 6\mathrm{Li}_2(-x) \right]
+$$
+
 where $V_s^2 = 4\pi G \rho_0 r_s^2$.
 
 #### Section Citations:
@@ -320,28 +401,57 @@ where $V_s^2 = 4\pi G \rho_0 r_s^2$.
 ### 3.6 Helmholtz-Hodge Spectral Vector Decomposition & Parseval L2 Orthogonality
 
 On a 3D periodic torus $\mathbb{T}^3$, any smooth velocity field $\mathbf{v}(\mathbf{x}) \in C^\infty(\mathbb{T}^3; \mathbb{R}^3)$ decomposes uniquely into mutually orthogonal components:
-$$\mathbf{v}(\mathbf{x}) = \mathbf{v}_{\text{pot}}(\mathbf{x}) + \mathbf{v}_{\text{sol}}(\mathbf{x}) + \mathbf{v}_0$$
+
+$$
+\mathbf{v}(\mathbf{x}) = \mathbf{v}_{\text{pot}}(\mathbf{x}) + \mathbf{v}_{\text{sol}}(\mathbf{x}) + \mathbf{v}_0
+$$
+
 where:
 - $\mathbf{v}_{\text{pot}}(\mathbf{x}) = -\nabla \Phi_v(\mathbf{x})$ is the irrotational (potential / longitudinal) field satisfying $\nabla \times \mathbf{v}_{\text{pot}} = \mathbf{0}$,
 - $\mathbf{v}_{\text{sol}}(\mathbf{x}) = \nabla \times \mathbf{A}_v(\mathbf{x})$ is the solenoidal (rotational / transverse) field satisfying $\nabla \cdot \mathbf{v}_{\text{sol}} = 0$,
 - $\mathbf{v}_0 = \frac{1}{V} \int_{\mathbb{T}^3} \mathbf{v}(\mathbf{x})\, d^3\mathbf{x} = \hat{\mathbf{v}}(\mathbf{0})$ is the constant harmonic mean mode.
 
 In Fourier wavevector space ($\mathbf{k} \neq \mathbf{0}$), the decomposition is computed via the orthogonal projection tensors:
-$$\hat{v}^{\text{pot}}_i(\mathbf{k}) = \mathcal{P}^{\parallel}_{ij}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})$$
-$$\hat{v}^{\text{sol}}_i(\mathbf{k}) = \mathcal{P}^{\perp}_{ij}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\delta_{ij} - \frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})$$
+
+$$
+\hat{v}^{\text{pot}}_i(\mathbf{k}) = \mathcal{P}^{\parallel}_{ij}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
+$$
+
+$$
+\hat{v}^{\text{sol}}_i(\mathbf{k}) = \mathcal{P}^{\perp}_{ij}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\delta_{ij} - \frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
+$$
+
 where $k^2 \equiv |\mathbf{k}|^2 = k_1^2 + k_2^2 + k_3^2$.
 
 #### Rigorous Proof of $L^2$ Parseval Orthogonality:
 In the Hilbert space $L^2(\mathbb{T}^3)$, the inner product is given by:
-$$\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}(\mathbf{x})\, d^3\mathbf{x}$$
+
+$$
+\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}(\mathbf{x})\, d^3\mathbf{x}
+$$
+
 Applying Plancherel's theorem:
-$$\int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}(\mathbf{x})\, d^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}^*_{\text{sol}}(\mathbf{k})$$
+
+$$
+\int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}(\mathbf{x})\, d^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}^*_{\text{sol}}(\mathbf{k})
+$$
+
 For $\mathbf{k} = \mathbf{0}$, $\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0}) = \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}$. For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
-$$\mathcal{P}^{\parallel}_{im}(\mathbf{k}) \mathcal{P}^{\perp}_{in}(\mathbf{k}) = \left(\frac{k_i k_m}{k^2}\right) \left(\delta_{in} - \frac{k_i k_n}{k^2}\right) = \frac{(k_i \delta_{in}) k_m}{k^2} - \frac{(k_i k_i) k_m k_n}{k^4} = \frac{k_n k_m}{k^2} - \frac{k^2 k_m k_n}{k^4} = \frac{k_m k_n}{k^2} - \frac{k_m k_n}{k^2} \equiv 0$$
-$$\therefore \quad \langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} \equiv 0 \quad \blacksquare$$
+
+$$
+\mathcal{P}^{\parallel}_{im}(\mathbf{k}) \mathcal{P}^{\perp}_{in}(\mathbf{k}) = \left(\frac{k_i k_m}{k^2}\right) \left(\delta_{in} - \frac{k_i k_n}{k^2}\right) = \frac{(k_i \delta_{in}) k_m}{k^2} - \frac{(k_i k_i) k_m k_n}{k^4} = \frac{k_n k_m}{k^2} - \frac{k^2 k_m k_n}{k^4} = \frac{k_m k_n}{k^2} - \frac{k_m k_n}{k^2} \equiv 0
+$$
+
+$$
+\therefore \quad \langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} \equiv 0 \quad \blacksquare
+$$
 
 Total kinetic energy $E_{\text{kin}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}(\mathbf{x})|^2 d^3\mathbf{x}$ partitions exactly:
-$$E_{\text{kin}} = E_0 + E_{\text{pot}} + E_{\text{sol}}$$
+
+$$
+E_{\text{kin}} = E_0 + E_{\text{pot}} + E_{\text{sol}}
+$$
+
 where $E_0 = \frac{1}{2} V |\mathbf{v}_0|^2$, $E_{\text{pot}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}_{\text{pot}}(\mathbf{x})|^2 d^3\mathbf{x}$, and $E_{\text{sol}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}_{\text{sol}}(\mathbf{x})|^2 d^3\mathbf{x}$.
 
 #### Section Citations:
@@ -356,9 +466,17 @@ where $E_0 = \frac{1}{2} V |\mathbf{v}_0|^2$, $E_{\text{pot}} = \frac{1}{2} \int
 ### 3.7 Dynamical Topology, 3D Newton-Raphson Roots & Morse-Smale Complexes
 
 Velocity critical points satisfy $\mathbf{v}(\mathbf{x}^*) = \mathbf{0}$. We isolate these stationary points to machine precision via multidimensional 3D Newton-Raphson root iteration:
-$$\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \left[ J(\mathbf{x}^{(k)}) \right]^{-1} \mathbf{v}(\mathbf{x}^{(k)})$$
+
+$$
+\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \left[ J(\mathbf{x}^{(k)}) \right]^{-1} \mathbf{v}(\mathbf{x}^{(k)})
+$$
+
 where $J_{ij}(\mathbf{x}) = \frac{\partial v_i}{\partial x_j}(\mathbf{x})$ is the local velocity gradient Jacobian tensor. By the Newton-Kantorovich theorem, convergence is $q$-quadratic:
-$$\|\mathbf{e}^{(k+1)}\| \le \frac{1}{2}\beta\gamma \|\mathbf{e}^{(k)}\|^2$$
+
+$$
+\|\mathbf{e}^{(k+1)}\| \le \frac{1}{2}\beta\gamma \|\mathbf{e}^{(k)}\|^2
+$$
+
 where $\beta = \|[J(\mathbf{x}^*)]^{-1}\|$ and $\gamma$ is the Lipschitz constant of $J(\mathbf{x})$.
 
 #### Critical Point Spectrum & Morse Index $\mu$:
@@ -370,9 +488,17 @@ Classified by the eigenvalues $\lambda_1, \lambda_2, \lambda_3$ of the Jacobian 
 
 #### Morse-Smale Complex Decomposition:
 Let $W^s(p)$ be the ascending stable manifold of critical point $p$ and $W^u(q)$ be the descending unstable manifold of critical point $q$. The **Morse-Smale Complex** decomposes space into cells $\Gamma(p, q)$:
-$$\Gamma(p, q) = W^s(p) \cap W^u(q)$$
+
+$$
+\Gamma(p, q) = W^s(p) \cap W^u(q)
+$$
+
 with cell dimension given by the index difference:
-$$\dim \Gamma(p, q) = \mu(q) - \mu(p)$$
+
+$$
+\dim \Gamma(p, q) = \mu(q) - \mu(p)
+$$
+
 for $\mu(p) \le \mu(q)$ under transverse intersection $W^s(p) \pitchfork W^u(q)$.
 
 #### Section Citations:
@@ -387,16 +513,28 @@ for $\mu(p) \le \mu(q)$ under transverse intersection $W^s(p) \pitchfork W^u(q)$
 ### 3.8 Persistent Homology, 3D Cubical Complexes & Betti Curves
 
 On a 3D cubical complex filtration $K(\delta_{\text{th}})$, chain groups $C_k(K; \mathbb{Z}_2)$ with boundary operators $\partial_k: C_k \to C_{k-1}$ satisfy the exact nilpotency identity:
-$$\partial_k \circ \partial_{k+1} \equiv 0 \pmod 2 \quad (\partial^2 = 0)$$
+
+$$
+\partial_k \circ \partial_{k+1} \equiv 0 \pmod 2 \quad (\partial^2 = 0)
+$$
+
 The $k$-th homology group is $H_k(K; \mathbb{Z}_2) = \ker \partial_k / \mathrm{im}\,\partial_{k+1}$, and the $k$-th Betti number $\beta_k(\delta_{\text{th}})$ is:
-$$\beta_k(\delta_{\text{th}}) = \dim H_k(K(\delta_{\text{th}}); \mathbb{Z}_2) = \dim(\ker \partial_k) - \dim(\mathrm{im}\,\partial_{k+1})$$
+
+$$
+\beta_k(\delta_{\text{th}}) = \dim H_k(K(\delta_{\text{th}}); \mathbb{Z}_2) = \dim(\ker \partial_k) - \dim(\mathrm{im}\,\partial_{k+1})
+$$
+
 Cosmological interpretation across filtration thresholds $\delta_{\text{th}}$:
 - $\beta_0(\delta_{\text{th}})$: Connected supercluster components (isolated overdensities for superlevel sets $\delta \ge \delta_{\text{th}}$).
 - $\beta_1(\delta_{\text{th}})$: Filament loops, tunnels, and topological handles.
 - $\beta_2(\delta_{\text{th}})$: Enclosed cosmic void bubbles and cavities.
 
 The **Euler-Poincaré Formula** establishes exact homological and cell-count invariance:
-$$\chi(\delta_{\text{th}}) = \sum_{k=0}^2 (-1)^k \beta_k(\delta_{\text{th}}) = \beta_0(\delta_{\text{th}}) - \beta_1(\delta_{\text{th}}) + \beta_2(\delta_{\text{th}}) = V - E + F - C$$
+
+$$
+\chi(\delta_{\text{th}}) = \sum_{k=0}^2 (-1)^k \beta_k(\delta_{\text{th}}) = \beta_0(\delta_{\text{th}}) - \beta_1(\delta_{\text{th}}) + \beta_2(\delta_{\text{th}}) = V - E + F - C
+$$
+
 where $V = c_0$ (vertices), $E = c_1$ (edges), $F = c_2$ (faces), and $C = c_3$ (cubes/voxels).
 
 #### Section Citations:
@@ -411,7 +549,11 @@ where $V = c_0$ (vertices), $E = c_1$ (edges), $F = c_2$ (faces), and $C = c_3$ 
 ### 3.9 Tomita-Gott Gaussian Random Field Analytical Euler Morphometry & Asymmetry
 
 For a 3D isotropic Gaussian random field $\delta(\mathbf{x})$ with spectral dispersion moments $\sigma_0 = \sqrt{\langle \delta^2 \rangle}$ and $\sigma_1 = \sqrt{\langle |\nabla \delta|^2 \rangle}$, the analytical Euler characteristic density per unit volume $V_3(\nu) = \chi(\nu)/V$ at standardized threshold $\nu = (\delta - \langle\delta\rangle)/\sigma_0$ (Tomita 1986, Gott et al. 1986, Matsubara 2003) is:
-$$V_3(\nu) = \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3 (\nu^2 - 1) e^{-\nu^2 / 2} = N (\nu^2 - 1) e^{-\nu^2 / 2}$$
+
+$$
+V_3(\nu) = \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3 (\nu^2 - 1) e^{-\nu^2 / 2} = N (\nu^2 - 1) e^{-\nu^2 / 2}
+$$
+
 where $N \equiv \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3$. The Gott genus density is $g_V(\nu) = -\frac{1}{2} V_3(\nu) = \frac{N}{2}(1 - \nu^2)e^{-\nu^2/2}$.
 
 #### Universal Theoretical Peak-to-Trough Asymmetry $A_{\text{GRF}}$:
@@ -420,7 +562,11 @@ where $N \equiv \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \rig
 - **Symmetric Peaks**: $\nu = \pm\sqrt{3} \implies V_3(\pm\sqrt{3}) = 2 N e^{-3/2}$, with peak height $P \equiv V_3(\pm\sqrt{3}) = 2 N e^{-3/2}$.
 
 The universal theoretical peak-to-trough asymmetry parameter $A_{\text{GRF}}$ is:
-$$\boxed{A_{\text{GRF}} \equiv \frac{T - P}{T + P} = \frac{N - 2 N e^{-3/2}}{N + 2 N e^{-3/2}} = \frac{1 - 2 e^{-3/2}}{1 + 2 e^{-3/2}} = \frac{0.55373968...}{1.44626032...} \approx 0.38288}$$
+
+$$
+\boxed{A_{\text{GRF}} \equiv \frac{T - P}{T + P} = \frac{N - 2 N e^{-3/2}}{N + 2 N e^{-3/2}} = \frac{1 - 2 e^{-3/2}}{1 + 2 e^{-3/2}} = \frac{0.55373968...}{1.44626032...} \approx 0.38288}
+$$
+
 This dimensionless constant serves as an exact topological benchmark; any observed shift $\Delta A = A_{\text{obs}} - A_{\text{GRF}}$ quantitatively constrains primordial non-Gaussianity ($f_{\text{NL}}$) and nonlinear gravitational clustering.
 
 #### Section Citations:
@@ -435,30 +581,68 @@ This dimensionless constant serves as an exact topological benchmark; any observ
 ### 3.10 Multipolar Bulk Flow Estimators & Cosmic Variance Covariance
 
 For galaxies with measured line-of-sight velocities $u_n = \mathbf{v}_n \cdot \hat{\mathbf{r}}_n + \epsilon_n$ with weights $w_n = \frac{1}{\sigma_n^2 + \sigma_v^2}$ (where $\sigma_v \approx 187\,\mathrm{km}/\mathrm{s}$ is the 1D thermal cosmic velocity dispersion), the maximum-likelihood bulk flow dipole is:
-$$\mathbf{V}_{\mathrm{bulk}} = \mathbf{A}^{-1} \mathbf{B}, \quad A_{ij} = \sum_{n=1}^N w_n \hat{r}_{n,i} \hat{r}_{n,j}, \quad B_i = \sum_{n=1}^N w_n u_n \hat{r}_{n,i}$$
+
+$$
+\mathbf{V}_{\mathrm{bulk}} = \mathbf{A}^{-1} \mathbf{B}, \quad A_{ij} = \sum_{n=1}^N w_n \hat{r}_{n,i} \hat{r}_{n,j}, \quad B_i = \sum_{n=1}^N w_n u_n \hat{r}_{n,i}
+$$
+
 with parameter statistical covariance matrix:
-$$\mathbf{C}_{\mathrm{stat}} = \mathbf{A}^{-1}$$
+
+$$
+\mathbf{C}_{\mathrm{stat}} = \mathbf{A}^{-1}
+$$
+
 and 1D component uncertainties $\sigma_{V_i} = \sqrt{(\mathbf{A}^{-1})_{ii}}$, yielding bulk flow magnitude uncertainty $\sigma_{|\mathbf{V}_{\mathrm{bulk}}|} = \sqrt{\hat{\mathbf{V}}^T \mathbf{A}^{-1} \hat{\mathbf{V}}}$.
 
 #### Spherical Multipole Expansion:
 The radial velocity field on the sphere is expanded in orthonormal spherical harmonics $Y_{\ell m}(\theta, \phi)$:
-$$u(r, \theta, \phi) = \sum_{\ell=0}^\infty \sum_{m=-\ell}^\ell a_{\ell m}(r) Y_{\ell m}(\theta, \phi)$$
+
+$$
+u(r, \theta, \phi) = \sum_{\ell=0}^\infty \sum_{m=-\ell}^\ell a_{\ell m}(r) Y_{\ell m}(\theta, \phi)
+$$
+
 or equivalently in Cartesian multipole tensors up to quadrupole ($\ell=2$):
-$$u(\mathbf{r}) = H_R r + \sum_{i=1}^3 V_i \hat{r}_i + r \sum_{j=1}^3 \sum_{k=1}^3 Q_{jk} \hat{r}_j \hat{r}_k + \dots$$
+
+$$
+u(\mathbf{r}) = H_R r + \sum_{i=1}^3 V_i \hat{r}_i + r \sum_{j=1}^3 \sum_{k=1}^3 Q_{jk} \hat{r}_j \hat{r}_k + \dots
+$$
+
 - **$\ell=0$ Monopole (Local Expansion / Hubble Bubble)**:
-  $$a_{00}(r) = \sqrt{4\pi} H_R r, \quad H_R \equiv \frac{\langle v_r \rangle}{R}$$
+
+$$
+a_{00}(r) = \sqrt{4\pi} H_R r, \quad H_R \equiv \frac{\langle v_r \rangle}{R}
+$$
+
 - **$\ell=1$ Dipole (Bulk Flow Vector)**:
-  $$|\mathbf{V}_{\mathrm{bulk}}|^2 = \frac{3}{4\pi} \sum_{m=-1}^1 |a_{1m}|^2 = V_x^2 + V_y^2 + V_z^2$$
+
+$$
+|\mathbf{V}_{\mathrm{bulk}}|^2 = \frac{3}{4\pi} \sum_{m=-1}^1 |a_{1m}|^2 = V_x^2 + V_y^2 + V_z^2
+$$
+
 - **$\ell=2$ Quadrupole (Cosmic Shear / Tidal Strain Tensor)**:
-  $$\sum_{j,k=1}^3 Q_{jk}^2 = \frac{15}{8\pi r^2} \sum_{m=-2}^2 |a_{2m}|^2, \quad \mathrm{Tr}(\mathbf{Q}) = 0$$
+
+$$
+\sum_{j,k=1}^3 Q_{jk}^2 = \frac{15}{8\pi r^2} \sum_{m=-2}^2 |a_{2m}|^2, \quad \mathrm{Tr}(\mathbf{Q}) = 0
+$$
 
 #### Top-Hat Window & Cosmic Variance:
 In $\Lambda\mathrm{CDM}$ linear perturbation theory, the spherical top-hat filter in Fourier space is:
-$$W_R(k) = \frac{3 j_1(kR)}{kR} = \frac{3(\sin kR - kR \cos kR)}{(kR)^3}$$
+
+$$
+W_R(k) = \frac{3 j_1(kR)}{kR} = \frac{3(\sin kR - kR \cos kR)}{(kR)^3}
+$$
+
 The theoretical cosmic variance covariance matrix for an idealized spherical volume of radius $R$ is:
-$$R_{ij}(R) \equiv \langle V_i V_j \rangle_{\mathrm{cosmic}} = \left[ \frac{H_0^2 f^2}{6\pi^2} \int_0^\infty P(k) |W_R(k)|^2 \, \mathrm{d}k \right] \delta_{ij} = \sigma_{1\mathrm{D}}^2(R) \, \delta_{ij}$$
+
+$$
+R_{ij}(R) \equiv \langle V_i V_j \rangle_{\mathrm{cosmic}} = \left[ \frac{H_0^2 f^2}{6\pi^2} \int_0^\infty P(k) |W_R(k)|^2 \, \mathrm{d}k \right] \delta_{ij} = \sigma_{1\mathrm{D}}^2(R) \, \delta_{ij}
+$$
+
 with 3D root-mean-square bulk flow expectation:
-$$\sigma_{3\mathrm{D}}(R) = \sqrt{\langle |\mathbf{V}|^2 \rangle} = \sqrt{\mathrm{Tr}(\mathbf{R}(R))} = \sqrt{3}\,\sigma_{1\mathrm{D}}(R)$$
+
+$$
+\sigma_{3\mathrm{D}}(R) = \sqrt{\langle |\mathbf{V}|^2 \rangle} = \sqrt{\mathrm{Tr}(\mathbf{R}(R))} = \sqrt{3}\,\sigma_{1\mathrm{D}}(R)
+$$
 
 #### Section Citations:
 1. Kaiser, N. (1988), *MNRAS*, 231(1), 149–164. [DOI: 10.1093/mnras/231.1.149](https://doi.org/10.1093/mnras/231.1.149)
@@ -473,11 +657,19 @@ $$\sigma_{3\mathrm{D}}(R) = \sqrt{\langle |\mathbf{V}|^2 \rangle} = \sqrt{\mathr
 ### 3.11 Multi-Band Tully-Fisher Extragalactic Calibrations & Malmquist Corrections
 
 The multi-band absolute magnitude calibration relation is:
-$$M_{\mathrm{band}} = -a_{\mathrm{band}} \left(\log_{10} W_{\mathrm{mx}} - 2.50\right) + b_{\mathrm{band}}$$
+
+$$
+M_{\mathrm{band}} = -a_{\mathrm{band}} \left(\log_{10} W_{\mathrm{mx}} - 2.50\right) + b_{\mathrm{band}}
+$$
+
 where $a_{\mathrm{band}}$ is the TFR slope, $b_{\mathrm{band}}$ is the zero-point at pivot width $\log_{10} W_{\mathrm{pivot}} = 2.50$ ($W_{\mathrm{pivot}} \approx 316.23\,\mathrm{km}/\mathrm{s}$), and $W_{\mathrm{mx}}$ is the physical maximum rotational velocity width.
 
 #### 21cm Linewidth De-Projection:
-$$W_{\mathrm{mx}} = \frac{\frac{W_{50}}{1+z} - 2\Delta v_{\mathrm{inst}} - W_t}{\sin(i)}, \quad \cos^2(i) = \frac{q^2 - q_0^2}{1 - q_0^2}$$
+
+$$
+W_{\mathrm{mx}} = \frac{\frac{W_{50}}{1+z} - 2\Delta v_{\mathrm{inst}} - W_t}{\sin(i)}, \quad \cos^2(i) = \frac{q^2 - q_0^2}{1 - q_0^2}
+$$
+
 where:
 - $q \equiv b/a$ is the observed photometric minor-to-major axial ratio ($q \le 1.0$).
 - $q_0 \approx 0.20$ (ranging from $0.20$ for early-type S0/Sa to $0.13$ for late-type Sc/Sd spirals) is the intrinsic disc flattening parameter.
@@ -486,22 +678,42 @@ where:
 - $W_t$ is the turbulent velocity dispersion correction (Tully-Fouqué 1985).
 
 #### Apparent Magnitude, Dust Extinction & Distance Modulus:
-$$m_{\mathrm{corr}} = m_{\mathrm{obs}} - A_{\mathrm{gal}} - A_{\mathrm{int}} - K(z)$$
-$$m_{\mathrm{corr}} = m_{\mathrm{obs}} - R_{\mathrm{band}} E(B-V)_{\mathrm{SFD}} - \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) - K(z)$$
+
+$$
+m_{\mathrm{corr}} = m_{\mathrm{obs}} - A_{\mathrm{gal}} - A_{\mathrm{int}} - K(z)
+$$
+
+$$
+m_{\mathrm{corr}} = m_{\mathrm{obs}} - R_{\mathrm{band}} E(B-V)_{\mathrm{SFD}} - \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) - K(z)
+$$
+
 where:
 - $E(B-V)_{\mathrm{SFD}}$ is the Galactic foreground dust reddening from the Schlegel, Finkbeiner & Davis (SFD98) / Schlafly & Finkbeiner (2011) maps with bandpass coefficient $R_{\mathrm{band}} = A_{\mathrm{band}} / E(B-V)$.
 - $A_{\mathrm{int}} = \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) = \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(1/\cos i)$ is the internal galaxy dust extinction.
 - $K(z) \approx k_1 z$ is the cosmological $K$-correction.
 
 The calibrated distance modulus $\mu_0$, metric distance $d$, reduced Hubble distance $d_h$, and radial peculiar velocity $v_{\mathrm{pec}}$ are:
-$$\mu_0 = m_{\mathrm{corr}} - M_{\mathrm{band}}$$
-$$d = 10^{\frac{\mu_0 - 25}{5}}\,\mathrm{Mpc}, \quad d_h = d \cdot h = 10^{\frac{\mu_0 - 25}{5}} \left(\frac{H_0}{100}\right)\,\mathrm{Mpc}/h, \quad v_{\mathrm{pec}} = cz_{\mathrm{CMB}} - H_0 d$$
+
+$$
+\mu_0 = m_{\mathrm{corr}} - M_{\mathrm{band}}
+$$
+
+$$
+d = 10^{\frac{\mu_0 - 25}{5}}\,\mathrm{Mpc}, \quad d_h = d \cdot h = 10^{\frac{\mu_0 - 25}{5}} \left(\frac{H_0}{100}\right)\,\mathrm{Mpc}/h, \quad v_{\mathrm{pec}} = cz_{\mathrm{CMB}} - H_0 d
+$$
 
 #### Malmquist Bias Compensations:
 - **Homogeneous Malmquist Bias** (volume-element selection bias in uniform density):
-  $$\Delta\mu_{\mathrm{hom}} = -\frac{3\ln 10}{5}\sigma_\mu^2 \approx -1.38155\,\sigma_\mu^2 \implies d_{\mathrm{corr}} = d_{\mathrm{obs}} \cdot 10^{\frac{\Delta\mu_{\mathrm{hom}}}{5}}$$
+
+$$
+\Delta\mu_{\mathrm{hom}} = -\frac{3\ln 10}{5}\sigma_{\mu}^2 \approx -1.38155\,\sigma_{\mu}^2 \implies d_{\mathrm{corr}} = d_{\mathrm{obs}} \cdot 10^{\frac{\Delta\mu_{\mathrm{hom}}}{5}}
+$$
+
 - **Inhomogeneous Malmquist Bias (IMB)** (coupling with local spatial galaxy density gradient $\nabla \ln n(\mathbf{r})$):
-  $$\Delta d_{\mathrm{IMB}} = -\sigma_d^2 \frac{\mathrm{d}\ln n(\mathbf{r})}{\mathrm{d}r}, \quad \Delta\mu_{\mathrm{IMB}} = -\sigma_\mu^2 \left( \frac{\mathrm{d}\ln n(r)}{\mathrm{d}\mu} + \frac{3}{\ln 10} \right)$$
+
+$$
+\Delta d_{\mathrm{IMB}} = -\sigma_d^2 \frac{\mathrm{d}\ln n(\mathbf{r})}{\mathrm{d}r}, \quad \Delta\mu_{\mathrm{IMB}} = -\sigma_{\mu}^2 \left( \frac{\mathrm{d}\ln n(r)}{\mathrm{d}\mu} + \frac{3}{\ln 10} \right)
+$$
 
 #### Section Citations:
 1. Tully, R. B., & Fisher, J. R. (1977), *Astronomy & Astrophysics*, 54, 661–673. [ADS: 1977A&A....54..661T](https://ui.adsabs.harvard.edu/abs/1977A%26A....54..661T)
@@ -517,7 +729,11 @@ $$d = 10^{\frac{\mu_0 - 25}{5}}\,\mathrm{Mpc}, \quad d_h = d \cdot h = 10^{\frac
 ### 3.12 Bayesian Hamiltonian Monte Carlo (HMC) & Symplectic Leapfrog Sampling
 
 Phase space dynamics on $(v, p)$ are governed by the Hamiltonian:
-$$\mathcal{H}(v, p) = U(v) + \frac{1}{2} p^\top M^{-1} p, \quad U(v) = -\ln \pi(v \mid \mathcal{D})$$
+
+$$
+\mathcal{H}(v, p) = U(v) + \frac{1}{2} p^\top M^{-1} p, \quad U(v) = -\ln \pi(v \mid \mathcal{D})
+$$
+
 where $v \in \mathbb{R}^D$ represents the spatial field parameters, $p \in \mathbb{R}^D$ is the conjugate momentum vector, $M$ is the symmetric positive-definite mass metric, and $\pi(v \mid \mathcal{D})$ is the posterior target density conditioned on observational dataset $\mathcal{D}$.
 
 #### Symplectic Leapfrog Integrator:
@@ -528,7 +744,11 @@ v(t + \epsilon) &= v(t) + \epsilon M^{-1} p\left(t + \frac{\epsilon}{2}\right) \
 p(t + \epsilon) &= p\left(t + \frac{\epsilon}{2}\right) - \frac{\epsilon}{2} \nabla U(v(t + \epsilon))
 \end{aligned}$$
 Proposals $(v^*, p^*)$ at the end of $L$ integration steps are accepted with Metropolis probability:
-$$\alpha = \min\left(1, \exp(-\Delta \mathcal{H})\right), \quad \Delta \mathcal{H} = \mathcal{H}(v^*, p^*) - \mathcal{H}(v, p)$$
+
+$$
+\alpha = \min\left(1, \exp(-\Delta \mathcal{H})\right), \quad \Delta \mathcal{H} = \mathcal{H}(v^*, p^*) - \mathcal{H}(v, p)
+$$
+
 preserving detailed balance and phase space Liouville volume conservation $\det J = \left|\det \frac{\partial (v(t+\epsilon), p(t+\epsilon))}{\partial (v(t), p(t))}\right| = 1$.
 
 #### Section Citations:
@@ -543,16 +763,34 @@ preserving detailed balance and phase space Liouville volume conservation $\det 
 ### 3.13 Ledoit-Wolf & OAS Optimal Linear Covariance Shrinkage Estimators
 
 For an empirical sample covariance matrix $S = \frac{1}{n}\sum_{k=1}^n (x_k - \bar{x})(x_k - \bar{x})^\top \in \mathbb{R}^{p \times p}$, the conditioned well-posed covariance estimator $\Sigma^*$ is:
-$$\Sigma^* = (1 - \lambda^*) S + \lambda^* \mu I_p$$
+
+$$
+\Sigma^* = (1 - \lambda^*) S + \lambda^* \mu I_p
+$$
+
 where the target shrinkage prior scalar is $\mu = \frac{1}{p} \mathrm{Tr}(S)$.
 
 - **Ledoit-Wolf Intensity**: The optimal intensity $\hat{\lambda}^* = \frac{b^2}{d^2} \in [0, 1]$ minimizes the expected quadratic Frobenius risk $\mathbb{E}[\|\Sigma^* - \Sigma\|_F^2]$:
-  $$d^2 = \|S - \mu I_p\|_F^2 = \mathrm{Tr}\left((S - \mu I_p)^2\right) = \mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2$$
-  $$\bar{b}^2 = \frac{1}{n^2} \sum_{k=1}^n \|(x_k - \bar{x})(x_k - \bar{x})^\top - S\|_F^2, \quad b^2 = \min(\bar{b}^2, d^2)$$
+
+$$
+d^2 = \|S - \mu I_p\|_F^2 = \mathrm{Tr}\left((S - \mu I_p)^2\right) = \mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2
+$$
+
+$$
+\bar{b}^2 = \frac{1}{n^2} \sum_{k=1}^n \|(x_k - \bar{x})(x_k - \bar{x})^\top - S\|_F^2, \quad b^2 = \min(\bar{b}^2, d^2)
+$$
+
 - **Oracle Approximating Shrinkage (OAS)**: Under Gaussianity assumptions, OAS yields higher accuracy for small sample ratios $n/p$:
-  $$\hat{\rho}_{\text{OAS}} = \min\left(1, \max\left(0, \frac{\left(1 - \frac{2}{p}\right)\mathrm{Tr}(S^2) + \left(\mathrm{Tr}(S)\right)^2}{\left(n + 1 - \frac{2}{p}\right)\left(\mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2\right)}\right)\right)$$
+
+$$
+\hat{\rho}_{\text{OAS}} = \min\left(1, \max\left(0, \frac{\left(1 - \frac{2}{p}\right)\mathrm{Tr}(S^2) + \left(\mathrm{Tr}(S)\right)^2}{\left(n + 1 - \frac{2}{p}\right)\left(\mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2\right)}\right)\right)
+$$
+
 - **Rao-Blackwell Ledoit-Wolf (RBLW)**:
-  $$\hat{\rho}_{\text{RBLW}} = \min\left(1, \max\left(0, \frac{\frac{n-2}{n}\mathrm{Tr}(S^2) + \left(\mathrm{Tr}(S)\right)^2}{(n + 2)\left(\mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2\right)}\right)\right)$$
+
+$$
+\hat{\rho}_{\text{RBLW}} = \min\left(1, \max\left(0, \frac{\frac{n-2}{n}\mathrm{Tr}(S^2) + \left(\mathrm{Tr}(S)\right)^2}{(n + 2)\left(\mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2\right)}\right)\right)
+$$
 
 #### Section Citations:
 1. Ledoit, O., & Wolf, M. (2004), *Journal of Multivariate Analysis*, 88(2), 365–411. [DOI: 10.1016/S0047-259X(03)00096-4](https://doi.org/10.1016/S0047-259X(03)00096-4)
@@ -566,14 +804,30 @@ where the target shrinkage prior scalar is $\mu = \frac{1}{p} \mathrm{Tr}(S)$.
 ### 3.14 MCMC Convergence Diagnostics: Gelman-Rubin R-hat, ESS Suite & Geweke Scores
 
 - **Rank-Split $\hat{R}$ (PSRF)**: Evaluated across $M$ chains of length $N$ split into $2M$ sub-chains after rank-transformation $\tilde{\theta} = \Phi^{-1}((r - 3/8)/(S + 1/4))$:
-  $$\widehat{V}^+ = \frac{N-1}{N} W + \frac{M+1}{MN} B, \quad \hat{R} = \sqrt{\frac{\widehat{V}^+}{W} \cdot \frac{df}{df-2}} \le 1.01$$
+
+$$
+\widehat{V}^+ = \frac{N-1}{N} W + \frac{M+1}{MN} B, \quad \hat{R} = \sqrt{\frac{\widehat{V}^+}{W} \cdot \frac{df}{df-2}} \le 1.01
+$$
+
   where $W = \frac{1}{M}\sum_{m=1}^M s_m^2$ is the mean within-chain variance, $B/N = \frac{1}{M-1}\sum_{m=1}^M (\bar{\theta}_m - \bar{\theta}_\bullet)^2$ is the between-chain variance, and $df$ is the estimated degrees of freedom.
 - **Multivariate MPSRF**: For parameter vectors $\boldsymbol{\theta} \in \mathbb{R}^p$ with pooled within-chain covariance matrix $\mathbf{W}$ and between-chain covariance matrix $\mathbf{B}/N$:
-  $$\mathrm{MPSRF} = \sqrt{\frac{N-1}{N} + \left(\frac{M+1}{M}\right)\lambda_{\max}\left(\mathbf{W}^{-1}\mathbf{B}/N\right)} \le 1.05$$
+
+$$
+\mathrm{MPSRF} = \sqrt{\frac{N-1}{N} + \left(\frac{M+1}{M}\right)\lambda_{\max}\left(\mathbf{W}^{-1}\mathbf{B}/N\right)} \le 1.05
+$$
+
 - **Effective Sample Size (ESS)**: Computed via the multi-chain cross-variogram pooled autocorrelation function $\hat{\rho}_k = 1 - \frac{V_k}{2\widehat{V}^+}$:
-  $$\text{ESS} = \frac{MN}{\hat{\tau}_{\text{int}}} = \frac{MN}{1 + 2 \sum_{k=1}^{2K+1} \hat{\rho}_k}, \quad \text{ESS}_{\text{bulk}} \ge 400, \quad \text{ESS}_{\text{tail}} \ge 200$$
+
+$$
+\text{ESS} = \frac{MN}{\hat{\tau}_{\text{int}}} = \frac{MN}{1 + 2 \sum_{k=1}^{2K+1} \hat{\rho}_k}, \quad \text{ESS}_{\text{bulk}} \ge 400, \quad \text{ESS}_{\text{tail}} \ge 200
+$$
+
 - **Geweke Stationarity $Z$-Score**: Comparing the initial $n_A = 0.1 N$ and asymptotic $n_B = 0.5 N$ window means:
-  $$Z = \frac{\bar{\theta}_A - \bar{\theta}_B}{\sqrt{\frac{\widehat{S}_A(0)}{n_A} + \frac{\widehat{S}_B(0)}{n_B}}} \xrightarrow{d} \mathcal{N}(0, 1) \implies |Z| \le 1.96 \quad (\alpha = 0.05)$$
+
+$$
+Z = \frac{\bar{\theta}_A - \bar{\theta}_B}{\sqrt{\frac{\widehat{S}_A(0)}{n_A} + \frac{\widehat{S}_B(0)}{n_B}}} \xrightarrow{d} \mathcal{N}(0, 1) \implies |Z| \le 1.96 \quad (\alpha = 0.05)
+$$
+
   where $\widehat{S}_A(0)$ and $\widehat{S}_B(0)$ are spectral density estimates at zero frequency.
 
 #### Section Citations:
@@ -589,12 +843,23 @@ where the target shrinkage prior scalar is $\mu = \frac{1}{p} \mathrm{Tr}(S)$.
 
 Cubic voxels are decomposed into 6 Kuhn / Freudenthal tetrahedra ($\det > 0$) or 5 alternating checkerboard tetrahedra to eliminate topological saddle ambiguities and ensure closed 2-manifold surfaces.
 - **Discrete Gauss-Bonnet Theorem**: Evaluated over the angle defect at vertices $v \in V$ with incident face angles $\theta_f(v)$:
-  $$\sum_{v \in V} K_v = \sum_{v \in V} \left(2\pi - \sum_{f \in F(v)} \theta_f(v)\right) = 2\pi \chi(\mathcal{M}) = 4\pi \quad (\text{for closed spherical topology } \chi=2)$$
+
+$$
+\sum_{v \in V} K_v = \sum_{v \in V} \left(2\pi - \sum_{f \in F(v)} \theta_f(v)\right) = 2\pi \chi(\mathcal{M}) = 4\pi \quad (\text{for closed spherical topology } \chi=2)
+$$
+
 - **Inter-Basin Hydrodynamic Momentum & Mass Flux**: Continuous surface flux across the watershed separatrix boundary $\partial\mathcal{B}_{AB}$:
-  $$\Phi_{AB} = \iint_{\partial\mathcal{B}_{AB}} \rho(\mathbf{x}) (\mathbf{v}(\mathbf{x}) \cdot \hat{\mathbf{n}}) \, dA = \sum_{k=1}^{N_{\text{tri}}} \rho_k (\mathbf{v}_k \cdot \hat{\mathbf{n}}_k) A_k$$
+
+$$
+\Phi_{AB} = \iint_{\partial\mathcal{B}_{AB}} \rho(\mathbf{x}) (\mathbf{v}(\mathbf{x}) \cdot \hat{\mathbf{n}}) \, dA = \sum_{k=1}^{N_{\text{tri}}} \rho_k (\mathbf{v}_k \cdot \hat{\mathbf{n}}_k) A_k
+$$
+
   where facet area is $A_k = \frac{1}{2} \|(\mathbf{x}_{k,1} - \mathbf{x}_{k,0}) \times (\mathbf{x}_{k,2} - \mathbf{x}_{k,0})\|$, $\hat{\mathbf{n}}_k$ is the outward facet unit normal, and $\rho_k, \mathbf{v}_k$ are evaluated at the facet centroid $\bar{\mathbf{x}}_k = \frac{1}{3}(\mathbf{x}_{k,0} + \mathbf{x}_{k,1} + \mathbf{x}_{k,2})$.
 - **Simplicial Minkowski Functionals & Volume Integrals**:
-  $$V_0 = \iiint_\Omega dV = \frac{1}{6} \sum_{f=1}^{N_{\text{tri}}} \mathbf{x}_{f,0} \cdot (\mathbf{x}_{f,1} \times \mathbf{x}_{f,2}), \quad V_1 = \iint_{\partial\Omega} dA = \sum_{f=1}^{N_{\text{tri}}} A_f$$
+
+$$
+V_0 = \iiint_\Omega dV = \frac{1}{6} \sum_{f=1}^{N_{\text{tri}}} \mathbf{x}_{f,0} \cdot (\mathbf{x}_{f,1} \times \mathbf{x}_{f,2}), \quad V_1 = \iint_{\partial\Omega} dA = \sum_{f=1}^{N_{\text{tri}}} A_f
+$$
 
 #### Section Citations:
 1. Treece, G. M., Prager, R. W., & Gee, A. H. (1999), *Computer Graphics Forum*, 18(3), 387–398. [DOI: 10.1111/1467-8659.00358](https://doi.org/10.1111/1467-8659.00358)
@@ -954,7 +1219,6 @@ python -m pytest tests/ -v
 ```
 
 ---
-
 
 ## 6.1 Complete Manifest of Ingested & Downloaded Observational Datasets
 
