@@ -343,7 +343,7 @@ $$
 In spherical coordinates centered on a halo, the Binney (1980) orbital anisotropy parameter $\beta(r)$ is:
 
 $$
-\beta(r) = 1 - \frac{\sigma_\theta^2(r) + \sigma_\phi^2(r)}{2 \sigma_r^2(r)} = 1 - \frac{\sigma_t^2(r)}{\sigma_r^2(r)}
+\beta(r) = 1 - \frac{\sigma_{\theta}^2(r) + \sigma_{\phi}^2(r)}{2 \sigma_r^2(r)} = 1 - \frac{\sigma_t^2(r)}{\sigma_r^2(r)}
 $$
 
 Under steady-state collisionless Boltzmann equilibrium, the enclosed dynamical Jeans mass $M_{\text{Jeans}}(<r)$ is:
@@ -808,7 +808,7 @@ $$
 \widehat{V}^+ = \frac{N-1}{N} W + \frac{M+1}{MN} B, \quad \hat{R} = \sqrt{\frac{\widehat{V}^+}{W} \cdot \frac{df}{df-2}} \le 1.01
 $$
 
-  where $W = \frac{1}{M}\sum_{m=1}^M s_m^2$ is the mean within-chain variance, $B/N = \frac{1}{M-1}\sum_{m=1}^M (\bar{\theta}_m - \bar{\theta}_\bullet)^2$ is the between-chain variance, and $df$ is the estimated degrees of freedom.
+  where $W = \frac{1}{M}\sum_{m=1}^M s_m^2$ is the mean within-chain variance, $B/N = \frac{1}{M-1}\sum_{m=1}^M (\bar{\theta}_m - \bar{\theta}_{\bullet})^2$ is the between-chain variance, and $df$ is the estimated degrees of freedom.
 - **Multivariate MPSRF**: For parameter vectors $\boldsymbol{\theta} \in \mathbb{R}^p$ with pooled within-chain covariance matrix $\mathbf{W}$ and between-chain covariance matrix $\mathbf{B}/N$:
 
 $$
@@ -857,7 +857,7 @@ $$
 - **Simplicial Minkowski Functionals & Volume Integrals**:
 
 $$
-V_0 = \iiint_\Omega dV = \frac{1}{6} \sum_{f=1}^{N_{\text{tri}}} \mathbf{x}_{f,0} \cdot (\mathbf{x}_{f,1} \times \mathbf{x}_{f,2}), \quad V_1 = \iint_{\partial\Omega} dA = \sum_{f=1}^{N_{\text{tri}}} A_f
+V_0 = \iiint_{\Omega} dV = \frac{1}{6} \sum_{f=1}^{N_{\text{tri}}} \mathbf{x}_{f,0} \cdot (\mathbf{x}_{f,1} \times \mathbf{x}_{f,2}), \quad V_1 = \iint_{\partial\Omega} dA = \sum_{f=1}^{N_{\text{tri}}} A_f
 $$
 
 #### Section Citations:
@@ -890,7 +890,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![01_laniakea_core](assets/screenshots/01_laniakea_core.png)
 - **Astrometric Coordinates**: $SGX = -4,700\,h^{-1}\text{Mpc}, SGY = +700\,h^{-1}\text{Mpc}, SGZ = -300\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 3,800\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [-450, +220, -110]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 1.0 \times 10^{17}\,M_\odot$ (Diameter $\sim 100\,h^{-1}\text{Mpc}$)
+- **Total Dynamical Mass**: $M_{200} = 1.0 \times 10^{17}\,M_{\odot}$ (Diameter $\sim 100\,h^{-1}\text{Mpc}$)
 - **Morphological Description**: Primary home basin of attraction enclosing $\sim 100,000$ galaxies; streamlines converge toward the Norma/Centaurus core.
 - **Authoritative Citation**: Tully, R. B., Courtois, H., Hoffman, Y., & Pomarède, D. (2014), *Nature*, 513, 71–73. [DOI: 10.1038/nature13674](https://doi.org/10.1038/nature13674)
 
@@ -898,7 +898,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![02_shapley_mega_singularity](assets/screenshots/02_shapley_mega_singularity.png)
 - **Astrometric Coordinates**: $SGX = +7,200\,h^{-1}\text{Mpc}, SGY = -8,600\,h^{-1}\text{Mpc}, SGZ = -2,400\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 14,500\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [+310, -680, -240]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 1.2 \times 10^{17}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 1.2 \times 10^{17}\,M_{\odot}$
 - **Morphological Description**: The most massive bound galaxy concentration in the local universe ($z \le 0.08$), generating massive velocity infall corridors.
 - **Authoritative Citation**: Quintana, H., et al. (1995), *The Astronomical Journal*, 110, 463. [DOI: 10.1086/117537](https://doi.org/10.1086/117537)
 
@@ -906,7 +906,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![03_vela_supercluster_zoa](assets/screenshots/03_vela_supercluster_zoa.png)
 - **Astrometric Coordinates**: $SGX = -8,500\,h^{-1}\text{Mpc}, SGY = -12,000\,h^{-1}\text{Mpc}, SGZ = -3,200\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 18,900\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [-520, -340, +180]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 3.38 \times 10^{17}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 3.38 \times 10^{17}\,M_{\odot}$
 - **Morphological Description**: Discovered behind the southern Milky Way Zone of Avoidance; accounts for residual bulk flow acceleration.
 - **Authoritative Citation**: Kraan-Korteweg, R. C., et al. (2017), *MNRAS: Letters*, 466(1), L29–L33. [DOI: 10.1093/mnrasl/slw229](https://doi.org/10.1093/mnrasl/slw229)
 
@@ -914,7 +914,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![04_perseus_pisces_spine](assets/screenshots/04_perseus_pisces_spine.png)
 - **Astrometric Coordinates**: $SGX = +4,500\,h^{-1}\text{Mpc}, SGY = -3,000\,h^{-1}\text{Mpc}, SGZ = 0\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 5,300\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [+290, -180, +40]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 8.5 \times 10^{16}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 8.5 \times 10^{16}\,M_{\odot}$
 - **Morphological Description**: Prominent linear filamentary spine spanning $>50\,h^{-1}\text{Mpc}$ antipodal to Laniakea.
 - **Authoritative Citation**: Haynes, M. P., & Giovanelli, R. (1988), *Physics Today*, 41(11), 56–63. [DOI: 10.1063/1.881144](https://doi.org/10.1063/1.881144)
 
@@ -922,7 +922,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![05_coma_great_wall_hub](assets/screenshots/05_coma_great_wall_hub.png)
 - **Astrometric Coordinates**: $SGX = +500\,h^{-1}\text{Mpc}, SGY = +7,000\,h^{-1}\text{Mpc}, SGZ = +1,500\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 6,900\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [+112, -260, -95]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 1.8 \times 10^{15}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 1.8 \times 10^{15}\,M_{\odot}$
 - **Morphological Description**: Dense cosmic intersection of the CfA2 Great Wall linking Abell 1656 and Abell 1367.
 - **Authoritative Citation**: Geller, M. J., & Huchra, J. P. (1989), *Science*, 246(4932), 897–903. [DOI: 10.1126/science.246.4932.897](https://doi.org/10.1126/science.246.4932.897)
 
@@ -930,7 +930,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![06_sloan_great_wall_basin](assets/screenshots/06_sloan_great_wall_basin.png)
 - **Astrometric Coordinates**: $SGX = +12,000\,h^{-1}\text{Mpc}, SGY = +14,000\,h^{-1}\text{Mpc}, SGZ = +11,000\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 24,000\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [+180, +310, +220]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 2.5 \times 10^{17}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 2.5 \times 10^{17}\,M_{\odot}$
 - **Morphological Description**: Largest delineated basin of attraction volume ($1.4 \times 10^7\,(h^{-1}\text{Mpc})^3$).
 - **Authoritative Citation**: Gott, J. R., III, et al. (2005), *The Astrophysical Journal*, 624(2), 463–484. [DOI: 10.1086/428890](https://doi.org/10.1086/428890)
 
@@ -938,7 +938,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![07_horologium_reticulum_scl](assets/screenshots/07_horologium_reticulum_scl.png)
 - **Astrometric Coordinates**: $SGX = -4,500\,h^{-1}\text{Mpc}, SGY = -5,000\,h^{-1}\text{Mpc}, SGZ = -14,500\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 18,000\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [-190, -220, -580]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 8.2 \times 10^{16}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 8.2 \times 10^{16}\,M_{\odot}$
 - **Morphological Description**: Dominant southern hemisphere convergence sink pulling matter out of the Pavo-Indus corridor.
 - **Authoritative Citation**: Fleenor, M. C., et al. (2005), *The Astronomical Journal*, 130(3), 957–967. [DOI: 10.1086/431980](https://doi.org/10.1086/431980)
 
@@ -946,7 +946,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![08_corona_borealis_complex](assets/screenshots/08_corona_borealis_complex.png)
 - **Astrometric Coordinates**: $SGX = +2,800\,h^{-1}\text{Mpc}, SGY = +15,500\,h^{-1}\text{Mpc}, SGZ = +7,500\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 21,000\,\text{km}/\text{s}, \mathbf{v}_{\text{pec}} = [+80, +420, +190]\,\text{km}/\text{s}$
-- **Total Dynamical Mass**: $M_{200} = 1.1 \times 10^{17}\,M_\odot$
+- **Total Dynamical Mass**: $M_{200} = 1.1 \times 10^{17}\,M_{\odot}$
 - **Morphological Description**: High-density cluster assembly comprising Abell 2061, 2065, 2067, 2079, 2089, and 2092.
 - **Authoritative Citation**: Pearson, D. W., et al. (2014), *Astronomy & Astrophysics*, 568, A87. [DOI: 10.1051/0004-6361/201423856](https://doi.org/10.1051/0004-6361/201423856)
 
@@ -954,7 +954,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![09_dipole_repeller_great_void](assets/screenshots/09_dipole_repeller_great_void.png)
 - **Astrometric Coordinates**: $SGX = -10,000\,h^{-1}\text{Mpc}, SGY = +10,000\,h^{-1}\text{Mpc}, SGZ = +12,000\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 17,300\,\text{km}/\text{s}, \nabla \cdot \mathbf{v} = +3.85\,H_0$
-- **Effective Negative Mass**: $M_{\text{eff}} = -1.8 \times 10^{16}\,M_\odot$
+- **Effective Negative Mass**: $M_{\text{eff}} = -1.8 \times 10^{16}\,M_{\odot}$
 - **Morphological Description**: Coherent outflow repeller fountain pushing the Local Group toward Shapley at $\sim 300\,\text{km}/\text{s}$.
 - **Authoritative Citation**: Hoffman, Y., Pomarède, D., Tully, R. B., & Courtois, H. M. (2017), *Nature Astronomy*, 1(2), 0036. [DOI: 10.1038/s41550-016-0036](https://doi.org/10.1038/s41550-016-0036)
 
@@ -962,7 +962,7 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 ![10_cold_spot_repeller_void](assets/screenshots/10_cold_spot_repeller_void.png)
 - **Astrometric Coordinates**: $SGX = +9,000\,h^{-1}\text{Mpc}, SGY = +12,000\,h^{-1}\text{Mpc}, SGZ = -5,000\,h^{-1}\text{Mpc}$
 - **Recession & Peculiar Velocity**: $cz = 15,800\,\text{km}/\text{s}, \nabla \cdot \mathbf{v} = +2.90\,H_0$
-- **Effective Negative Mass**: $M_{\text{eff}} = -1.2 \times 10^{16}\,M_\odot$
+- **Effective Negative Mass**: $M_{\text{eff}} = -1.2 \times 10^{16}\,M_{\odot}$
 - **Morphological Description**: Secondary underdense divergent void plume associated with the CMB Cold Spot direction.
 - **Authoritative Citation**: Courtois, H. M., et al. (2017), *The Astrophysical Journal Letters*, 847(1), L6. [DOI: 10.3847/2041-8213/aa88b2](https://doi.org/10.3847/2041-8213/aa88b2)
 
@@ -973,82 +973,82 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 #### 11. Virgo Cluster (M87 Core / Local Origin Anchor)
 ![11_virgo_cluster_m87](assets/screenshots/11_virgo_cluster_m87.png)
 - **Coordinates & Velocity**: $SGX = -280\,h^{-1}\text{Mpc}, SGY = +1,300\,h^{-1}\text{Mpc}, SGZ = -100\,h^{-1}\text{Mpc}; cz = 1,150\,\text{km}/\text{s}, \sigma_v = 750\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 1.2 \times 10^{15}\,M_\odot$; Mei et al. (2007) *ApJ*, 655, 144. [DOI: 10.1086/509598](https://doi.org/10.1086/509598)
+- **Mass & Reference**: $M_{200} = 1.2 \times 10^{15}\,M_{\odot}$; Mei et al. (2007) *ApJ*, 655, 144. [DOI: 10.1086/509598](https://doi.org/10.1086/509598)
 
 #### 12. Centaurus Cluster (Abell 3526 GA Outpost)
 ![12_centaurus_abell_3526](assets/screenshots/12_centaurus_abell_3526.png)
 - **Coordinates & Velocity**: $SGX = -4,200\,h^{-1}\text{Mpc}, SGY = +1,200\,h^{-1}\text{Mpc}, SGZ = +3,100\,h^{-1}\text{Mpc}; cz = 3,200\,\text{km}/\text{s}, \sigma_v = 870\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 2.8 \times 10^{15}\,M_\odot$; Lucey et al. (1986) *MNRAS*, 221, 453. [DOI: 10.1093/mnras/221.2.453](https://doi.org/10.1093/mnras/221.2.453)
+- **Mass & Reference**: $M_{200} = 2.8 \times 10^{15}\,M_{\odot}$; Lucey et al. (1986) *MNRAS*, 221, 453. [DOI: 10.1093/mnras/221.2.453](https://doi.org/10.1093/mnras/221.2.453)
 
 #### 13. Hydra Cluster (Abell 1060 Infall Gateway)
 ![13_hydra_abell_1060](assets/screenshots/13_hydra_abell_1060.png)
 - **Coordinates & Velocity**: $SGX = -3,800\,h^{-1}\text{Mpc}, SGY = -2,100\,h^{-1}\text{Mpc}, SGZ = +2,400\,h^{-1}\text{Mpc}; cz = 3,800\,\text{km}/\text{s}, \sigma_v = 650\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 3.1 \times 10^{15}\,M_\odot$; Richter, O.-G. (1989) *A&AS*, 67, 267.
+- **Mass & Reference**: $M_{200} = 3.1 \times 10^{15}\,M_{\odot}$; Richter, O.-G. (1989) *A&AS*, 67, 267.
 
 #### 14. Norma Cluster (Abell 3627 / Great Attractor Eye)
 ![14_norma_cluster_abell_3627](assets/screenshots/14_norma_cluster_abell_3627.png)
 - **Coordinates & Velocity**: $SGX = -4,650\,h^{-1}\text{Mpc}, SGY = +650\,h^{-1}\text{Mpc}, SGZ = -300\,h^{-1}\text{Mpc}; cz = 4,850\,\text{km}/\text{s}, \sigma_v = 925\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 5.4 \times 10^{16}\,M_\odot$; Woudt et al. (2008) *AJ*, 136, 1490. [DOI: 10.1088/0004-6256/136/4/1490](https://doi.org/10.1088/0004-6256/136/4/1490)
+- **Mass & Reference**: $M_{200} = 5.4 \times 10^{16}\,M_{\odot}$; Woudt et al. (2008) *AJ*, 136, 1490. [DOI: 10.1088/0004-6256/136/4/1490](https://doi.org/10.1088/0004-6256/136/4/1490)
 
 #### 15. Fornax Cluster (NGC 1399 Dominant Galaxy)
 ![15_fornax_cluster_ngc1399](assets/screenshots/15_fornax_cluster_ngc1399.png)
 - **Coordinates & Velocity**: $SGX = -1,200\,h^{-1}\text{Mpc}, SGY = -1,600\,h^{-1}\text{Mpc}, SGZ = -800\,h^{-1}\text{Mpc}; cz = 1,400\,\text{km}/\text{s}, \sigma_v = 370\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 7.0 \times 10^{14}\,M_\odot$; Jordán et al. (2007) *ApJS*, 169, 213. [DOI: 10.1086/512778](https://doi.org/10.1086/512778)
+- **Mass & Reference**: $M_{200} = 7.0 \times 10^{14}\,M_{\odot}$; Jordán et al. (2007) *ApJS*, 169, 213. [DOI: 10.1086/512778](https://doi.org/10.1086/512778)
 
 #### 16. Pavo-Indus Cluster Complex
 ![16_pavo_indus_complex](assets/screenshots/16_pavo_indus_complex.png)
 - **Coordinates & Velocity**: $SGX = -2,900\,h^{-1}\text{Mpc}, SGY = -4,500\,h^{-1}\text{Mpc}, SGZ = -1,200\,h^{-1}\text{Mpc}; cz = 4,200\,\text{km}/\text{s}, \sigma_v = 620\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 1.5 \times 10^{15}\,M_\odot$; Fairall, A. P. (1998), *Large-Scale Structures in the Universe*, Wiley.
+- **Mass & Reference**: $M_{200} = 1.5 \times 10^{15}\,M_{\odot}$; Fairall, A. P. (1998), *Large-Scale Structures in the Universe*, Wiley.
 
 #### 17. Antlia Cluster (NGC 3268 Galaxy Group)
 ![17_antlia_cluster_ngc3268](assets/screenshots/17_antlia_cluster_ngc3268.png)
 - **Coordinates & Velocity**: $SGX = -2,400\,h^{-1}\text{Mpc}, SGY = -900\,h^{-1}\text{Mpc}, SGZ = +1,800\,h^{-1}\text{Mpc}; cz = 2,800\,\text{km}/\text{s}, \sigma_v = 510\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 6.5 \times 10^{14}\,M_\odot$; Ferguson & Sandage (1990) *AJ*, 100, 1. [DOI: 10.1086/115486](https://doi.org/10.1086/115486)
+- **Mass & Reference**: $M_{200} = 6.5 \times 10^{14}\,M_{\odot}$; Ferguson & Sandage (1990) *AJ*, 100, 1. [DOI: 10.1086/115486](https://doi.org/10.1086/115486)
 
 #### 18. Puppis Cluster (Obscured Milky Way Plane Zone)
 ![18_puppis_cluster_zoa](assets/screenshots/18_puppis_cluster_zoa.png)
 - **Coordinates & Velocity**: $SGX = -6,800\,h^{-1}\text{Mpc}, SGY = -3,200\,h^{-1}\text{Mpc}, SGZ = +500\,h^{-1}\text{Mpc}; cz = 5,200\,\text{km}/\text{s}, \sigma_v = 680\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 1.1 \times 10^{15}\,M_\odot$; Kraan-Korteweg et al. (1996) *Nature*, 379, 519. [DOI: 10.1038/379519a0](https://doi.org/10.1038/379519a0)
+- **Mass & Reference**: $M_{200} = 1.1 \times 10^{15}\,M_{\odot}$; Kraan-Korteweg et al. (1996) *Nature*, 379, 519. [DOI: 10.1038/379519a0](https://doi.org/10.1038/379519a0)
 
 #### 19. Hercules Cluster (Abell 2151 Supercluster Spine)
 ![19_hercules_cluster_abell_2151](assets/screenshots/19_hercules_cluster_abell_2151.png)
 - **Coordinates & Velocity**: $SGX = +3,200\,h^{-1}\text{Mpc}, SGY = +11,000\,h^{-1}\text{Mpc}, SGZ = +4,500\,h^{-1}\text{Mpc}; cz = 11,100\,\text{km}/\text{s}, \sigma_v = 760\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 2.0 \times 10^{15}\,M_\odot$; Tarenghi et al. (1979) *ApJ*, 234, 793. [DOI: 10.1086/157558](https://doi.org/10.1086/157558)
+- **Mass & Reference**: $M_{200} = 2.0 \times 10^{15}\,M_{\odot}$; Tarenghi et al. (1979) *ApJ*, 234, 793. [DOI: 10.1086/157558](https://doi.org/10.1086/157558)
 
 #### 20. Pisces Cluster (Abell 262 Filament Anchor)
 ![20_pisces_cluster_abell_262](assets/screenshots/20_pisces_cluster_abell_262.png)
 - **Coordinates & Velocity**: $SGX = +5,200\,h^{-1}\text{Mpc}, SGY = -2,100\,h^{-1}\text{Mpc}, SGZ = -1,100\,h^{-1}\text{Mpc}; cz = 4,900\,\text{km}/\text{s}, \sigma_v = 540\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 9.5 \times 10^{14}\,M_\odot$; Sakai et al. (2000) *ApJ*, 529, 698. [DOI: 10.1086/308306](https://doi.org/10.1086/308306)
+- **Mass & Reference**: $M_{200} = 9.5 \times 10^{14}\,M_{\odot}$; Sakai et al. (2000) *ApJ*, 529, 698. [DOI: 10.1086/308306](https://doi.org/10.1086/308306)
 
 #### 21. Leo Cluster (Abell 1367 Great Wall Pillar)
 ![21_leo_cluster_abell_1367](assets/screenshots/21_leo_cluster_abell_1367.png)
 - **Coordinates & Velocity**: $SGX = +450\,h^{-1}\text{Mpc}, SGY = +6,200\,h^{-1}\text{Mpc}, SGZ = +2,800\,h^{-1}\text{Mpc}; cz = 6,500\,\text{km}/\text{s}, \sigma_v = 820\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 1.3 \times 10^{15}\,M_\odot$; Ostrander et al. (1998) *AJ*, 116, 2644. [DOI: 10.1086/300625](https://doi.org/10.1086/300625)
+- **Mass & Reference**: $M_{200} = 1.3 \times 10^{15}\,M_{\odot}$; Ostrander et al. (1998) *AJ*, 116, 2644. [DOI: 10.1086/300625](https://doi.org/10.1086/300625)
 
 #### 22. Ophiuchus Cluster (Ultra-Massive ZoA Gas Monster)
 ![22_ophiuchus_cluster_core](assets/screenshots/22_ophiuchus_cluster_core.png)
 - **Coordinates & Velocity**: $SGX = -6,500\,h^{-1}\text{Mpc}, SGY = +2,800\,h^{-1}\text{Mpc}, SGZ = +8,200\,h^{-1}\text{Mpc}; cz = 8,400\,\text{km}/\text{s}, \sigma_v = 1,050\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 2.2 \times 10^{15}\,M_\odot$; Durret et al. (2015) *A&A*, 578, A79. [DOI: 10.1051/0004-6361/201425114](https://doi.org/10.1051/0004-6361/201425114)
+- **Mass & Reference**: $M_{200} = 2.2 \times 10^{15}\,M_{\odot}$; Durret et al. (2015) *A&A*, 578, A79. [DOI: 10.1051/0004-6361/201425114](https://doi.org/10.1051/0004-6361/201425114)
 
 #### 23. Abell 2199 Cluster (NGC 6166 cD Giant)
 ![23_abell_2199_ngc6166](assets/screenshots/23_abell_2199_ngc6166.png)
 - **Coordinates & Velocity**: $SGX = +2,800\,h^{-1}\text{Mpc}, SGY = +9,200\,h^{-1}\text{Mpc}, SGZ = +4,100\,h^{-1}\text{Mpc}; cz = 9,300\,\text{km}/\text{s}, \sigma_v = 810\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 1.4 \times 10^{15}\,M_\odot$; Rines et al. (2002) *AJ*, 124, 2477. [DOI: 10.1086/343770](https://doi.org/10.1086/343770)
+- **Mass & Reference**: $M_{200} = 1.4 \times 10^{15}\,M_{\odot}$; Rines et al. (2002) *AJ*, 124, 2477. [DOI: 10.1086/343770](https://doi.org/10.1086/343770)
 
 #### 24. Abell 2142 Monster Major Merger Cluster
 ![24_abell_2142_merger](assets/screenshots/24_abell_2142_merger.png)
 - **Coordinates & Velocity**: $SGX = +1,800\,h^{-1}\text{Mpc}, SGY = +13,800\,h^{-1}\text{Mpc}, SGZ = +6,100\,h^{-1}\text{Mpc}; cz = 16,500\,\text{km}/\text{s}, \sigma_v = 1,180\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 2.6 \times 10^{15}\,M_\odot$; Markevitch et al. (2000) *ApJ*, 541, 542. [DOI: 10.1086/309470](https://doi.org/10.1086/309470)
+- **Mass & Reference**: $M_{200} = 2.6 \times 10^{15}\,M_{\odot}$; Markevitch et al. (2000) *ApJ*, 541, 542. [DOI: 10.1086/309470](https://doi.org/10.1086/309470)
 
 #### 25. Eridanus Cloud & Group (NGC 1407 Fossil Group)
 ![25_eridanus_cloud_ngc1407](assets/screenshots/25_eridanus_cloud_ngc1407.png)
 - **Coordinates & Velocity**: $SGX = -1,650\,h^{-1}\text{Mpc}, SGY = -1,300\,h^{-1}\text{Mpc}, SGZ = -1,450\,h^{-1}\text{Mpc}; cz = 1,650\,\text{km}/\text{s}, \sigma_v = 240\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 4.5 \times 10^{14}\,M_\odot$; Brough et al. (2006) *MNRAS*, 369, 1351. [DOI: 10.1111/j.1365-2966.2006.10387.x](https://doi.org/10.1111/j.1365-2966.2006.10387.x)
+- **Mass & Reference**: $M_{200} = 4.5 \times 10^{14}\,M_{\odot}$; Brough et al. (2006) *MNRAS*, 369, 1351. [DOI: 10.1111/j.1365-2966.2006.10387.x](https://doi.org/10.1111/j.1365-2966.2006.10387.x)
 
 #### 26. Perseus Cluster (Abell 426 X-Ray Brilliant Core)
 ![26_perseus_abell_426](assets/screenshots/26_perseus_abell_426.png)
 - **Coordinates & Velocity**: $SGX = +4,500\,h^{-1}\text{Mpc}, SGY = -3,000\,h^{-1}\text{Mpc}, SGZ = 0\,h^{-1}\text{Mpc}; cz = 5,300\,\text{km}/\text{s}, \sigma_v = 1,280\,\text{km}/\text{s}$
-- **Mass & Reference**: $M_{200} = 2.4 \times 10^{15}\,M_\odot$; Mathews et al. (2006) *ApJ*, 646, 859. [DOI: 10.1086/505016](https://doi.org/10.1086/505016)
+- **Mass & Reference**: $M_{200} = 2.4 \times 10^{15}\,M_{\odot}$; Mathews et al. (2006) *ApJ*, 646, 859. [DOI: 10.1086/505016](https://doi.org/10.1086/505016)
 
 ---
 

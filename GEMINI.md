@@ -47,7 +47,7 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
 3. Verify with `apksigner verify --verbose` asserting `Verified using v1: true, v2: true, v3: true`.
 
 ## 8. Strict GPU Render Barrier & Splash Screen Lifecycle
-1. Splash loading screens must maintain DOM presence in `<body>` and enforce a minimum display duration threshold ($\ge 1.2\,	ext{s}$).
+1. Splash loading screens must maintain DOM presence in `<body>` and enforce a minimum display duration threshold ($\ge 1.2\,\text{s}$).
 2. Always explicitly dismiss splash loading screens (`splashController.dismiss(true)`) prior to capturing automated screenshots.
 3. Force explicit render passes (`composer.render()` or `renderer.render(scene, camera)`).
 4. Validate non-empty WebGL point cloud buffers (`geometry.attributes.position.count > 1000`).
