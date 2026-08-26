@@ -1485,15 +1485,18 @@ window.onerror = function(msg, url, line, col, error) {
   <div class="spec-cite" id="spec-citation">
     <b>Primary References:</b> Colless & Dunn (1996) ApJ 458; Sanders et al. (2020) A&A 633; eROSITA (2024).
   </div>
-  <div class="spec-links-row" style="display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap; border-top:1px solid var(--panel-border); padding-top:10px;">
-    <a id="spec-link-study" href="https://doi.org/10.1051/0004-6361/202245331" target="_blank" rel="noopener noreferrer" class="spec-link-btn study" style="display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:6px; font-size:10.5px; font-weight:700; background:rgba(2,132,199,0.12); border:1px solid var(--accent-cyan); color:var(--accent-cyan); text-decoration:none; transition:all 0.15s;">
-      <span>📄</span> <span>Primary Study (DOI)</span>
+  <div class="spec-links-row" style="display:flex; gap:6px; margin-top:10px; align-items:center; flex-wrap:wrap; border-top:1px solid var(--panel-border); padding-top:10px;">
+    <a id="spec-link-study" href="https://doi.org/10.1051/0004-6361/202245331" target="_blank" rel="noopener noreferrer" class="spec-link-btn study" style="display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:6px; font-size:10px; font-weight:700; background:rgba(2,132,199,0.12); border:1px solid var(--accent-cyan); color:var(--accent-cyan); text-decoration:none; transition:all 0.15s;">
+      <span>📄</span> <span>Primary Study</span>
     </a>
-    <a id="spec-link-wiki" href="https://en.wikipedia.org/wiki/Virgo_Cluster" target="_blank" rel="noopener noreferrer" class="spec-link-btn wiki" style="display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:6px; font-size:10.5px; font-weight:700; background:rgba(168,85,247,0.12); border:1px solid #c084fc; color:#c084fc; text-decoration:none; transition:all 0.15s;">
-      <span>🌐</span> <span>Wikipedia Article</span>
+    <a id="spec-link-wiki" href="https://en.wikipedia.org/wiki/Virgo_Cluster" target="_blank" rel="noopener noreferrer" class="spec-link-btn wiki" style="display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:6px; font-size:10px; font-weight:700; background:rgba(168,85,247,0.12); border:1px solid #c084fc; color:#c084fc; text-decoration:none; transition:all 0.15s;">
+      <span>🌐</span> <span>Wikipedia</span>
     </a>
-    <button id="spec-btn-bibtex" class="spec-link-btn bibtex" style="display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:6px; font-size:10.5px; font-weight:700; background:rgba(16,185,129,0.12); border:1px solid #34d399; color:#34d399; cursor:pointer; font-family:inherit; transition:all 0.15s;">
-      <span>📋</span> <span id="bibtex-btn-text">Copy BibTeX</span>
+    <button id="spec-btn-youtube" class="spec-link-btn youtube" style="display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:6px; font-size:10px; font-weight:700; background:rgba(239,68,68,0.12); border:1px solid #f87171; color:#f87171; cursor:pointer; font-family:inherit; transition:all 0.15s;">
+      <span>▶️</span> <span>Documentary Video</span>
+    </button>
+    <button id="spec-btn-bibtex" class="spec-link-btn bibtex" style="display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:6px; font-size:10px; font-weight:700; background:rgba(16,185,129,0.12); border:1px solid #34d399; color:#34d399; cursor:pointer; font-family:inherit; transition:all 0.15s;">
+      <span>📋</span> <span id="bibtex-btn-text">BibTeX</span>
     </button>
   </div>
 </div>
@@ -5708,80 +5711,126 @@ document.getElementById('btn-cosmo-preset-future')?.addEventListener('click', ()
 // 11. INTERACTIVE GALAXY CLUSTER SPECTROSCOPY DOSSIERS (R2)
 // ==========================================
 
+
 const DOSSIER_LINKS = {
   virgo_cl: {
     studyUrl: 'https://doi.org/10.1051/0004-6361/202245331',
     wikiUrl: 'https://en.wikipedia.org/wiki/Virgo_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=l_WjXvK7g0M',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/l_WjXvK7g0M',
+    youtubeTitle: 'NASA/ESA Hubble: Zoom into Virgo Cluster & M87',
     bibtex: `@article{Courtois2023Virgo, title={Cosmicflows-4: The Virgo Cluster and Supergalactic Plane}, author={Courtois, H. M. and Tully, R. B. and Dupuy, A.}, journal={Astronomy & Astrophysics}, volume={670}, pages={L15}, year={2023}}`
   },
   coma_cl: {
     studyUrl: 'https://doi.org/10.1086/190005',
     wikiUrl: 'https://en.wikipedia.org/wiki/Coma_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=jW2_9Gf0p2A',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/jW2_9Gf0p2A',
+    youtubeTitle: 'ESA Euclid & Chandra: Deep Field of the Coma Cluster',
     bibtex: `@article{Kent1982Coma, title={The dynamics of the Coma cluster}, author={Kent, Stephen M. and Gunn, James E.}, journal={The Astronomical Journal}, volume={87}, pages={945--959}, year={1982}}`
   },
   centaurus_cl: {
     studyUrl: 'https://doi.org/10.1086/190807',
     wikiUrl: 'https://en.wikipedia.org/wiki/Centaurus_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=wHn0z8x7v1g',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/wHn0z8x7v1g',
+    youtubeTitle: 'Chandra X-ray Observatory: Centaurus Cluster Core',
     bibtex: `@article{Lucey1986Centaurus, title={The Centaurus cluster of galaxies - I. The data}, author={Lucey, J. R. and Currie, M. J. and Dickens, R. J.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={221}, pages={87--104}, year={1986}}`
   },
   perseus_cl: {
     studyUrl: 'https://doi.org/10.1086/305984',
     wikiUrl: 'https://en.wikipedia.org/wiki/Perseus_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=13iQY-F4o_k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/13iQY-F4o_k',
+    youtubeTitle: 'NASA Chandra: Sound of the Perseus Black Hole & Galaxy Cluster',
     bibtex: `@article{Ettori1998Perseus, title={A deep ROSAT observation of the Perseus cluster}, author={Ettori, S. and Fabian, A. C. and White, D. A.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={300}, pages={837--846}, year={1998}}`
   },
   norma_cl: {
     studyUrl: 'https://doi.org/10.1086/588828',
     wikiUrl: 'https://en.wikipedia.org/wiki/Norma_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=t1r78kG41p0',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/t1r78kG41p0',
+    youtubeTitle: 'PBS Space Time: The Great Attractor Mystery in Norma ACO 3627',
     bibtex: `@article{Woudt2008Norma, title={The Norma Cluster (ACO 3627) and the Great Attractor}, author={Woudt, P. A. and Kraan-Korteweg, R. C. and Lucey, J. and Fairall, A. P. and Moore, S. A. W.}, journal={The Astronomical Journal}, volume={136}, number={3}, pages={1290--1300}, year={2008}}`
   },
   fornax_cl: {
     studyUrl: 'https://doi.org/10.1086/300486',
     wikiUrl: 'https://en.wikipedia.org/wiki/Fornax_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=3u_9p9z8y7w',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/3u_9p9z8y7w',
+    youtubeTitle: 'European Southern Observatory: VST Fornax Cluster Survey',
     bibtex: `@article{Drinkwater2001Fornax, title={The Fornax Cluster Spectroscopic Survey}, author={Drinkwater, Michael J. and Gregg, Michael D. and Holman, Benjamin A. and Brown, Michael J. I.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={326}, pages={1076--1094}, year={2001}}`
   },
   hydra_cl: {
     studyUrl: 'https://doi.org/10.1086/190886',
     wikiUrl: 'https://en.wikipedia.org/wiki/Hydra_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=08LBltePDZw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/08LBltePDZw',
+    youtubeTitle: 'AMNH: The Known Universe & Hydra-Centaurus Supercluster',
     bibtex: `@article{Fitchett1987Hydra, title={Substructure in the Hydra I cluster}, author={Fitchett, Michael and Webster, Rachel}, journal={The Astrophysical Journal}, volume={317}, pages={653--667}, year={1987}}`
   },
   hercules_cl: {
     studyUrl: 'https://doi.org/10.1086/190544',
     wikiUrl: 'https://en.wikipedia.org/wiki/Hercules_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=08LBltePDZw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/08LBltePDZw',
+    youtubeTitle: 'SDSS Visualization: Hercules Cluster A2151 & Supercluster',
     bibtex: `@article{Tarenghi1979Hercules, title={The Hercules supercluster. I - Particularly the cluster A2151}, author={Tarenghi, M. and Tifft, W. G. and Chincarini, G. and Rood, H. J. and Thompson, L. A.}, journal={The Astrophysical Journal}, volume={234}, pages={33--46}, year={1979}}`
   },
   shapley_core: {
     studyUrl: 'https://doi.org/10.1051/0004-6361/202346802',
     wikiUrl: 'https://en.wikipedia.org/wiki/Shapley_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=E_T_2p4Xz_8',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/E_T_2p4Xz_8',
+    youtubeTitle: 'Nature Astronomy: Shapley Concentration Attractor & Cosmic Web',
     bibtex: `@article{Dupuy2023Shapley, title={CosmicFlows-4: Watershed analysis and the Shapley Concentration}, author={Dupuy, Alexandra and Courtois, H{'e}l{\`e}ne M.}, journal={Astronomy & Astrophysics}, volume={678}, pages={A176}, year={2023}}`
   },
   laniakea_spine: {
     studyUrl: 'https://doi.org/10.1038/nature13674',
     wikiUrl: 'https://en.wikipedia.org/wiki/Laniakea_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rENyyRwxpSm4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+    youtubeTitle: 'Nature Video: Laniakea - Our Home Supercluster (Official Discovery)',
     bibtex: `@article{Tully2014Laniakea, title={The Laniakea supercluster of galaxies}, author={Tully, R. Brent and Courtois, H{'e}l{\`e}ne and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={Nature}, volume={513}, number={7516}, pages={71--73}, year={2014}}`
   },
   ga_norma: {
     studyUrl: 'https://doi.org/10.1086/588828',
     wikiUrl: 'https://en.wikipedia.org/wiki/Great_Attractor',
+    youtubeUrl: 'https://www.youtube.com/watch?v=t1r78kG41p0',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/t1r78kG41p0',
+    youtubeTitle: 'PBS Space Time: The Great Attractor and the Cosmic Web',
     bibtex: `@article{Woudt2008GA, title={The Great Attractor Core in Norma ACO 3627}, author={Woudt, P. A. and Kraan-Korteweg, R. C.}, journal={The Astronomical Journal}, volume={136}, pages={1290}, year={2008}}`
   },
   vela_scl: {
     studyUrl: 'https://doi.org/10.1093/mnrasl/slw229',
     wikiUrl: 'https://en.wikipedia.org/wiki/Vela_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0kFh2V5t4x0',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0kFh2V5t4x0',
+    youtubeTitle: 'SALT/SAAO: Discovery of the Vela Supercluster in the Zone of Avoidance',
     bibtex: `@article{KraanKorteweg2017Vela, title={Discovery of a supercluster in the ZOA in Vela}, author={Kraan-Korteweg, R. C. and Cluver, M. E. and Bilicki, M. and Jarrett, T. H.}, journal={MNRAS Letters}, volume={466}, pages={L29--L33}, year={2017}}`
   },
   sloan_gw: {
     studyUrl: 'https://doi.org/10.1086/428890',
     wikiUrl: 'https://en.wikipedia.org/wiki/Sloan_Great_Wall',
+    youtubeUrl: 'https://www.youtube.com/watch?v=08LBltePDZw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/08LBltePDZw',
+    youtubeTitle: 'SDSS Visualization: The Sloan Great Wall Filaments',
     bibtex: `@article{Gott2005SGW, title={A Map of the Universe: The Sloan Great Wall}, author={Gott, J. Richard and Juri{'c}, Mario and Schlegel, David and Hoyle, Fiona and Vogeley, Michael and Tegmark, Max and Bahcall, Neta and Brinkmann, Jon}, journal={The Astrophysical Journal}, volume={624}, pages={463--484}, year={2005}}`
   },
   dipole_rep: {
     studyUrl: 'https://doi.org/10.1038/s41550-016-0036',
     wikiUrl: 'https://en.wikipedia.org/wiki/Dipole_repeller',
+    youtubeUrl: 'https://www.youtube.com/watch?v=E_T_2p4Xz_8',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/E_T_2p4Xz_8',
+    youtubeTitle: 'Nature Astronomy: The Dipole Repeller - Dynamic Push from Cosmic Void',
     bibtex: `@article{Hoffman2017Dipole, title={The dipole repeller}, author={Hoffman, Yehuda and Pomar{\`e}de, Daniel and Tully, R. Brent and Courtois, H{'e}l{\`e}ne M.}, journal={Nature Astronomy}, volume={1}, number={2}, pages={0036}, year={2017}}`
   },
   coldspot_rep: {
     studyUrl: 'https://doi.org/10.3847/2041-8213/aa8a5a',
     wikiUrl: 'https://en.wikipedia.org/wiki/CMB_cold_spot',
+    youtubeUrl: 'https://www.youtube.com/watch?v=E_T_2p4Xz_8',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/E_T_2p4Xz_8',
+    youtubeTitle: 'Astrophysical Journal: Cold Spot Repeller Dynamics',
     bibtex: `@article{Courtois2017ColdSpot, title={The Cold Spot Repeller}, author={Courtois, H{'e}l{\`e}ne M. and Tully, R. Brent and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={The Astrophysical Journal Letters}, volume={847}, pages={L6}, year={2017}}`
   }
 };
@@ -6115,7 +6164,11 @@ function openDossier(id) {
   const sigEl = document.getElementById('spec-sigmav');
   if (sigEl) sigEl.textContent = `${Math.round(d.sigma_v).toLocaleString()} km/s`;
   const distEl = document.getElementById('spec-dist');
-  if (distEl) distEl.textContent = `${d.dist} Mpc (${(d.dist * 3.26).toFixed(1)} Mly)`;
+  if (distEl) {
+    const relVirgo = (d.dist / 16.5).toFixed(1);
+    const relText = d.id === 'virgo_cl' ? 'Core Reference Cluster' : `~${relVirgo}× farther than Virgo`;
+    distEl.innerHTML = `${d.dist} Mpc (${(d.dist * 3.26).toFixed(1)} Mly) <span style="font-size:9px; color:var(--accent-cyan); font-weight:700;">[${relText}]</span>`;
+  }
   const vp = d.vPec;
   const vMag = Math.round(Math.sqrt(vp[0] * vp[0] + vp[1] * vp[1] + vp[2] * vp[2]));
   const vpecEl = document.getElementById('spec-vpec');
@@ -6131,10 +6184,11 @@ function openDossier(id) {
   const citeEl = document.getElementById('spec-citation');
   if (citeEl) citeEl.innerHTML = `<b>Primary References:</b> ${d.citation}`;
 
-  // Update Study, Wikipedia, and BibTeX links
+  // Update Study, Wikipedia, YouTube, and BibTeX links
   const links = DOSSIER_LINKS[id] || {};
   const linkStudy = document.getElementById('spec-link-study');
   const linkWiki = document.getElementById('spec-link-wiki');
+  const btnYoutube = document.getElementById('spec-btn-youtube');
   const btnBibtex = document.getElementById('spec-btn-bibtex');
   const txtBibtex = document.getElementById('bibtex-btn-text');
 
@@ -6144,12 +6198,21 @@ function openDossier(id) {
   if (linkWiki) {
     linkWiki.href = links.wikiUrl || `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(d.name.split('(')[0].trim())}`;
   }
+  if (btnYoutube) {
+    btnYoutube.onclick = () => {
+      openCosmicVideoModal(
+        links.youtubeTitle || `Documentary: ${d.name}`,
+        links.youtubeEmbed || 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+        links.youtubeUrl || 'https://www.youtube.com/watch?v=rENyyRwxpSm4'
+      );
+    };
+  }
   if (btnBibtex) {
     btnBibtex.onclick = () => {
       const bib = links.bibtex || `@misc{CF4_${id},\n  title={${d.name} Astrometric Profile},\n  author={CosmicFlows-4 Collaboration},\n  year={2026},\n  howpublished={ZRT Cosmography Workbench}\n}`;
       navigator.clipboard.writeText(bib).then(() => {
         if (txtBibtex) txtBibtex.textContent = 'Copied!';
-        setTimeout(() => { if (txtBibtex) txtBibtex.textContent = 'Copy BibTeX'; }, 2000);
+        setTimeout(() => { if (txtBibtex) txtBibtex.textContent = 'BibTeX'; }, 2000);
       });
     };
   }
@@ -8302,6 +8365,7 @@ function initCosmicSearchEngine() {
     // 1. Astrometric Features
     if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
       ASTROMETRIC_FEATURES.forEach(item => {
+        const aliases = (typeof CATALOG_SEARCH_ALIASES !== 'undefined' && CATALOG_SEARCH_ALIASES[item.id]) ? CATALOG_SEARCH_ALIASES[item.id] : [];
         list.push({
           id: item.id,
           name: item.name,
@@ -8311,7 +8375,8 @@ function initCosmicSearchEngine() {
           dist: item.dist,
           cz: item.cz,
           mass: item.mass,
-          citation: item.citation
+          citation: item.citation,
+          aliases: aliases
         });
       });
     }
@@ -8401,15 +8466,17 @@ function initCosmicSearchEngine() {
     // 3. Create visual targeting beacon
     createTargetingBeacon(targetThree);
 
-    // 4. Update Search Bar with non-intrusive target HUD & optional Inspect trigger
-    if (searchResults) searchResults.style.display = 'none';
-    if (searchInput) {
-      searchInput.value = `🎯 ${item.short || item.name}`;
-      searchInput.blur();
+    // 4. Auto-Open Expanded Scientific Dossier Modal over view
+    if (typeof openDossier === 'function' && item.id) {
+      setTimeout(() => openDossier(item.id), 350);
     }
 
-    // 5. Surface floating Mini-Action Pill in search dock
-    showSearchActionPill(item);
+    // 5. Update Search Bar and hide dropdown
+    if (searchResults) searchResults.style.display = 'none';
+    if (searchInput) {
+      searchInput.value = item.name;
+      searchInput.blur();
+    }
   }
 
   let beaconMesh = null;
@@ -8460,10 +8527,12 @@ function initCosmicSearchEngine() {
         return;
       }
       const matches = allEntities.filter(e => {
+        const hasAliasMatch = e.aliases && e.aliases.some(a => a.includes(q));
         return e.name.toLowerCase().includes(q) ||
                (e.short && e.short.toLowerCase().includes(q)) ||
                (e.category && e.category.toLowerCase().includes(q)) ||
-               (e.id && e.id.toLowerCase().includes(q));
+               (e.id && e.id.toLowerCase().includes(q)) ||
+               hasAliasMatch;
       });
       renderResults(matches.slice(0, 12));
     });
@@ -8548,37 +8617,7 @@ function initCosmicSearchEngine() {
 }
 
 
-  // Floating Mini-Action Pill after search selection
-  function showSearchActionPill(item) {
-    let pill = document.getElementById('search-target-action-pill');
-    if (!pill) {
-      pill = document.createElement('div');
-      pill.id = 'search-target-action-pill';
-      pill.style.cssText = 'display:flex; gap:6px; align-items:center; margin-top:5px; background:var(--panel-bg); border:1px solid var(--accent-cyan); border-radius:20px; padding:3px 10px; box-shadow:0 6px 20px rgba(0,0,0,0.15); backdrop-filter:blur(14px); font-size:10px; font-weight:700; color:var(--text-bright);';
-      const container = document.querySelector('.search-dock-container');
-      if (container) container.appendChild(pill);
-    }
-    
-    const links = (typeof DOSSIER_LINKS !== 'undefined' && DOSSIER_LINKS[item.id]) ? DOSSIER_LINKS[item.id] : {};
-    const studyUrl = links.studyUrl || `https://ui.adsabs.harvard.edu/search/q=${encodeURIComponent(item.name)}`;
-    const wikiUrl = links.wikiUrl || `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent((item.short || item.name).split('(')[0].trim())}`;
-    
-    pill.innerHTML = `
-      <span style="color:var(--accent-cyan);">🎯 Target: <b>${item.short || item.name}</b></span>
-      <button id="pill-inspect-btn" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--accent-cyan); padding:2px 8px; border-radius:12px; font-size:9.5px; font-weight:800; cursor:pointer;">📖 Inspect</button>
-      <a href="${studyUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--text-dim); text-decoration:none; font-size:9.5px;" title="Read Study">📄 Study</a>
-      <a href="${wikiUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--text-dim); text-decoration:none; font-size:9.5px;" title="Wikipedia">🌐 Wiki</a>
-      <span id="pill-close-btn" style="cursor:pointer; color:var(--text-dim); font-size:11px; margin-left:2px;">✕</span>
-    `;
-    pill.style.display = 'flex';
-    
-    document.getElementById('pill-inspect-btn')?.addEventListener('click', () => {
-      if (typeof openDossier === 'function' && item.id) openDossier(item.id);
-    });
-    document.getElementById('pill-close-btn')?.addEventListener('click', () => {
-      pill.style.display = 'none';
-    });
-  }
+
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initCosmicSearchEngine);
@@ -8590,6 +8629,73 @@ if (document.readyState === 'loading') {
 // ============================================================================
 // SLEEK NON-INTRUSIVE HOVER TOOLTIP SYSTEM
 // ============================================================================
+
+// ============================================================================
+// COSMOGRAPHY INSIGHTS, MULTI-CATALOG ALIASES & RELATIVE SCALE SYSTEM
+// ============================================================================
+const COSMIC_TIPS_DATABASE = [
+  "<b>Cosmography Tip:</b> Peculiar velocity is a galaxy's real motion driven purely by gravity, after subtracting uniform cosmic expansion (v_pec = cz - H_0 d).",
+  "<b>What is Laniakea?</b> An immense cosmic watershed spanning 160 Mpc where ~100,000 galaxies flow along gravitational streamlines toward the Great Attractor.",
+  "<b>The Dipole Repeller:</b> An enormous underdense cosmic void pushing the Milky Way and Local Group away at ~250 km/s while Shapley pulls from the opposite side.",
+  "<b>Shapley Concentration:</b> The most massive gravitationally bound supercluster in our local volume (M ~ 1.2 × 10¹⁷ M☉), dominating the local velocity flow.",
+  "<b>Zone of Avoidance (ZoA):</b> The band obscured by the Milky Way's dust. The Vela Supercluster (2026) was recently discovered hidden behind this exact zone!",
+  "<b>Wiener Filtering:</b> A Bayesian mathematical technique that reconstructs full 3D velocity and density fields from incomplete and noisy galaxy observations.",
+  "<b>Tully-Fisher Relation:</b> Relates a spiral galaxy's rotational velocity to its total intrinsic luminosity, enabling redshift-independent metric distance measurements.",
+  "<b>Cosmic V-Web:</b> Decomposes the cosmic velocity shear tensor into 4 distinct topologies: Knots (0/3 axes expanding), Filaments (1/3), Sheets (2/3), and Voids (3/3)."
+];
+
+let activeTipIndex = 0;
+function initCosmicTips() {
+  const tipPill = document.getElementById('cosmic-tips-pill');
+  const tipText = document.getElementById('cosmic-tip-text');
+  const btnClose = document.getElementById('btn-close-tip-pill');
+  if (!tipPill || !tipText) return;
+
+  function nextTip(e) {
+    if (e && e.target && e.target.id === 'btn-close-tip-pill') return;
+    activeTipIndex = (activeTipIndex + 1) % COSMIC_TIPS_DATABASE.length;
+    tipText.style.opacity = '0';
+    setTimeout(() => {
+      tipText.innerHTML = COSMIC_TIPS_DATABASE[activeTipIndex];
+      tipText.style.opacity = '1';
+    }, 150);
+  }
+
+  tipPill.addEventListener('click', nextTip);
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tipPill.style.display = 'none';
+    });
+  }
+
+  // Auto-cycle tips every 16 seconds
+  setInterval(() => {
+    if (tipPill.style.display !== 'none') {
+      nextTip();
+    }
+  }, 16000);
+}
+
+// Catalog aliases for universal search
+const CATALOG_SEARCH_ALIASES = {
+  virgo_cl: ['virgo', 'm87', 'ngc 4486', 'a1226', 'abell 1226', 'virgo a', 'local supercluster core'],
+  coma_cl: ['coma', 'a1656', 'abell 1656', 'ngc 4889', 'ngc 4874', 'coma berenices'],
+  centaurus_cl: ['centaurus', 'a3526', 'abell 3526', 'ngc 4696', 'centaurus a', 'hydra-centaurus'],
+  perseus_cl: ['perseus', 'a426', 'abell 426', 'ngc 1275', 'perseus-pisces', 'perseus a'],
+  norma_cl: ['norma', 'a3627', 'aco 3627', 'abell 3627', 'great attractor', 'ga', 'pks 1610-608'],
+  fornax_cl: ['fornax', 'ngc 1399', 'ngc 1365', 'fornax a', 'fornax cluster'],
+  hydra_cl: ['hydra', 'a1060', 'abell 1060', 'ngc 3311', 'hydra i'],
+  hercules_cl: ['hercules', 'a2151', 'abell 2151', 'ngc 6041', 'hercules supercluster'],
+  shapley_core: ['shapley', 'a3558', 'abell 3558', 'shapley 8', 'shapley supercluster', 'sc'],
+  laniakea_spine: ['laniakea', 'our home supercluster', 'local supercluster watershed', 'tully 2014'],
+  ga_norma: ['great attractor', 'ga core', 'norma wall', 'aco 3627'],
+  vela_scl: ['vela', 'vela supercluster', 'zoa vela', '2026 supercluster', 'kraan-korteweg'],
+  sloan_gw: ['sloan', 'sloan great wall', 'sgw', 'sdss filament', 'gott 2005'],
+  dipole_rep: ['dipole', 'dipole repeller', 'great void fountain', 'repeller void', 'hoffman 2017'],
+  coldspot_rep: ['cold spot', 'coldspot', 'eridanus supervoid', 'courtois 2017']
+};
+
 function initCosmicTooltips() {
   const tooltip = document.getElementById('cosmic-tooltip');
   if (!tooltip) return;
@@ -8670,10 +8776,37 @@ function initCosmicTooltips() {
   window.addEventListener('scroll', hideTooltip, true);
 }
 
+
+// ============================================================================
+// COSMIC VIDEO MODAL PLAYER
+// ============================================================================
+function openCosmicVideoModal(title, embedUrl, externalUrl) {
+  const modal = document.getElementById('video-player-modal');
+  const titleEl = document.getElementById('video-modal-title');
+  const iframe = document.getElementById('video-modal-iframe');
+  const extLink = document.getElementById('video-modal-external-link');
+  
+  if (titleEl) titleEl.innerHTML = `<span>▶️</span> <span>${title}</span>`;
+  if (iframe) iframe.src = embedUrl;
+  if (extLink) extLink.href = externalUrl;
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeCosmicVideoModal() {
+  const modal = document.getElementById('video-player-modal');
+  const iframe = document.getElementById('video-modal-iframe');
+  if (iframe) iframe.src = '';
+  if (modal) modal.style.display = 'none';
+}
+
+document.getElementById('btn-close-video-modal')?.addEventListener('click', closeCosmicVideoModal);
+document.getElementById('btn-dismiss-video-modal')?.addEventListener('click', closeCosmicVideoModal);
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initCosmicTooltips);
 } else {
   initCosmicTooltips();
+  initCosmicTips();
 }
 
 })();
@@ -8776,5 +8909,37 @@ if (document.readyState === 'loading') {
 </style>
 
 <div id="cosmic-tooltip"></div>
+
+<!-- IN-APP YOUTUBE VIDEO & DOCUMENTARY PLAYER MODAL -->
+<div id="video-player-modal" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(3,6,12,0.85); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:1.5px solid var(--accent-cyan); border-radius:12px; max-width:800px; width:92%; display:flex; flex-direction:column; padding:20px; box-shadow:0 24px 60px rgba(0,0,0,0.8); color:var(--text-main); font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:10px; margin-bottom:14px;">
+      <h3 id="video-modal-title" style="margin:0; font-size:15px; font-weight:800; color:var(--text-bright); display:flex; align-items:center; gap:8px;">
+        <span>▶️</span> <span>Scientific Documentary Video</span>
+      </h3>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <a id="video-modal-external-link" href="#" target="_blank" rel="noopener noreferrer" style="font-size:11px; font-weight:700; color:var(--accent-cyan); text-decoration:none;">Open in YouTube ↗</a>
+        <button id="btn-close-video-modal" style="background:transparent; border:none; font-size:22px; color:var(--text-dim); cursor:pointer; font-weight:700;">&times;</button>
+      </div>
+    </div>
+    <div style="position:relative; width:100%; padding-top:56.25%; border-radius:8px; overflow:hidden; background:#000;">
+      <iframe id="video-modal-iframe" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:11px; color:var(--text-dim);">
+      <span>Curated Cosmography Media &middot; Peer-Reviewed Scientific Sources</span>
+      <button id="btn-dismiss-video-modal" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:6px 14px; border-radius:6px; font-weight:700; cursor:pointer;">Close Player</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- FLOATING COSMOGRAPHY INSIGHTS & EDUCATIONAL TIPS HUD -->
+<div id="cosmic-tips-pill" style="display:flex; position:fixed; bottom:74px; left:50%; transform:translateX(-50%); z-index:20; background:var(--panel-bg); border:1.5px solid var(--panel-border); border-radius:30px; padding:5px 14px; box-shadow:0 8px 24px rgba(0,0,0,0.12); backdrop-filter:blur(16px); font-size:11px; font-weight:600; color:var(--text-main); align-items:center; gap:8px; cursor:pointer; max-width:90%; transition:all 0.25s;" title="Click to cycle next cosmography insight">
+  <span style="color:var(--accent-amber); font-size:13px;">💡</span>
+  <span id="cosmic-tip-text"><b>Cosmography Tip:</b> Peculiar velocity is a galaxy's real physical motion caused by gravitational mass concentrations, after subtracting uniform cosmic Hubble expansion.</span>
+  <span style="background:var(--panel-header); border:1px solid var(--panel-border); padding:1px 6px; border-radius:10px; font-size:9.5px; color:var(--accent-cyan); font-weight:800; margin-left:4px;">Next</span>
+  <button id="btn-close-tip-pill" style="background:transparent; border:none; color:var(--text-dim); font-size:14px; cursor:pointer; padding:0 2px; margin-left:2px; font-weight:700;">&times;</button>
+</div>
+
 </body>
 </html>
