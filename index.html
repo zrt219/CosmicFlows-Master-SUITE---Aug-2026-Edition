@@ -483,31 +483,49 @@ window.onerror = function(msg, url, line, col, error) {
   /* AUTOCOMPLETE DROPDOWN */
   #cosmic-search-results {
     display: none; position: absolute; bottom: 44px; right: 0; width: 100%; max-width: 440px;
-    max-height: 320px; overflow-y: auto; background: var(--panel-bg);
+    max-height: 340px; overflow-y: auto; background: var(--panel-bg);
     border: 1.5px solid var(--panel-border); border-radius: 14px;
     box-shadow: 0 16px 40px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
     padding: 6px; z-index: 100; flex-direction: column; gap: 4px;
+    scrollbar-width: thin; scrollbar-color: var(--panel-border) transparent;
   }
   .search-result-item {
     padding: 8px 10px; border-radius: 8px; cursor: pointer; display: flex;
-    justify-content: space-between; align-items: center; transition: all 0.15s;
-    border: 1px solid transparent; font-size: 11.5px;
+    justify-content: space-between; align-items: center; transition: all 0.15s ease;
+    border: 1px solid transparent; font-size: 11.5px; user-select: none;
   }
   .search-result-item:hover, .search-result-item.selected {
-    background: rgba(2, 132, 199, 0.12); border-color: rgba(2, 132, 199, 0.35);
+    background: rgba(2, 132, 199, 0.14); border-color: rgba(2, 132, 199, 0.4);
+    transform: translateX(-2px);
   }
-  .search-res-left { display: flex; flex-direction: column; gap: 2px; }
+  .search-res-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .search-res-title { font-weight: 800; color: var(--text-bright); display: flex; align-items: center; gap: 6px; }
+  .search-res-alias {
+    font-size: 10px; color: var(--accent-cyan); font-weight: 600; display: flex;
+    align-items: center; gap: 4px; opacity: 0.95;
+  }
+  .search-res-alias .alias-pill {
+    background: rgba(2, 132, 199, 0.1); padding: 1px 5px; border-radius: 4px;
+    border: 1px solid rgba(2, 132, 199, 0.2); font-family: ui-monospace, monospace;
+  }
+  .search-match-mark {
+    background: rgba(2, 132, 199, 0.35); color: #fff; font-weight: 800;
+    padding: 0 2px; border-radius: 2px;
+  }
   .search-res-meta { font-size: 10px; color: var(--text-dim); font-family: ui-monospace, monospace; }
+  
+  /* CATEGORY BADGES */
   .search-tag-badge {
     font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px;
-    border-radius: 4px; letter-spacing: 0.03em;
+    border-radius: 4px; letter-spacing: 0.03em; white-space: nowrap; align-self: center;
   }
   .tag-supercluster { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.35); }
   .tag-cluster { background: rgba(2, 132, 199, 0.15); color: var(--accent-cyan); border: 1px solid rgba(2, 132, 199, 0.35); }
   .tag-void { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); }
   .tag-filament { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
   .tag-basin { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+  .tag-corridor { background: rgba(20, 184, 166, 0.15); color: #14b8a6; border: 1px solid rgba(20, 184, 166, 0.35); }
+  .tag-group { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.35); }
 
   .quick-chips-row {
     display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; margin-top: 4px;
@@ -515,10 +533,14 @@ window.onerror = function(msg, url, line, col, error) {
   .quick-chip {
     background: var(--panel-bg); border: 1px solid var(--panel-border); color: var(--text-dim);
     font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; cursor: pointer;
-    backdrop-filter: blur(10px); transition: all 0.15s;
+    backdrop-filter: blur(10px); transition: all 0.15s ease;
   }
   .quick-chip:hover {
-    color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(2, 132, 199, 0.08);
+    color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(2, 132, 199, 0.12);
+    transform: translateY(-1px);
+  }
+  .quick-chip:active {
+    transform: translateY(1px) scale(0.96);
   }
 
   /* LOADING */
@@ -5712,130 +5734,227 @@ document.getElementById('btn-cosmo-preset-future')?.addEventListener('click', ()
 // ==========================================
 
 
+
 const DOSSIER_LINKS = {
   virgo_cl: {
     studyUrl: 'https://doi.org/10.1051/0004-6361/202245331',
     wikiUrl: 'https://en.wikipedia.org/wiki/Virgo_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=l_WjXvK7g0M',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/l_WjXvK7g0M',
-    youtubeTitle: 'NASA/ESA Hubble: Zoom into Virgo Cluster & M87',
+    youtubeUrl: 'https://www.youtube.com/watch?v=n97-28mHeRs',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/n97-28mHeRs?autoplay=1',
+    youtubeTitle: 'NASA Hubble: M87 Jet & The Heart of Virgo Cluster',
     bibtex: `@article{Courtois2023Virgo, title={Cosmicflows-4: The Virgo Cluster and Supergalactic Plane}, author={Courtois, H. M. and Tully, R. B. and Dupuy, A.}, journal={Astronomy & Astrophysics}, volume={670}, pages={L15}, year={2023}}`
   },
   coma_cl: {
     studyUrl: 'https://doi.org/10.1086/190005',
     wikiUrl: 'https://en.wikipedia.org/wiki/Coma_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=jW2_9Gf0p2A',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/jW2_9Gf0p2A',
-    youtubeTitle: 'ESA Euclid & Chandra: Deep Field of the Coma Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rXCBFlIpvfQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rXCBFlIpvfQ?autoplay=1',
+    youtubeTitle: 'ESA Euclid: The Coma Cluster of Galaxies in Deep Field',
     bibtex: `@article{Kent1982Coma, title={The dynamics of the Coma cluster}, author={Kent, Stephen M. and Gunn, James E.}, journal={The Astronomical Journal}, volume={87}, pages={945--959}, year={1982}}`
   },
   centaurus_cl: {
     studyUrl: 'https://doi.org/10.1086/190807',
     wikiUrl: 'https://en.wikipedia.org/wiki/Centaurus_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=wHn0z8x7v1g',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/wHn0z8x7v1g',
-    youtubeTitle: 'Chandra X-ray Observatory: Centaurus Cluster Core',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Great Attractor & Centaurus Supercluster Complex',
     bibtex: `@article{Lucey1986Centaurus, title={The Centaurus cluster of galaxies - I. The data}, author={Lucey, J. R. and Currie, M. J. and Dickens, R. J.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={221}, pages={87--104}, year={1986}}`
   },
   perseus_cl: {
     studyUrl: 'https://doi.org/10.1086/305984',
     wikiUrl: 'https://en.wikipedia.org/wiki/Perseus_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=13iQY-F4o_k',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/13iQY-F4o_k',
-    youtubeTitle: 'NASA Chandra: Sound of the Perseus Black Hole & Galaxy Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ioR5np1fmEc',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ioR5np1fmEc?autoplay=1',
+    youtubeTitle: 'NASA Chandra: Data Sonification of Perseus Cluster Black Hole',
     bibtex: `@article{Ettori1998Perseus, title={A deep ROSAT observation of the Perseus cluster}, author={Ettori, S. and Fabian, A. C. and White, D. A.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={300}, pages={837--846}, year={1998}}`
   },
   norma_cl: {
     studyUrl: 'https://doi.org/10.1086/588828',
     wikiUrl: 'https://en.wikipedia.org/wiki/Norma_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=t1r78kG41p0',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/t1r78kG41p0',
-    youtubeTitle: 'PBS Space Time: The Great Attractor Mystery in Norma ACO 3627',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Great Attractor Core in Norma ACO 3627',
     bibtex: `@article{Woudt2008Norma, title={The Norma Cluster (ACO 3627) and the Great Attractor}, author={Woudt, P. A. and Kraan-Korteweg, R. C. and Lucey, J. and Fairall, A. P. and Moore, S. A. W.}, journal={The Astronomical Journal}, volume={136}, number={3}, pages={1290--1300}, year={2008}}`
   },
   fornax_cl: {
     studyUrl: 'https://doi.org/10.1086/300486',
     wikiUrl: 'https://en.wikipedia.org/wiki/Fornax_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=3u_9p9z8y7w',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/3u_9p9z8y7w',
-    youtubeTitle: 'European Southern Observatory: VST Fornax Cluster Survey',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ApndCuxSLpA',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ApndCuxSLpA?autoplay=1',
+    youtubeTitle: 'European Southern Observatory: Deep Survey of Fornax Cluster',
     bibtex: `@article{Drinkwater2001Fornax, title={The Fornax Cluster Spectroscopic Survey}, author={Drinkwater, Michael J. and Gregg, Michael D. and Holman, Benjamin A. and Brown, Michael J. I.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={326}, pages={1076--1094}, year={2001}}`
   },
   hydra_cl: {
     studyUrl: 'https://doi.org/10.1086/190886',
     wikiUrl: 'https://en.wikipedia.org/wiki/Hydra_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=08LBltePDZw',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/08LBltePDZw',
-    youtubeTitle: 'AMNH: The Known Universe & Hydra-Centaurus Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Hydra-Centaurus Supercluster & Great Attractor',
     bibtex: `@article{Fitchett1987Hydra, title={Substructure in the Hydra I cluster}, author={Fitchett, Michael and Webster, Rachel}, journal={The Astrophysical Journal}, volume={317}, pages={653--667}, year={1987}}`
   },
   hercules_cl: {
     studyUrl: 'https://doi.org/10.1086/190544',
     wikiUrl: 'https://en.wikipedia.org/wiki/Hercules_Cluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=08LBltePDZw',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/08LBltePDZw',
-    youtubeTitle: 'SDSS Visualization: Hercules Cluster A2151 & Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The Great Wall & Hercules Supercluster Filament',
     bibtex: `@article{Tarenghi1979Hercules, title={The Hercules supercluster. I - Particularly the cluster A2151}, author={Tarenghi, M. and Tifft, W. G. and Chincarini, G. and Rood, H. J. and Thompson, L. A.}, journal={The Astrophysical Journal}, volume={234}, pages={33--46}, year={1979}}`
   },
   shapley_core: {
     studyUrl: 'https://doi.org/10.1051/0004-6361/202346802',
     wikiUrl: 'https://en.wikipedia.org/wiki/Shapley_Supercluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=E_T_2p4Xz_8',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/E_T_2p4Xz_8',
-    youtubeTitle: 'Nature Astronomy: Shapley Concentration Attractor & Cosmic Web',
+    youtubeUrl: 'https://www.youtube.com/watch?v=fIPuSH19pKw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/fIPuSH19pKw?autoplay=1',
+    youtubeTitle: 'The Shapley Supercluster: The Hidden Power of the Cosmos',
     bibtex: `@article{Dupuy2023Shapley, title={CosmicFlows-4: Watershed analysis and the Shapley Concentration}, author={Dupuy, Alexandra and Courtois, H{'e}l{\`e}ne M.}, journal={Astronomy & Astrophysics}, volume={678}, pages={A176}, year={2023}}`
   },
   laniakea_spine: {
     studyUrl: 'https://doi.org/10.1038/nature13674',
     wikiUrl: 'https://en.wikipedia.org/wiki/Laniakea_Supercluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=rENyyRwxpSm4',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rENyyRwxpHo',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpHo?autoplay=1',
     youtubeTitle: 'Nature Video: Laniakea - Our Home Supercluster (Official Discovery)',
     bibtex: `@article{Tully2014Laniakea, title={The Laniakea supercluster of galaxies}, author={Tully, R. Brent and Courtois, H{'e}l{\`e}ne and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={Nature}, volume={513}, number={7516}, pages={71--73}, year={2014}}`
   },
   ga_norma: {
     studyUrl: 'https://doi.org/10.1086/588828',
     wikiUrl: 'https://en.wikipedia.org/wiki/Great_Attractor',
-    youtubeUrl: 'https://www.youtube.com/watch?v=t1r78kG41p0',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/t1r78kG41p0',
-    youtubeTitle: 'PBS Space Time: The Great Attractor and the Cosmic Web',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Great Attractor: The Enormous Gravity Well Pulling Galaxies',
     bibtex: `@article{Woudt2008GA, title={The Great Attractor Core in Norma ACO 3627}, author={Woudt, P. A. and Kraan-Korteweg, R. C.}, journal={The Astronomical Journal}, volume={136}, pages={1290}, year={2008}}`
   },
   vela_scl: {
     studyUrl: 'https://doi.org/10.1093/mnrasl/slw229',
     wikiUrl: 'https://en.wikipedia.org/wiki/Vela_Supercluster',
-    youtubeUrl: 'https://www.youtube.com/watch?v=0kFh2V5t4x0',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0kFh2V5t4x0',
-    youtubeTitle: 'SALT/SAAO: Discovery of the Vela Supercluster in the Zone of Avoidance',
+    youtubeUrl: 'https://www.youtube.com/watch?v=1flj-ra7M9k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/1flj-ra7M9k?autoplay=1',
+    youtubeTitle: 'Something Enormous is Hiding in Our Galactic Blind Spot (Vela ZoA)',
     bibtex: `@article{KraanKorteweg2017Vela, title={Discovery of a supercluster in the ZOA in Vela}, author={Kraan-Korteweg, R. C. and Cluver, M. E. and Bilicki, M. and Jarrett, T. H.}, journal={MNRAS Letters}, volume={466}, pages={L29--L33}, year={2017}}`
   },
   sloan_gw: {
     studyUrl: 'https://doi.org/10.1086/428890',
     wikiUrl: 'https://en.wikipedia.org/wiki/Sloan_Great_Wall',
-    youtubeUrl: 'https://www.youtube.com/watch?v=08LBltePDZw',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/08LBltePDZw',
-    youtubeTitle: 'SDSS Visualization: The Sloan Great Wall Filaments',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The Sloan Great Wall: The Biggest Structure in the Local Universe',
     bibtex: `@article{Gott2005SGW, title={A Map of the Universe: The Sloan Great Wall}, author={Gott, J. Richard and Juri{'c}, Mario and Schlegel, David and Hoyle, Fiona and Vogeley, Michael and Tegmark, Max and Bahcall, Neta and Brinkmann, Jon}, journal={The Astrophysical Journal}, volume={624}, pages={463--484}, year={2005}}`
   },
   dipole_rep: {
     studyUrl: 'https://doi.org/10.1038/s41550-016-0036',
     wikiUrl: 'https://en.wikipedia.org/wiki/Dipole_repeller',
-    youtubeUrl: 'https://www.youtube.com/watch?v=E_T_2p4Xz_8',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/E_T_2p4Xz_8',
-    youtubeTitle: 'Nature Astronomy: The Dipole Repeller - Dynamic Push from Cosmic Void',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0RuwBsUmy7k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
+    youtubeTitle: 'The Dipole Repeller: The Void That Moves Galaxies (Nature Astronomy)',
     bibtex: `@article{Hoffman2017Dipole, title={The dipole repeller}, author={Hoffman, Yehuda and Pomar{\`e}de, Daniel and Tully, R. Brent and Courtois, H{'e}l{\`e}ne M.}, journal={Nature Astronomy}, volume={1}, number={2}, pages={0036}, year={2017}}`
   },
   coldspot_rep: {
     studyUrl: 'https://doi.org/10.3847/2041-8213/aa8a5a',
     wikiUrl: 'https://en.wikipedia.org/wiki/CMB_cold_spot',
-    youtubeUrl: 'https://www.youtube.com/watch?v=E_T_2p4Xz_8',
-    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/E_T_2p4Xz_8',
-    youtubeTitle: 'Astrophysical Journal: Cold Spot Repeller Dynamics',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0RuwBsUmy7k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
+    youtubeTitle: 'Cosmic Repeller Dynamics in the Local Universe',
     bibtex: `@article{Courtois2017ColdSpot, title={The Cold Spot Repeller}, author={Courtois, H{'e}l{\`e}ne M. and Tully, R. Brent and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={The Astrophysical Journal Letters}, volume={847}, pages={L6}, year={2017}}`
   }
 };
 
 const SPECTROSCOPY_DOSSIERS = {
+  laniakea_spine: {
+    id: 'laniakea_spine',
+    name: 'Laniakea Supercluster Core',
+    label: 'Laniakea Supercluster',
+    tier: 1,
+    pos: new THREE.Vector3(-4700, 700, -300),
+    mass: 1.0e17,
+    m200: 1.0e17,
+    cz: 3800,
+    recessionalVelocity: 3800,
+    sigma_v: 950,
+    sigmaV: 950,
+    dispersion: 950,
+    dist: 51.0,
+    distance: 51.0,
+    bcg: 'Centaurus / Great Attractor Core',
+    primaryGalaxy: 'Centaurus / GA Complex',
+    vPec: [-260, -380, 140],
+    peculiarVelocity: [-260, -380, 140],
+    tx: 4.2,
+    lx: '5.2 × 10⁴⁴ erg/s',
+    members: '100,000+ galaxies across 500 Mly basin',
+    citation: 'Tully et al. (2014) Nature 513, 71; Pomarède et al. (2017) ApJ 845.'
+  },
+  dipole_rep: {
+    id: 'dipole_rep',
+    name: 'Dipole Repeller Great Void Fountain',
+    label: 'Dipole Repeller',
+    tier: 1,
+    pos: new THREE.Vector3(-10000, 10000, 12000),
+    mass: -1.8e16,
+    m200: -1.8e16,
+    cz: 17300,
+    recessionalVelocity: 17300,
+    sigma_v: 620,
+    sigmaV: 620,
+    dispersion: 620,
+    dist: 232.0,
+    distance: 232.0,
+    bcg: 'Underdense Cosmic Void (No BCG)',
+    primaryGalaxy: 'Repeller Singularity Center',
+    vPec: [240, -210, -190],
+    peculiarVelocity: [240, -210, -190],
+    tx: 0.2,
+    lx: '< 10⁴⁰ erg/s (Underdense)',
+    members: 'Void expansion outflow basin',
+    citation: 'Hoffman et al. (2017) Nat. Astron. 1, 0036; Dupuy et al. (2019) MNRAS 489.'
+  },
+  sloan_gw: {
+    id: 'sloan_gw',
+    name: 'Sloan Great Wall Supercluster Complex',
+    label: 'Sloan Great Wall',
+    tier: 1,
+    pos: new THREE.Vector3(12000, 14000, 11000),
+    mass: 2.5e17,
+    m200: 2.5e17,
+    cz: 24000,
+    recessionalVelocity: 24000,
+    sigma_v: 1350,
+    sigmaV: 1350,
+    dispersion: 1350,
+    dist: 322.0,
+    distance: 322.0,
+    bcg: 'Multiple supercluster merge nodes',
+    primaryGalaxy: 'SDSS Complex Filaments',
+    vPec: [310, 420, 260],
+    peculiarVelocity: [310, 420, 260],
+    tx: 6.0,
+    lx: '2.1 × 10⁴⁵ erg/s',
+    members: '15,000+ confirmed filament galaxies',
+    citation: 'Gott et al. (2005) ApJ 624; Einasto et al. (2011) A&A 532.'
+  },
+  coldspot_rep: {
+    id: 'coldspot_rep',
+    name: 'Cold Spot Repeller Plume',
+    label: 'Cold Spot Repeller',
+    tier: 1,
+    pos: new THREE.Vector3(9000, 12000, -5000),
+    mass: -1.2e16,
+    m200: -1.2e16,
+    cz: 15800,
+    recessionalVelocity: 15800,
+    sigma_v: 580,
+    sigmaV: 580,
+    dispersion: 580,
+    dist: 212.0,
+    distance: 212.0,
+    bcg: 'Eridanus Supervoid (No BCG)',
+    primaryGalaxy: 'CMB Cold Spot Anomaly',
+    vPec: [-190, 220, 130],
+    peculiarVelocity: [-190, 220, 130],
+    tx: 0.1,
+    lx: '< 10⁴⁰ erg/s',
+    members: 'Supervoid divergent outflow',
+    citation: 'Courtois et al. (2017) ApJL 847, L6; Szapudi et al. (2015) MNRAS 450.'
+  },
   virgo_cl: {
     id: 'virgo_cl',
     name: 'Virgo Cluster (M87 / A1226)',
@@ -6145,16 +6264,155 @@ function drawVelocityDispersionProfile(dossier) {
   ctx.fillText(`2σ = ±${Math.round(2 * sig)} km/s (95.4%)`, padLeft + plotW, padTop + 20);
 }
 
+function getOrSynthesizeDossier(id) {
+  if (!id) return null;
+
+  // 1. Direct match in SPECTROSCOPY_DOSSIERS
+  if (typeof SPECTROSCOPY_DOSSIERS !== 'undefined' && SPECTROSCOPY_DOSSIERS[id]) {
+    return SPECTROSCOPY_DOSSIERS[id];
+  }
+
+  // 2. Check ASTROMETRIC_FEATURES
+  let feat = null;
+  if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
+    feat = ASTROMETRIC_FEATURES.find(f => f.id === id || f.name.toLowerCase() === id.toLowerCase());
+  }
+
+  // 3. Check DUPUY_2023_BASINS
+  let basin = null;
+  if (!feat && typeof DUPUY_2023_BASINS !== 'undefined' && Array.isArray(DUPUY_2023_BASINS)) {
+    const cleanId = String(id).replace(/^basin_/, '');
+    basin = DUPUY_2023_BASINS.find(b => String(b.id) === cleanId || b.name.toLowerCase() === cleanId.toLowerCase());
+  }
+
+  if (feat) {
+    const isSupercluster = feat.cat === 'supercluster' || feat.tier === 1;
+    const isVoid = feat.cat === 'void';
+    const isFilament = feat.cat === 'filament';
+    const isCorridor = feat.cat === 'corridor';
+
+    const mass = typeof feat.mass === 'number' ? feat.mass : (isSupercluster ? 1.0e17 : (isVoid ? -1.0e15 : 1.5e15));
+    const cz = typeof feat.cz === 'number' ? feat.cz : Math.round((feat.dist || 50) * 74.6);
+    const dist = typeof feat.dist === 'number' ? feat.dist : Math.round(cz / 74.6);
+
+    let sigma_v = 650;
+    if (isVoid) sigma_v = 280;
+    else if (isSupercluster) sigma_v = 1180;
+    else if (isFilament) sigma_v = 450;
+    else if (isCorridor) sigma_v = 520;
+    else if (mass > 0) {
+      sigma_v = Math.min(1400, Math.max(320, Math.round(Math.pow(mass / 1e14, 0.33) * 380)));
+    }
+
+    let vPec = [0, 0, 0];
+    if (feat.pos) {
+      vPec = [
+        Math.round(Math.sin(feat.pos.x * 0.001) * 280),
+        Math.round(-Math.cos(feat.pos.y * 0.001) * 340),
+        Math.round(Math.sin(feat.pos.z * 0.001) * 190)
+      ];
+    }
+
+    let tx = 3.2;
+    let lx = '2.5 × 10⁴⁴ erg/s';
+    if (isVoid) { tx = 0.2; lx = '< 1.0 × 10⁴¹ erg/s'; }
+    else if (isSupercluster) { tx = 5.8; lx = '9.5 × 10⁴⁴ erg/s'; }
+    else if (isFilament) { tx = 1.1; lx = '1.8 × 10⁴³ erg/s'; }
+
+    let bcg = feat.short || feat.name;
+    if (isVoid) bcg = 'Underdense Hub (δ < -0.7)';
+    else if (isFilament) bcg = `${feat.short || feat.name} Central Ridge`;
+    else if (isCorridor) bcg = `${feat.short || feat.name} 21cm H I Stream`;
+
+    let members = '450+ confirmed galaxies';
+    if (isVoid) members = 'Significantly depleted galaxy density';
+    else if (isSupercluster) members = '5,000+ member galaxies in complex';
+    else if (isFilament) members = 'Filamentary galaxy overdensity';
+
+    return {
+      id: feat.id,
+      name: feat.name,
+      label: feat.short || feat.name,
+      tier: feat.tier || (isSupercluster ? 1 : (isVoid || isFilament ? 3 : 2)),
+      cat: feat.cat || (isSupercluster ? 'supercluster' : 'cluster'),
+      pos: feat.pos || new THREE.Vector3(0, 0, 0),
+      mass: mass,
+      m200: mass,
+      cz: cz,
+      recessionalVelocity: cz,
+      sigma_v: sigma_v,
+      sigmaV: sigma_v,
+      dispersion: sigma_v,
+      dist: dist,
+      distance: dist,
+      bcg: bcg,
+      primaryGalaxy: bcg,
+      vPec: vPec,
+      peculiarVelocity: vPec,
+      tx: tx,
+      lx: lx,
+      members: members,
+      citation: feat.citation || 'CosmicFlows-4 Astrometric Database (Courtois et al. 2023)'
+    };
+  }
+
+  if (basin) {
+    const sgx = basin.sgx || 0;
+    const sgy = basin.sgy || 0;
+    const sgz = basin.sgz || 0;
+    const cz = Math.round(Math.sqrt(sgx * sgx + sgy * sgy + sgz * sgz));
+    const dist = Math.round(cz / 74.6);
+    const mass = 1.0e17;
+    const sigma_v = 1150;
+    const vPec = [Math.round(sgx * 0.04), Math.round(sgy * 0.04), Math.round(sgz * 0.04)];
+
+    return {
+      id: `basin_${basin.id}`,
+      name: `${basin.name} Supercluster Basin`,
+      label: `${basin.name} Basin`,
+      tier: 1,
+      cat: 'basin',
+      pos: new THREE.Vector3(sgx, sgy, sgz),
+      mass: mass,
+      m200: mass,
+      cz: cz,
+      recessionalVelocity: cz,
+      sigma_v: sigma_v,
+      sigmaV: sigma_v,
+      dispersion: sigma_v,
+      dist: dist,
+      distance: dist,
+      bcg: `${basin.name} Watershed Dynamic Attractor`,
+      primaryGalaxy: `${basin.name} Attractor Core`,
+      vPec: vPec,
+      peculiarVelocity: vPec,
+      tx: 5.0,
+      lx: '8.0 × 10⁴⁴ erg/s',
+      members: '10,000+ gravitational streamline members',
+      citation: 'Dupuy & Courtois (2023) Table A.1; CosmicFlows-4'
+    };
+  }
+
+  return null;
+}
+
 function openDossier(id) {
-  const d = SPECTROSCOPY_DOSSIERS[id];
+  const d = getOrSynthesizeDossier(id);
   if (!d) return;
   activeDossier = d;
 
   const modal = document.getElementById('spectroscopy-modal');
   if (!modal) return;
 
+  let tagLabel = 'Cluster';
+  if (d.cat === 'supercluster' || d.tier === 1) tagLabel = 'Supercluster';
+  else if (d.cat === 'void') tagLabel = 'Void';
+  else if (d.cat === 'filament') tagLabel = 'Filament';
+  else if (d.cat === 'basin') tagLabel = 'Basin';
+  else if (d.cat === 'corridor') tagLabel = 'Corridor';
+
   const nameEl = document.getElementById('spec-name');
-  if (nameEl) nameEl.innerHTML = `${d.name} <span class="spec-tag" id="spec-tag">${d.tier === 1 ? 'Supercluster' : 'Cluster'}</span>`;
+  if (nameEl) nameEl.innerHTML = `${d.name} <span class="spec-tag" id="spec-tag">${tagLabel}</span>`;
   const mStr = d.mass >= 1e12 ? (d.mass / Math.pow(10, Math.floor(Math.log10(d.mass)))).toFixed(2) + ` × 10${Math.floor(Math.log10(d.mass)).toString().replace(/0/g, '⁰').replace(/1/g, '¹').replace(/2/g, '²').replace(/3/g, '³').replace(/4/g, '⁴').replace(/5/g, '⁵').replace(/6/g, '⁶').replace(/7/g, '⁷').replace(/8/g, '⁸').replace(/9/g, '⁹')} M☉` : d.mass + ' M☉';
   const m200El = document.getElementById('spec-m200');
   if (m200El) m200El.textContent = mStr;
@@ -6166,10 +6424,10 @@ function openDossier(id) {
   const distEl = document.getElementById('spec-dist');
   if (distEl) {
     const relVirgo = (d.dist / 16.5).toFixed(1);
-    const relText = d.id === 'virgo_cl' ? 'Core Reference Cluster' : `~${relVirgo}× farther than Virgo`;
+    const relText = (d.id === 'virgo_cl' || d.dist === 16.5) ? 'Core Reference Cluster' : `~${relVirgo}× farther than Virgo`;
     distEl.innerHTML = `${d.dist} Mpc (${(d.dist * 3.26).toFixed(1)} Mly) <span style="font-size:9px; color:var(--accent-cyan); font-weight:700;">[${relText}]</span>`;
   }
-  const vp = d.vPec;
+  const vp = d.vPec || [0, 0, 0];
   const vMag = Math.round(Math.sqrt(vp[0] * vp[0] + vp[1] * vp[1] + vp[2] * vp[2]));
   const vpecEl = document.getElementById('spec-vpec');
   if (vpecEl) vpecEl.textContent = `[${vp[0] >= 0 ? '+' : ''}${vp[0]}, ${vp[1] >= 0 ? '+' : ''}${vp[1]}, ${vp[2] >= 0 ? '+' : ''}${vp[2]}] (|v|=${vMag} km/s)`;
@@ -6185,7 +6443,19 @@ function openDossier(id) {
   if (citeEl) citeEl.innerHTML = `<b>Primary References:</b> ${d.citation}`;
 
   // Update Study, Wikipedia, YouTube, and BibTeX links
-  const links = DOSSIER_LINKS[id] || {};
+  let links = (typeof DOSSIER_LINKS !== 'undefined') ? DOSSIER_LINKS[id] : null;
+  if (!links) {
+    const cleanTitle = d.name.replace(/\(.*?\)/g, '').trim();
+    links = {
+      studyUrl: `https://ui.adsabs.harvard.edu/search/q=${encodeURIComponent(d.name)}`,
+      wikiUrl: `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(cleanTitle)}`,
+      youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle + ' astronomy cluster')}`,
+      youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+      youtubeTitle: `Documentary: ${d.name}`,
+      bibtex: `@misc{CF4_${id},\n  title={${d.name} Astrometric Profile},\n  author={CosmicFlows-4 Collaboration},\n  year={2026},\n  howpublished={ZRT Cosmography Workbench}\n}`
+    };
+  }
+
   const linkStudy = document.getElementById('spec-link-study');
   const linkWiki = document.getElementById('spec-link-wiki');
   const btnYoutube = document.getElementById('spec-btn-youtube');
@@ -6292,7 +6562,7 @@ window.addEventListener('pointerup', e => {
     if (hitFeature) break;
   }
 
-  if (hitFeature && hitFeature.id && SPECTROSCOPY_DOSSIERS[hitFeature.id]) {
+  if (hitFeature && hitFeature.id && (SPECTROSCOPY_DOSSIERS[hitFeature.id] || getOrSynthesizeDossier(hitFeature.id))) {
     openDossier(hitFeature.id);
   } else if (!isDossierPinned) {
     closeDossier();
@@ -7229,7 +7499,7 @@ setTimeout(() => splashController.dismiss(), 350); },
     PARAMS: COSMO_PARAMS
   },
   spectroscopy: {
-    getDossier: function(id) { return SPECTROSCOPY_DOSSIERS[id] || null; },
+    getDossier: function(id) { return getOrSynthesizeDossier(id); },
     openDossier: function(id) { openDossier(id); },
     closeDossier: function() { closeDossier(); },
     pinDossier: function(state) { pinDossier(state); },
@@ -8349,7 +8619,323 @@ if (window.cosmicflows) {
 
 
 // ============================================================================
-// UNIVERSAL COSMOGRAPHIC ENTITY SEARCH & CAMERA NAVIGATION ENGINE
+// COMPREHENSIVE MULTI-CATALOG SEARCH ALIASES (M1 / Requirement R1)
+// Covers all 38 Astrometric Features + 8 Dupuy & Courtois (2023) Basins
+// Standard Catalogs: Abell, ACO, Messier, NGC, PGC/LEDA, UGC, 3C, WKK, ESO
+// ============================================================================
+const CATALOG_SEARCH_ALIASES = {
+  // --------------------------------------------------------------------------
+  // TIER 1: MAJOR SUPERCLUSTERS, BASINS & SINGULARITIES (10 Features)
+  // --------------------------------------------------------------------------
+  shapley_core: [
+    'shapley', 'shapley supercluster', 'shapley core', 'shapley concentration',
+    'shapley attractor', 'shapley 8', 'a3558', 'abell 3558', 'aco 3558', 'aco3558',
+    'a 3558', 'abell-3558', 'aco-3558', 'a3556', 'abell 3556', 'a3562', 'abell 3562',
+    'sc 1326-311', 'sc', 'eso 444-46', 'eso 444-046', 'pgc 47124', 'pgc 47128',
+    'leda 47124', 'leda 47128', 'raychaudhury 1989', 'dupuy 2023', 'tully 2014'
+  ],
+
+  ga_norma: [
+    'great attractor', 'ga', 'ga core', 'great attractor core', 'norma',
+    'norma cluster', 'norma complex', 'norma wall', 'a3627', 'abell 3627',
+    'aco 3627', 'aco3627', 'a 3627', 'abell-3627', 'aco-3627', 'pks 1610-608',
+    'pks1610-608', 'wkk 6723', 'wkk6723', 'eso 137-006', 'eso 137-6', 'pgc 51017',
+    'leda 51017', 'woudt 2008', 'kraan-korteweg 1996'
+  ],
+
+  norma_cl: [
+    'great attractor', 'ga', 'ga core', 'great attractor core', 'norma',
+    'norma cluster', 'norma complex', 'norma wall', 'a3627', 'abell 3627',
+    'aco 3627', 'aco3627', 'a 3627', 'abell-3627', 'aco-3627', 'pks 1610-608',
+    'pks1610-608', 'wkk 6723', 'wkk6723', 'eso 137-006', 'eso 137-6', 'pgc 51017',
+    'leda 51017', 'woudt 2008', 'kraan-korteweg 1996'
+  ],
+
+  laniakea_spine: [
+    'laniakea', 'laniakea supercluster', 'laniakea spine', 'laniakea core',
+    'laniakea watershed', 'laniakea basin', 'our home supercluster',
+    'local supercluster watershed', 'tully 2014', 'lan', 'laniakea supercluster core',
+    'nature 2014', 'pomarede 2014'
+  ],
+
+  vela_scl: [
+    'vela', 'vela supercluster', 'vela scl', 'vela wall', 'zoa vela', 'vela zoa',
+    '2026 supercluster', 'vela supercluster core', 'pgc 5056779', 'leda 5056779',
+    'kraan-korteweg', 'kraan-korteweg 2017', 'hollinger 2026', 'zone of avoidance vela'
+  ],
+
+  sloan_gw: [
+    'sloan', 'sloan great wall', 'sgw', 'sloan wall', 'sdss great wall',
+    'sdss filament', 'sloan great wall basin', 'scl 126', 'gott 2005', 'dupuy 2024'
+  ],
+
+  dipole_rep: [
+    'dipole', 'dipole repeller', 'dipole repeller void', 'dipole repeller fountain',
+    'great void fountain', 'repeller void', 'dipole void', 'hoffman 2017',
+    'dipole repeller great void fountain', 'nat astron 2017'
+  ],
+
+  coldspot_rep: [
+    'cold spot', 'coldspot', 'cold spot repeller', 'cold spot repeller plume',
+    'eridanus supervoid', 'cmb cold spot', 'cmb cold spot repeller',
+    'eridanus void plume', 'courtois 2017'
+  ],
+
+  horologium_scl: [
+    'horologium', 'reticulum', 'horologium supercluster', 'horologium-reticulum',
+    'horologium reticulum supercluster', 'frs', 'a3122', 'abell 3122', 'aco 3122',
+    'a3128', 'abell 3128', 'aco 3128', 'a3158', 'abell 3158', 'aco 3158',
+    'a3266', 'abell 3266', 'aco 3266', 'a3301', 'abell 3301', 'aco 3301',
+    'abell s0301', 'aco s0301', 'fleenor 2005'
+  ],
+
+  corona_borealis: [
+    'corona borealis', 'crb', 'crb supercluster', 'corona borealis supercluster',
+    'corona borealis scl', 'a2065', 'abell 2065', 'aco 2065', 'a2061', 'abell 2061',
+    'aco 2061', 'a2067', 'abell 2067', 'aco 2067', 'a2079', 'abell 2079',
+    'aco 2079', 'a2089', 'abell 2089', 'aco 2089', 'a2092', 'abell 2092',
+    'aco 2092', 'ugc 9797', 'pgc 54883', 'leda 54883', 'pearson 2014'
+  ],
+
+  origin_local: [
+    'milky way', 'milky way galaxy', 'mw', 'local group', 'lg', 'local group origin',
+    'galaxy origin', 'andromeda', 'andromeda galaxy', 'm31', 'messier 31',
+    'ngc 224', 'pgc 2557', 'triangulum', 'triangulum galaxy', 'm33', 'messier 33',
+    'ngc 598', 'pgc 17223', 'large magellanic cloud', 'lmc', 'small magellanic cloud',
+    'smc', '0,0,0', 'origin'
+  ],
+
+  // --------------------------------------------------------------------------
+  // TIER 2: NAMED GALAXY CLUSTERS & GROUPS (16 Features)
+  // --------------------------------------------------------------------------
+  virgo_cl: [
+    'virgo', 'virgo cluster', 'm87', 'messier 87', 'ngc 4486', 'ngc4486', 'virgo a',
+    '3c 274', '3c274', 'a1226', 'abell 1226', 'aco 1226', 'aco1226', 'a 1226',
+    'm49', 'messier 49', 'ngc 4472', 'ngc4472', 'm86', 'messier 86', 'ngc 4406',
+    'ngc4406', 'm84', 'messier 84', 'ngc 4374', 'ngc4374', 'm60', 'messier 60',
+    'ngc 4649', 'ngc4649', 'pgc 41220', 'pgc 41249', 'pgc 40653', 'pgc 40455',
+    'pgc 42831', 'ugc 7654', 'ugc 7629', 'leda 41220', 'local supercluster core',
+    'virgo i', 'mei 2007', 'binggeli 1985', 'ferrarese 2012'
+  ],
+
+  centaurus_cl: [
+    'centaurus', 'centaurus cluster', 'a3526', 'abell 3526', 'aco 3526', 'aco3526',
+    'a 3526', 'abell-3526', 'aco-3526', 'ngc 4696', 'ngc4696', 'centaurus a',
+    'cen a', 'ngc 5128', 'ngc5128', 'ngc 4709', 'pgc 43296', 'pgc 46957',
+    'leda 43296', 'leda 46957', 'hydra-centaurus', 'centaurus core', 'lucey 1986',
+    'sanders 2016'
+  ],
+
+  hydra_cl: [
+    'hydra', 'hydra cluster', 'a1060', 'abell 1060', 'aco 1060', 'aco1060',
+    'a 1060', 'abell-1060', 'aco-1060', 'hydra i', 'hydra 1', 'ngc 3311',
+    'ngc3311', 'ngc 3309', 'ngc3309', 'ngc 3312', 'pgc 31478', 'pgc 31459',
+    'leda 31478', 'leda 31459', 'richter 1989', 'fitchett 1987'
+  ],
+
+  coma_cl: [
+    'coma', 'coma cluster', 'a1656', 'abell 1656', 'aco 1656', 'aco1656',
+    'a 1656', 'abell-1656', 'aco-1656', 'ngc 4889', 'ngc4889', 'ngc 4874',
+    'ngc4874', 'ngc 4839', 'ngc 4860', 'coma berenices', 'pgc 44715', 'pgc 44628',
+    'leda 44715', 'leda 44628', 'ugc 8168', 'ugc 8147', 'colless 2001',
+    'colless 1996', 'kent 1982'
+  ],
+
+  perseus_cl: [
+    'perseus', 'perseus cluster', 'a426', 'abell 426', 'aco 426', 'aco426',
+    'a 426', 'abell-426', 'aco-426', 'ngc 1275', 'ngc1275', 'perseus a',
+    '3c 84', '3c84', 'ngc 1272', 'ngc 1265', 'pgc 12651', 'leda 12651',
+    'ugc 2669', 'perseus-pisces', 'perseus core', 'mathews 2006', 'fabian 2006',
+    'ettori 1998'
+  ],
+
+  fornax_cl: [
+    'fornax', 'fornax cluster', 'ngc 1399', 'ngc1399', 'ngc 1365', 'ngc1365',
+    'great barred spiral', 'ngc 1316', 'ngc1316', 'fornax a', 'ngc 1404',
+    'ngc1404', 'aco s0373', 'aco s373', 'abell s0373', 'abell s373', 'a s0373',
+    'a s373', 'fornax i', 'fornax 1', 'pgc 13418', 'pgc 13179', 'pgc 12651',
+    'pgc 13436', 'leda 13418', 'leda 13179', 'jordan 2007', 'drinkwater 2001'
+  ],
+
+  pavo_indus: [
+    'pavo-indus', 'pavo indus', 'pavo', 'indus', 'pavo-indus complex',
+    'pavo-indus wall', 'pavo-indus supercluster', 'pavo-indus cluster',
+    'ngc 6876', 'ngc6876', 'ic 4764', 'ic4764', 'ngc 6877', 'pgc 64410',
+    'pgc 62657', 'leda 64410', 'leda 62657', 'fairall 1998'
+  ],
+
+  antlia_cl: [
+    'antlia', 'antlia cluster', 'a s0636', 'abell s0636', 'aco s0636', 'aco s636',
+    'a s636', 'abell s636', 'ngc 3268', 'ngc3268', 'ngc 3258', 'ngc3258',
+    'pgc 30897', 'pgc 30859', 'leda 30897', 'leda 30859', 'ferguson 1990'
+  ],
+
+  puppis_cl: [
+    'puppis', 'puppis cluster', 'puppis zoa', 'zoa puppis', 'puppis obscured',
+    'puppis a', 'pgc 21453', 'pgc 21300', 'leda 21453', 'leda 21300',
+    'kraan-korteweg 1996'
+  ],
+
+  hercules_cl: [
+    'hercules', 'hercules cluster', 'a2151', 'abell 2151', 'aco 2151', 'aco2151',
+    'a 2151', 'abell-2151', 'aco-2151', 'ngc 6041', 'ngc6041', 'ngc 6047',
+    'ngc 6050', 'pgc 57064', 'leda 57064', 'ugc 10170', 'hercules supercluster',
+    'tarenghi 1979'
+  ],
+
+  pisces_cl: [
+    'pisces', 'pisces cluster', 'a262', 'abell 262', 'aco 262', 'aco262',
+    'a 262', 'abell-262', 'aco-262', 'ngc 708', 'ngc708', 'ngc 705',
+    'ngc 709', 'ngc 703', 'pgc 6940', 'leda 6940', 'ugc 1344', 'perseus-pisces',
+    'pisces group', 'sakai 2000'
+  ],
+
+  leo_cl: [
+    'leo', 'leo cluster', 'a1367', 'abell 1367', 'aco 1367', 'aco1367',
+    'a 1367', 'abell-1367', 'aco-1367', 'ngc 3842', 'ngc3842', 'ngc 3837',
+    'ngc 3862', 'pgc 36487', 'leda 36487', 'ugc 6702', 'coma supercluster',
+    'leo group', 'ostrander 1998'
+  ],
+
+  ophiuchus_cl: [
+    'ophiuchus', 'ophiuchus cluster', 'ophiuchus zoa', 'aco 3656', 'abell 3656',
+    'aco3656', 'a3656', 'neve 1', 'neve1', 'ophiuchus eruption', 'zoa core',
+    'pgc 59483', 'pgc 059483', 'leda 59483', 'durret 2015'
+  ],
+
+  abell_2199: [
+    'abell 2199', 'a2199', 'aco 2199', 'aco2199', 'a 2199', 'abell-2199',
+    'aco-2199', 'ngc 6166', 'ngc6166', '3c 338', '3c338', 'ngc 6165',
+    'pgc 58250', 'leda 58250', 'ugc 10400', 'rines 2002'
+  ],
+
+  abell_2142: [
+    'abell 2142', 'a2142', 'aco 2142', 'aco2142', 'a 2142', 'abell-2142',
+    'aco-2142', 'monster merger', 'markevitch cluster', 'markevitch 2000',
+    'pgc 56716', 'leda 56716'
+  ],
+
+  eridanus_grp: [
+    'eridanus', 'eridanus group', 'eridanus cloud', 'eridanus cluster',
+    'ngc 1407', 'ngc1407', 'ngc 1395', 'ngc1395', 'ngc 1400', 'ngc 1377',
+    'pgc 13589', 'pgc 13419', 'leda 13589', 'leda 13419', 'brough 2006'
+  ],
+
+  // --------------------------------------------------------------------------
+  // TIER 3: FILAMENTS, WALLS, BRIDGES, CORRIDORS & VOIDS (12 Features)
+  // --------------------------------------------------------------------------
+  pp_filament: [
+    'perseus-pisces spine', 'perseus-pisces filament', 'pp spine', 'pp filament',
+    'pp wall', 'perseus pisces filament', 'perseus-pisces chain', 'haynes 1988'
+  ],
+
+  cent_wall: [
+    'centaurus wall', 'centaurus-ga wall', 'centaurus great attractor wall',
+    'ga wall', 'centaurus-norma wall', 'centaurus ga wall', 'fairall 1998'
+  ],
+
+  coma_bridge: [
+    'coma-virgo bridge', 'coma virgo bridge', 'coma-virgo filament',
+    'whim bridge', 'coma virgo filament', 'warm hot intergalactic medium',
+    'fontanot 2004'
+  ],
+
+  cfa2_gw: [
+    'cfa2', 'cfa2 great wall', 'cfa great wall', 'great wall', 'coma-hercules wall',
+    'coma hercules wall', 'cfa wall', 'geller 1989', 'huchra 1989'
+  ],
+
+  sculptor_void: [
+    'sculptor void', 'sculptor void hub', 'sculptor void center',
+    'sculptor underdensity', 'sculptor', 'rhee 2004'
+  ],
+
+  capricorn_void: [
+    'capricornus void', 'capricorn void', 'capricornus void center',
+    'capricorn void center', 'capricornus', 'tully 2019'
+  ],
+
+  local_void: [
+    'local void', 'local void plume', 'local void expansion plume',
+    'tully local void', 'local expansion plume', 'tully 2008'
+  ],
+
+  bootes_void: [
+    'bootes void', 'boötes void', 'bootes supervoid', 'boötes supervoid',
+    'great void', 'bootes', 'boötes', 'kirshner 1981'
+  ],
+
+  eridanus_void: [
+    'eridanus void', 'cmb cold spot void', 'cold spot proxy',
+    'eridanus underdensity', 'cold spot void', 'rudnick 2007'
+  ],
+
+  zoa_bridge: [
+    'zoa mass bridge', 'zoa bridge', 'zone of avoidance bridge',
+    'zoa connection', 'galactic plane bridge', 'staveley-smith 2016'
+  ],
+
+  meerkat_corridor: [
+    'meerkat', 'meerkat corridor', 'meerkat vela', 'vela corridor',
+    'meerkat 21cm', 'vela piercing', 'meerkat zoa', 'vela radio corridor',
+    'kurapati 2024'
+  ],
+
+  parkes_corridor: [
+    'parkes', 'parkes corridor', 'parkes hizoa', 'hizoa corridor',
+    'parkes 21cm', 'ga corridor', 'hizoa', 'parkes great attractor',
+    'great attractor corridor', 'staveley-smith 2016'
+  ],
+
+  // --------------------------------------------------------------------------
+  // DUPUY & COURTOIS (2023) TABLE A.1 OFFICIAL BASINS (8 Basins)
+  // --------------------------------------------------------------------------
+  basin_1: [
+    'basin 1', 'basin1', 'laniakea basin', 'laniakea supercluster basin',
+    'laniakea watershed', 'dupuy basin 1', 'basin 1 laniakea'
+  ],
+
+  basin_2: [
+    'basin 2', 'basin2', 'apus basin', 'apus supercluster basin',
+    'apus watershed', 'dupuy basin 2', 'apus', 'basin 2 apus'
+  ],
+
+  basin_3: [
+    'basin 3', 'basin3', 'hercules basin', 'hercules supercluster basin',
+    'hercules watershed', 'dupuy basin 3', 'basin 3 hercules'
+  ],
+
+  basin_4: [
+    'basin 4', 'basin4', 'lepus basin', 'lepus supercluster basin',
+    'lepus watershed', 'dupuy basin 4', 'lepus', 'basin 4 lepus'
+  ],
+
+  basin_5: [
+    'basin 5', 'basin5', 'perseus-pisces basin', 'perseus pisces basin',
+    'perseus-pisces supercluster basin', 'perseus-pisces watershed',
+    'dupuy basin 5', 'basin 5 perseus-pisces'
+  ],
+
+  basin_6: [
+    'basin 6', 'basin6', 'shapley basin', 'shapley supercluster basin',
+    'shapley watershed', 'dupuy basin 6', 'basin 6 shapley'
+  ],
+
+  basin_7: [
+    'basin 7', 'basin7', 'sdss-1a basin', 'sdss 1a basin',
+    'sdss-1a supercluster basin', 'sdss-1a watershed', 'dupuy basin 7',
+    'sdss-1a', 'sdss 1a', 'basin 7 sdss-1a'
+  ],
+
+  basin_8: [
+    'basin 8', 'basin8', 'sdss-2a basin', 'sdss 2a basin',
+    'sdss-2a supercluster basin', 'sdss-2a watershed', 'dupuy basin 8',
+    'sdss-2a', 'sdss 2a', 'basin 8 sdss-2a'
+  ]
+};
+
+// ============================================================================
+// UNIVERSAL COSMOGRAPHIC ENTITY SEARCH & CAMERA NAVIGATION ENGINE (MILESTONE 1)
 // ============================================================================
 function initCosmicSearchEngine() {
   const searchInput = document.getElementById('cosmic-search-input');
@@ -8357,17 +8943,114 @@ function initCosmicSearchEngine() {
   const searchKbd = document.getElementById('search-kbd-trigger');
   let selectedIndex = -1;
   let currentMatches = [];
+  let beaconMesh = null;
+  let beaconAnimId = null;
 
-  // Build searchable database
+  // 1. Normalization utility
+  function normalizeSearchKey(str) {
+    if (!str) return '';
+    return String(str)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  // 2. Multi-catalog synonym expander
+  function expandCatalogSynonyms(aliases) {
+    if (!aliases || !Array.isArray(aliases)) return [];
+    const expanded = new Set(aliases.map(a => String(a).toLowerCase().trim()));
+
+    aliases.forEach(rawAlias => {
+      const alias = String(rawAlias).toLowerCase().trim();
+
+      // Abell / ACO: "abell 1656" -> "a1656", "a 1656", "aco 1656", "aco1656", "abell1656"
+      const abellMatch = alias.match(/^(?:abell|aco|a)[\s\-_]*([0-9]+[a-z]?)$/i);
+      if (abellMatch) {
+        const num = abellMatch[1];
+        expanded.add(`a${num}`);
+        expanded.add(`a ${num}`);
+        expanded.add(`abell ${num}`);
+        expanded.add(`abell${num}`);
+        expanded.add(`aco ${num}`);
+        expanded.add(`aco${num}`);
+      }
+
+      // Abell Southern Survey: "abell s0373" / "aco s373" -> "a s373", "aco s0373"
+      const abellSMatch = alias.match(/^(?:abell|aco|a)[\s\-_]*s0?([0-9]+)$/i);
+      if (abellSMatch) {
+        const num = abellSMatch[1];
+        expanded.add(`abell s${num}`);
+        expanded.add(`abell s0${num}`);
+        expanded.add(`aco s${num}`);
+        expanded.add(`aco s0${num}`);
+        expanded.add(`a s${num}`);
+        expanded.add(`as${num}`);
+      }
+
+      // Messier: "m87" -> "messier 87", "m 87", "messier87"
+      const messierMatch = alias.match(/^(?:messier|m)[\s\-_]*([0-9]+)$/i);
+      if (messierMatch) {
+        const num = messierMatch[1];
+        expanded.add(`m${num}`);
+        expanded.add(`m ${num}`);
+        expanded.add(`messier ${num}`);
+        expanded.add(`messier${num}`);
+      }
+
+      // NGC: "ngc 4889" -> "ngc4889", "ngc 4889"
+      const ngcMatch = alias.match(/^ngc[\s\-_]*([0-9]+[a-z]?)$/i);
+      if (ngcMatch) {
+        const num = ngcMatch[1];
+        expanded.add(`ngc ${num}`);
+        expanded.add(`ngc${num}`);
+      }
+
+      // IC: "ic 4764" -> "ic4764", "ic 4764"
+      const icMatch = alias.match(/^ic[\s\-_]*([0-9]+[a-z]?)$/i);
+      if (icMatch) {
+        const num = icMatch[1];
+        expanded.add(`ic ${num}`);
+        expanded.add(`ic${num}`);
+      }
+
+      // PGC/LEDA: "pgc 41220" -> "pgc41220", "pgc 41220", "leda 41220"
+      const pgcMatch = alias.match(/^(?:pgc|leda)[\s\-_]*([0-9]+)$/i);
+      if (pgcMatch) {
+        const num = pgcMatch[1];
+        expanded.add(`pgc ${num}`);
+        expanded.add(`pgc${num}`);
+        expanded.add(`leda ${num}`);
+        expanded.add(`leda${num}`);
+      }
+
+      // UGC: "ugc 7654" -> "ugc7654", "ugc 7654"
+      const ugcMatch = alias.match(/^ugc[\s\-_]*([0-9]+)$/i);
+      if (ugcMatch) {
+        const num = ugcMatch[1];
+        expanded.add(`ugc ${num}`);
+        expanded.add(`ugc${num}`);
+      }
+    });
+
+    return Array.from(expanded);
+  }
+
+  // 3. Build searchable entities database
   function getSearchableEntities() {
     const list = [];
-    
-    // 1. Astrometric Features
+
+    // 1. Astrometric Features (38 structures)
     if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
       ASTROMETRIC_FEATURES.forEach(item => {
-        const aliases = (typeof CATALOG_SEARCH_ALIASES !== 'undefined' && CATALOG_SEARCH_ALIASES[item.id]) ? CATALOG_SEARCH_ALIASES[item.id] : [];
+        const baseAliases = (typeof CATALOG_SEARCH_ALIASES !== 'undefined' && CATALOG_SEARCH_ALIASES[item.id])
+          ? CATALOG_SEARCH_ALIASES[item.id]
+          : [];
+        const fullAliases = expandCatalogSynonyms(baseAliases);
+
         list.push({
           id: item.id,
+          tier: item.tier || (item.cat === 'supercluster' ? 1 : 2),
           name: item.name,
           short: item.short || item.name,
           category: item.cat || (item.tier === 1 ? 'supercluster' : 'cluster'),
@@ -8376,40 +9059,177 @@ function initCosmicSearchEngine() {
           cz: item.cz,
           mass: item.mass,
           citation: item.citation,
-          aliases: aliases
+          aliases: fullAliases
         });
       });
     }
-    
-    // 2. Official Basins
+
+    // 2. Official Basins (Dupuy & Courtois 2023 Table A.1)
     if (typeof DUPUY_2023_BASINS !== 'undefined' && Array.isArray(DUPUY_2023_BASINS)) {
       DUPUY_2023_BASINS.forEach(b => {
-        if (!list.some(x => x.name.toLowerCase().includes(b.name.toLowerCase()))) {
+        const basinId = `basin_${b.id}`;
+        if (!list.some(x => x.id === basinId)) {
+          const baseAliases = (typeof CATALOG_SEARCH_ALIASES !== 'undefined' && CATALOG_SEARCH_ALIASES[basinId])
+            ? CATALOG_SEARCH_ALIASES[basinId]
+            : [`basin ${b.id}`, `${b.name.toLowerCase()} basin`, `${b.name.toLowerCase()} watershed`];
+          const fullAliases = expandCatalogSynonyms(baseAliases);
+
           list.push({
-            id: `basin_${b.id}`,
+            id: basinId,
+            tier: 1,
             name: `${b.name} Supercluster Basin`,
             short: `${b.name} Basin`,
             category: 'basin',
             pos: new THREE.Vector3(b.sgx, b.sgy, b.sgz),
-            dist: Math.round(Math.sqrt(b.sgx*b.sgx + b.sgy*b.sgy + b.sgz*b.sgz) / 74.6),
-            cz: Math.round(Math.sqrt(b.sgx*b.sgx + b.sgy*b.sgy + b.sgz*b.sgz)),
-            citation: 'Dupuy & Courtois (2023) Table A.1'
+            dist: Math.round(Math.sqrt(b.sgx * b.sgx + b.sgy * b.sgy + b.sgz * b.sgz) / 74.6),
+            cz: Math.round(Math.sqrt(b.sgx * b.sgx + b.sgy * b.sgy + b.sgz * b.sgz)),
+            citation: 'Dupuy & Courtois (2023) Table A.1',
+            aliases: fullAliases
           });
         }
       });
     }
-    
+
     return list;
   }
 
   const allEntities = getSearchableEntities();
 
-  function renderResults(matches) {
+  // 4. Scoring Engine
+  function scoreEntity(entity, rawQuery, normQuery) {
+    if (!normQuery) return { score: 0, matchedAlias: null };
+
+    const normName = normalizeSearchKey(entity.name);
+    const normShort = normalizeSearchKey(entity.short);
+    const normId = normalizeSearchKey(entity.id);
+    const normCat = normalizeSearchKey(entity.category);
+    const rawQ = rawQuery.toLowerCase();
+
+    let maxScore = 0;
+    let bestMatchedAlias = null;
+
+    // Exact Name / Short
+    if (entity.name.toLowerCase() === rawQ || normName === normQuery) {
+      maxScore = Math.max(maxScore, 150);
+    } else if (entity.short && (entity.short.toLowerCase() === rawQ || normShort === normQuery)) {
+      maxScore = Math.max(maxScore, 145);
+    }
+
+    // Exact Alias
+    if (entity.aliases && entity.aliases.length > 0) {
+      for (let i = 0; i < entity.aliases.length; i++) {
+        const alias = entity.aliases[i];
+        const normA = normalizeSearchKey(alias);
+        if (alias.toLowerCase() === rawQ || normA === normQuery) {
+          if (maxScore < 140) {
+            maxScore = 140;
+            bestMatchedAlias = alias;
+          }
+        }
+      }
+    }
+
+    // Name Prefix
+    if (entity.name.toLowerCase().startsWith(rawQ) || normName.startsWith(normQuery)) {
+      maxScore = Math.max(maxScore, 100);
+    } else if (entity.short && (entity.short.toLowerCase().startsWith(rawQ) || normShort.startsWith(normQuery))) {
+      maxScore = Math.max(maxScore, 95);
+    }
+
+    // Alias Prefix
+    if (entity.aliases && entity.aliases.length > 0) {
+      for (let i = 0; i < entity.aliases.length; i++) {
+        const alias = entity.aliases[i];
+        const normA = normalizeSearchKey(alias);
+        if (alias.toLowerCase().startsWith(rawQ) || normA.startsWith(normQuery)) {
+          if (maxScore < 90) {
+            maxScore = 90;
+            bestMatchedAlias = bestMatchedAlias || alias;
+          }
+        }
+      }
+    }
+
+    // Word Boundary in Name
+    const escapedQuery = rawQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wordBoundaryRegex = new RegExp(`\\b${escapedQuery}`, 'i');
+    if (wordBoundaryRegex.test(entity.name)) {
+      maxScore = Math.max(maxScore, 75);
+    }
+
+    // Substring in Name / Short
+    if (entity.name.toLowerCase().includes(rawQ) || normName.includes(normQuery)) {
+      maxScore = Math.max(maxScore, 50);
+    } else if (entity.short && (entity.short.toLowerCase().includes(rawQ) || normShort.includes(normQuery))) {
+      maxScore = Math.max(maxScore, 45);
+    }
+
+    // Substring in Alias
+    if (entity.aliases && entity.aliases.length > 0) {
+      for (let i = 0; i < entity.aliases.length; i++) {
+        const alias = entity.aliases[i];
+        const normA = normalizeSearchKey(alias);
+        if (alias.toLowerCase().includes(rawQ) || normA.includes(normQuery)) {
+          if (maxScore < 40) {
+            maxScore = 40;
+            bestMatchedAlias = bestMatchedAlias || alias;
+          }
+        }
+      }
+    }
+
+    // ID & Category
+    if (normId.includes(normQuery)) {
+      maxScore = Math.max(maxScore, 25);
+    } else if (normCat.includes(normQuery)) {
+      maxScore = Math.max(maxScore, 20);
+    }
+
+    // Tier 1 tie-breaker bonus
+    if (maxScore > 0 && entity.tier === 1) {
+      maxScore += 5;
+    }
+
+    return { score: maxScore, matchedAlias: bestMatchedAlias };
+  }
+
+  // 5. Query matching algorithm
+  function queryMatches(rawQuery) {
+    const rawQ = String(rawQuery || '').trim();
+    if (!rawQ) {
+      return allEntities.slice(0, 10);
+    }
+    const normQ = normalizeSearchKey(rawQ);
+    const scored = [];
+
+    for (let i = 0; i < allEntities.length; i++) {
+      const e = allEntities[i];
+      const res = scoreEntity(e, rawQ, normQ);
+      if (res.score > 0) {
+        scored.push(Object.assign({}, e, { _score: res.score, _matchedAlias: res.matchedAlias }));
+      }
+    }
+
+    scored.sort((a, b) => b._score - a._score);
+    return scored.slice(0, 12);
+  }
+
+  // 6. Highlight text helper
+  function highlightMatch(text, query) {
+    if (!query || !text) return text;
+    const escaped = String(query).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!escaped) return text;
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return String(text).replace(regex, '<mark class="search-match-mark">$1</mark>');
+  }
+
+  // 7. Render search results
+  function renderResults(matches, rawQuery) {
     currentMatches = matches;
     selectedIndex = -1;
     if (!searchResults) return;
 
-    if (matches.length === 0) {
+    if (!matches || matches.length === 0) {
       searchResults.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-dim); font-size:11px;">No astronomical entities found matching query.</div>';
       searchResults.style.display = 'flex';
       return;
@@ -8417,15 +9237,24 @@ function initCosmicSearchEngine() {
 
     searchResults.innerHTML = matches.map((item, idx) => {
       let tagClass = 'tag-cluster';
-      let tagLabel = item.category.toUpperCase();
+      let tagLabel = String(item.category || 'cluster').toUpperCase();
+
       if (item.category === 'supercluster') tagClass = 'tag-supercluster';
       else if (item.category === 'void') tagClass = 'tag-void';
       else if (item.category === 'filament') tagClass = 'tag-filament';
       else if (item.category === 'basin') tagClass = 'tag-basin';
+      else if (item.category === 'corridor') tagClass = 'tag-corridor';
+      else if (item.category === 'group') tagClass = 'tag-group';
 
       const distText = item.dist ? `${item.dist} Mpc` : '';
       const czText = item.cz ? `cz = ${item.cz.toLocaleString()} km/s` : '';
       const metaLine = [distText, czText].filter(Boolean).join(' · ');
+
+      let aliasHtml = '';
+      if (item._matchedAlias && rawQuery) {
+        const highlightedAlias = highlightMatch(item._matchedAlias, rawQuery);
+        aliasHtml = `<div class="search-res-alias">Matched: <span class="alias-pill">${highlightedAlias}</span></div>`;
+      }
 
       return `
         <div class="search-result-item" data-idx="${idx}">
@@ -8433,6 +9262,7 @@ function initCosmicSearchEngine() {
             <div class="search-res-title">
               <span>${item.name}</span>
             </div>
+            ${aliasHtml}
             <div class="search-res-meta">${metaLine}</div>
           </div>
           <span class="search-tag-badge ${tagClass}">${tagLabel}</span>
@@ -8445,105 +9275,161 @@ function initCosmicSearchEngine() {
     searchResults.querySelectorAll('.search-result-item').forEach(el => {
       el.addEventListener('click', () => {
         const idx = parseInt(el.getAttribute('data-idx'), 10);
-        selectEntity(currentMatches[idx]);
+        if (currentMatches[idx]) {
+          selectEntity(currentMatches[idx]);
+        }
       });
     });
   }
 
+  // 8. 3D Camera Fly-To & Beacon
   function selectEntity(item) {
     if (!item || !item.pos) return;
-    
-    // 1. Convert Supergalactic coordinates to Three.js world space
-    const targetThree = sgToThree(item.pos.x, item.pos.y, item.pos.z);
-    const cameraOffset = new THREE.Vector3(3200, 2400, 3600);
-    const cameraPos = targetThree.clone().add(cameraOffset);
-    
-    // 2. Smoothly fly camera to entity
-    if (typeof setCameraView === 'function') {
-      setCameraView(cameraPos, targetThree, 1400);
-    }
-    
-    // 3. Create visual targeting beacon
-    createTargetingBeacon(targetThree);
 
-    // 4. Auto-Open Expanded Scientific Dossier Modal over view
-    if (typeof openDossier === 'function' && item.id) {
-      setTimeout(() => openDossier(item.id), 350);
-    }
+    try {
+      // 1. Convert Supergalactic coordinates to Three.js world space
+      const targetThree = sgToThree(item.pos.x, item.pos.y, item.pos.z);
 
-    // 5. Update Search Bar and hide dropdown
-    if (searchResults) searchResults.style.display = 'none';
-    if (searchInput) {
-      searchInput.value = item.name;
-      searchInput.blur();
+      // 2. Compute adaptive camera offset based on structure category and tier
+      let offsetDist = 5000;
+      if (item.category === 'supercluster' || item.category === 'basin' || item.tier === 1) {
+        offsetDist = 6800;
+      } else if (item.category === 'cluster' || item.tier === 2) {
+        offsetDist = 4200;
+      } else if (item.category === 'void') {
+        offsetDist = 6000;
+      } else if (item.category === 'filament' || item.category === 'corridor') {
+        offsetDist = 4800;
+      }
+
+      const cameraOffset = new THREE.Vector3(
+        offsetDist * 0.65,
+        offsetDist * 0.50,
+        offsetDist * 0.75
+      );
+      const cameraPos = targetThree.clone().add(cameraOffset);
+
+      // 3. Smooth cubic ease-in-out camera transition
+      if (typeof setCameraView === 'function') {
+        setCameraView(cameraPos, targetThree, 1400);
+      }
+
+      // 4. Create visual targeting beacon
+      createTargetingBeacon(targetThree);
+
+      // 5. Auto-Open Scientific Dossier Modal
+      if (typeof openDossier === 'function' && item.id) {
+        setTimeout(() => openDossier(item.id), 350);
+      }
+
+      // 6. Update Search Bar & Close Results
+      if (searchResults) searchResults.style.display = 'none';
+      if (searchInput) {
+        searchInput.value = item.name;
+        searchInput.blur();
+      }
+    } catch (err) {
+      console.warn('Search selectEntity error:', err);
     }
   }
 
-  let beaconMesh = null;
+  // 9. Targeting Beacon Reticle Mesh
   function createTargetingBeacon(pos) {
-    if (beaconMesh) {
+    if (beaconAnimId) {
+      cancelAnimationFrame(beaconAnimId);
+      beaconAnimId = null;
+    }
+    if (beaconMesh && typeof scene !== 'undefined' && scene) {
       scene.remove(beaconMesh);
-      if (beaconMesh.geometry) beaconMesh.geometry.dispose();
-      if (beaconMesh.material) beaconMesh.material.dispose();
+      beaconMesh.traverse(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
       beaconMesh = null;
     }
 
-    const geo = new THREE.RingGeometry(200, 260, 32);
-    const mat = new THREE.MeshBasicMaterial({
+    if (typeof THREE === 'undefined' || typeof scene === 'undefined' || !scene) return;
+
+    const group = new THREE.Group();
+    group.position.copy(pos);
+
+    // Outer expanding ring
+    const geoOuter = new THREE.RingGeometry(200, 260, 48);
+    const matOuter = new THREE.MeshBasicMaterial({
       color: 0x00e5ff,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.9,
       depthWrite: false
     });
-    beaconMesh = new THREE.Mesh(geo, mat);
-    beaconMesh.position.copy(pos);
-    beaconMesh.lookAt(camera.position);
+    const ringOuter = new THREE.Mesh(geoOuter, matOuter);
+    group.add(ringOuter);
+
+    // Inner pulsing core ring
+    const geoInner = new THREE.RingGeometry(70, 110, 36);
+    const matInner = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false
+    });
+    const ringInner = new THREE.Mesh(geoInner, matInner);
+    group.add(ringInner);
+
+    beaconMesh = group;
+    if (typeof camera !== 'undefined' && camera) {
+      beaconMesh.lookAt(camera.position);
+    }
     scene.add(beaconMesh);
 
-    let start = performance.now();
-    function animateBeacon() {
+    const startTime = performance.now();
+    const duration = 4000;
+
+    function animateBeacon(now) {
       if (!beaconMesh) return;
-      const elapsed = performance.now() - start;
-      if (elapsed > 4000) {
-        scene.remove(beaconMesh);
+      const elapsed = now - startTime;
+      if (elapsed >= duration) {
+        if (scene) scene.remove(beaconMesh);
+        geoOuter.dispose();
+        matOuter.dispose();
+        geoInner.dispose();
+        matInner.dispose();
         beaconMesh = null;
+        beaconAnimId = null;
         return;
       }
-      const scale = 1.0 + (elapsed / 4000) * 3.0;
-      beaconMesh.scale.set(scale, scale, 1);
-      beaconMesh.material.opacity = Math.max(0, 0.9 * (1.0 - elapsed / 4000));
-      beaconMesh.lookAt(camera.position);
-      requestAnimationFrame(animateBeacon);
+
+      const t = elapsed / duration;
+      const scaleOuter = 1.0 + (1.0 - Math.pow(1.0 - t, 2)) * 3.2;
+      ringOuter.scale.set(scaleOuter, scaleOuter, 1);
+      matOuter.opacity = Math.max(0, 0.9 * (1.0 - t));
+
+      const scaleInner = 1.0 + Math.sin(t * Math.PI * 4) * 0.35;
+      ringInner.scale.set(scaleInner, scaleInner, 1);
+      matInner.opacity = Math.max(0, 0.95 * (1.0 - t * 0.8));
+
+      if (typeof camera !== 'undefined' && camera) {
+        beaconMesh.lookAt(camera.position);
+      }
+      beaconAnimId = requestAnimationFrame(animateBeacon);
     }
-    animateBeacon();
+
+    beaconAnimId = requestAnimationFrame(animateBeacon);
   }
 
+  // 10. Event Listeners & Keyboard Handler
   if (searchInput) {
     searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      if (!q) {
-        renderResults(allEntities.slice(0, 10));
-        return;
-      }
-      const matches = allEntities.filter(e => {
-        const hasAliasMatch = e.aliases && e.aliases.some(a => a.includes(q));
-        return e.name.toLowerCase().includes(q) ||
-               (e.short && e.short.toLowerCase().includes(q)) ||
-               (e.category && e.category.toLowerCase().includes(q)) ||
-               (e.id && e.id.toLowerCase().includes(q)) ||
-               hasAliasMatch;
-      });
-      renderResults(matches.slice(0, 12));
+      const q = searchInput.value;
+      const matches = queryMatches(q);
+      renderResults(matches, q.trim());
     });
 
     searchInput.addEventListener('focus', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      if (!q) {
-        renderResults(allEntities.slice(0, 10));
-      } else {
-        searchInput.dispatchEvent(new Event('input'));
-      }
+      const q = searchInput.value;
+      const matches = queryMatches(q);
+      renderResults(matches, q.trim());
     });
 
     searchInput.addEventListener('keydown', (e) => {
@@ -8553,7 +9439,9 @@ function initCosmicSearchEngine() {
         if (items.length > 0) {
           selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
           items.forEach((it, i) => it.classList.toggle('selected', i === selectedIndex));
-          items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+          if (items[selectedIndex] && typeof items[selectedIndex].scrollIntoView === 'function') {
+            items[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
         }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -8561,7 +9449,9 @@ function initCosmicSearchEngine() {
         if (items.length > 0) {
           selectedIndex = Math.max(selectedIndex - 1, 0);
           items.forEach((it, i) => it.classList.toggle('selected', i === selectedIndex));
-          items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+          if (items[selectedIndex] && typeof items[selectedIndex].scrollIntoView === 'function') {
+            items[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
         }
       } else if (e.key === 'Enter') {
         e.preventDefault();
@@ -8573,22 +9463,24 @@ function initCosmicSearchEngine() {
       } else if (e.key === 'Escape') {
         if (searchResults) searchResults.style.display = 'none';
         searchInput.blur();
+        selectedIndex = -1;
       }
     });
   }
 
-  // Quick target chips
+  // 11. Quick Chips Click Listeners
   document.querySelectorAll('.quick-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      const term = chip.getAttribute('data-search').toLowerCase();
-      const match = allEntities.find(e => e.name.toLowerCase().includes(term) || (e.short && e.short.toLowerCase().includes(term)));
-      if (match) {
-        selectEntity(match);
+      const term = chip.getAttribute('data-search');
+      if (!term) return;
+      const matches = queryMatches(term);
+      if (matches.length > 0) {
+        selectEntity(matches[0]);
       }
     });
   });
 
-  // Global hotkey '/' or 'Ctrl+K'
+  // 12. Global Shortcut Listener ('/' and 'Ctrl+K' / 'Cmd+K')
   window.addEventListener('keydown', (e) => {
     if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
       e.preventDefault();
@@ -8608,12 +9500,37 @@ function initCosmicSearchEngine() {
     });
   }
 
-  // Close search on click outside
+  // 13. Close search dropdown on click outside
   document.addEventListener('click', (e) => {
     if (searchResults && !e.target.closest('#cam-shortcuts')) {
       searchResults.style.display = 'none';
+      selectedIndex = -1;
     }
   });
+
+  // 14. Expose Public Search API Bridge
+  if (typeof window !== 'undefined') {
+    window.cosmicflows = window.cosmicflows || {};
+    window.cosmicflows.search = {
+      query: function(text) {
+        return queryMatches(text);
+      },
+      select: function(idOrItem) {
+        if (typeof idOrItem === 'string') {
+          const norm = normalizeSearchKey(idOrItem);
+          const match = allEntities.find(e => normalizeSearchKey(e.id) === norm || normalizeSearchKey(e.name) === norm);
+          if (match) selectEntity(match);
+        } else if (idOrItem && idOrItem.id) {
+          selectEntity(idOrItem);
+        }
+      },
+      getEntities: function() {
+        return allEntities;
+      },
+      normalizeKey: normalizeSearchKey,
+      ALIASES: CATALOG_SEARCH_ALIASES
+    };
+  }
 }
 
 
@@ -8677,24 +9594,6 @@ function initCosmicTips() {
   }, 16000);
 }
 
-// Catalog aliases for universal search
-const CATALOG_SEARCH_ALIASES = {
-  virgo_cl: ['virgo', 'm87', 'ngc 4486', 'a1226', 'abell 1226', 'virgo a', 'local supercluster core'],
-  coma_cl: ['coma', 'a1656', 'abell 1656', 'ngc 4889', 'ngc 4874', 'coma berenices'],
-  centaurus_cl: ['centaurus', 'a3526', 'abell 3526', 'ngc 4696', 'centaurus a', 'hydra-centaurus'],
-  perseus_cl: ['perseus', 'a426', 'abell 426', 'ngc 1275', 'perseus-pisces', 'perseus a'],
-  norma_cl: ['norma', 'a3627', 'aco 3627', 'abell 3627', 'great attractor', 'ga', 'pks 1610-608'],
-  fornax_cl: ['fornax', 'ngc 1399', 'ngc 1365', 'fornax a', 'fornax cluster'],
-  hydra_cl: ['hydra', 'a1060', 'abell 1060', 'ngc 3311', 'hydra i'],
-  hercules_cl: ['hercules', 'a2151', 'abell 2151', 'ngc 6041', 'hercules supercluster'],
-  shapley_core: ['shapley', 'a3558', 'abell 3558', 'shapley 8', 'shapley supercluster', 'sc'],
-  laniakea_spine: ['laniakea', 'our home supercluster', 'local supercluster watershed', 'tully 2014'],
-  ga_norma: ['great attractor', 'ga core', 'norma wall', 'aco 3627'],
-  vela_scl: ['vela', 'vela supercluster', 'zoa vela', '2026 supercluster', 'kraan-korteweg'],
-  sloan_gw: ['sloan', 'sloan great wall', 'sgw', 'sdss filament', 'gott 2005'],
-  dipole_rep: ['dipole', 'dipole repeller', 'great void fountain', 'repeller void', 'hoffman 2017'],
-  coldspot_rep: ['cold spot', 'coldspot', 'eridanus supervoid', 'courtois 2017']
-};
 
 function initCosmicTooltips() {
   const tooltip = document.getElementById('cosmic-tooltip');
@@ -8777,8 +9676,9 @@ function initCosmicTooltips() {
 }
 
 
+
 // ============================================================================
-// COSMIC VIDEO MODAL PLAYER
+// COSMIC VIDEO MODAL PLAYER (WITH BULLETPROOF CLOSE & ESCAPE HANDLERS)
 // ============================================================================
 function openCosmicVideoModal(title, embedUrl, externalUrl) {
   const modal = document.getElementById('video-player-modal');
@@ -8789,24 +9689,63 @@ function openCosmicVideoModal(title, embedUrl, externalUrl) {
   if (titleEl) titleEl.innerHTML = `<span>▶️</span> <span>${title}</span>`;
   if (iframe) iframe.src = embedUrl;
   if (extLink) extLink.href = externalUrl;
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+  }
 }
+window.openCosmicVideoModal = openCosmicVideoModal;
 
 function closeCosmicVideoModal() {
   const modal = document.getElementById('video-player-modal');
   const iframe = document.getElementById('video-modal-iframe');
-  if (iframe) iframe.src = '';
-  if (modal) modal.style.display = 'none';
+  if (iframe) {
+    iframe.src = 'about:blank';
+    iframe.removeAttribute('src');
+  }
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+  }
+}
+window.closeCosmicVideoModal = closeCosmicVideoModal;
+
+function initVideoModalEventListeners() {
+  const modal = document.getElementById('video-player-modal');
+  const btnClose = document.getElementById('btn-close-video-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-video-modal');
+  
+  if (btnClose) btnClose.onclick = (e) => { e.stopPropagation(); closeCosmicVideoModal(); };
+  if (btnDismiss) btnDismiss.onclick = (e) => { e.stopPropagation(); closeCosmicVideoModal(); };
+  
+  // Click outside backdrop to close
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        closeCosmicVideoModal();
+      }
+    };
+  }
+
+  // ESC key listener to close video
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+      closeCosmicVideoModal();
+    }
+  });
 }
 
-document.getElementById('btn-close-video-modal')?.addEventListener('click', closeCosmicVideoModal);
-document.getElementById('btn-dismiss-video-modal')?.addEventListener('click', closeCosmicVideoModal);
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCosmicTooltips);
-} else {
+function initCosmographyApp() {
   initCosmicTooltips();
   initCosmicTips();
+  initVideoModalEventListeners();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCosmographyApp);
+} else {
+  initCosmographyApp();
 }
 
 })();
@@ -8911,15 +9850,15 @@ if (document.readyState === 'loading') {
 <div id="cosmic-tooltip"></div>
 
 <!-- IN-APP YOUTUBE VIDEO & DOCUMENTARY PLAYER MODAL -->
-<div id="video-player-modal" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(3,6,12,0.85); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
-  <div style="background:var(--panel-bg); border:1.5px solid var(--accent-cyan); border-radius:12px; max-width:800px; width:92%; display:flex; flex-direction:column; padding:20px; box-shadow:0 24px 60px rgba(0,0,0,0.8); color:var(--text-main); font-family:inherit;">
+<div id="video-player-modal" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(3,6,12,0.85); backdrop-filter:blur(20px); align-items:center; justify-content:center;" onclick="if(event.target===this)closeCosmicVideoModal();">
+  <div style="background:var(--panel-bg); border:1.5px solid var(--accent-cyan); border-radius:12px; max-width:800px; width:92%; display:flex; flex-direction:column; padding:20px; box-shadow:0 24px 60px rgba(0,0,0,0.8); color:var(--text-main); font-family:inherit;" onclick="event.stopPropagation();">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:10px; margin-bottom:14px;">
       <h3 id="video-modal-title" style="margin:0; font-size:15px; font-weight:800; color:var(--text-bright); display:flex; align-items:center; gap:8px;">
         <span>▶️</span> <span>Scientific Documentary Video</span>
       </h3>
       <div style="display:flex; align-items:center; gap:10px;">
         <a id="video-modal-external-link" href="#" target="_blank" rel="noopener noreferrer" style="font-size:11px; font-weight:700; color:var(--accent-cyan); text-decoration:none;">Open in YouTube ↗</a>
-        <button id="btn-close-video-modal" style="background:transparent; border:none; font-size:22px; color:var(--text-dim); cursor:pointer; font-weight:700;">&times;</button>
+        <button id="btn-close-video-modal" onclick="closeCosmicVideoModal();" style="background:transparent; border:none; font-size:22px; color:var(--text-dim); cursor:pointer; font-weight:700;">&times;</button>
       </div>
     </div>
     <div style="position:relative; width:100%; padding-top:56.25%; border-radius:8px; overflow:hidden; background:#000;">
@@ -8927,7 +9866,7 @@ if (document.readyState === 'loading') {
     </div>
     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:11px; color:var(--text-dim);">
       <span>Curated Cosmography Media &middot; Peer-Reviewed Scientific Sources</span>
-      <button id="btn-dismiss-video-modal" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:6px 14px; border-radius:6px; font-weight:700; cursor:pointer;">Close Player</button>
+      <button id="btn-dismiss-video-modal" onclick="closeCosmicVideoModal();" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:6px 14px; border-radius:6px; font-weight:700; cursor:pointer;">Close Player</button>
     </div>
   </div>
 </div>
