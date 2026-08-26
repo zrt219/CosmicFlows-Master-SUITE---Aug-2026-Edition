@@ -69,7 +69,7 @@ python -m pytest tests/test_tully_fisher.py -v
 
 ### 1. R1: Cosmological Time Evolution Engine
 - **Friedmann Analytical Inversion**:
-  $$t_{\text{cosmic}}(a) = \frac{2}{3 H_0 \sqrt{\Omega_{\Lambda,0}}} \operatorname{arcsinh}\left( \sqrt{\frac{\Omega_{\Lambda,0}}{\Omega_{m,0}}} a^{3/2} \right)$$
+  $$t_{\text{cosmic}}(a) = \frac{2}{3 H_0 \sqrt{\Omega_{\Lambda,0}}} \mathrm{arcsinh}\left( \sqrt{\frac{\Omega_{\Lambda,0}}{\Omega_{m,0}}} a^{3/2} \right)$$
   $$a(t_{\text{cosmic}}) = \left( \sqrt{\frac{\Omega_{m,0}}{\Omega_{\Lambda,0}}} \sinh\left( \frac{3}{2} H_0 \sqrt{\Omega_{\Lambda,0}} \, t_{\text{cosmic}} \right) \right)^{2/3}$$
   With standard parameters: $H_0 = 74.6\text{ km/s/Mpc}$, $\Omega_{m,0} = 0.315$, $\Omega_{\Lambda,0} = 0.685$.
 - **Linear Growth Factor $D_+(z)$ (Carroll, Press & Turner 1992)**:

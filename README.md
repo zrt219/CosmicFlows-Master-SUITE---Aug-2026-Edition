@@ -120,12 +120,12 @@ $$S_{ij} \equiv \frac{1}{2}\left( \frac{\partial v_i}{\partial x_j} + \frac{\par
 
 The dual physical vorticity vector $\boldsymbol{\omega} \equiv \nabla \times \mathbf{v}$ satisfies:
 $$\Omega_{ij} = -\frac{1}{2}\epsilon_{ijk}\omega_k \iff \omega_i = -\epsilon_{ijk}\Omega_{jk}$$
-$$\omega^2 \equiv \operatorname{Tr}(\Omega \Omega^T) = -\operatorname{Tr}(\Omega^2) = \frac{1}{2}|\boldsymbol{\omega}|^2$$
+$$\omega^2 \equiv \mathrm{Tr}(\Omega \Omega^T) = -\mathrm{Tr}(\Omega^2) = \frac{1}{2}|\boldsymbol{\omega}|^2$$
 
 #### The Okubo-Weiss Parameter $Q$:
-Because $\operatorname{Tr}(S\Omega) = 0$ by symmetry contraction ($S_{ij}\Omega_{ij} = -S_{ji}\Omega_{ji} = 0$), expanding $\operatorname{Tr}(J^2)$ yields:
-$$\operatorname{Tr}(J^2) = \operatorname{Tr}((S+\Omega)^2) = \operatorname{Tr}(S^2) + \operatorname{Tr}(\Omega^2) = s^2 - \omega^2$$
-$$Q \equiv s^2 - \omega^2 = \operatorname{Tr}(S^2) - \operatorname{Tr}(\Omega\Omega^T) = \operatorname{Tr}(J^2) = s^2 - \frac{1}{2}|\boldsymbol{\omega}|^2$$
+Because $\mathrm{Tr}(S\Omega) = 0$ by symmetry contraction ($S_{ij}\Omega_{ij} = -S_{ji}\Omega_{ji} = 0$), expanding $\mathrm{Tr}(J^2)$ yields:
+$$\mathrm{Tr}(J^2) = \mathrm{Tr}((S+\Omega)^2) = \mathrm{Tr}(S^2) + \mathrm{Tr}(\Omega^2) = s^2 - \omega^2$$
+$$Q \equiv s^2 - \omega^2 = \mathrm{Tr}(S^2) - \mathrm{Tr}(\Omega\Omega^T) = \mathrm{Tr}(J^2) = s^2 - \frac{1}{2}|\boldsymbol{\omega}|^2$$
 
 - **Strain-Dominated Flow ($Q > Q_{\text{th}}$)**: Tidal elongation, filamentary stretching, and planar sheet compression ($s^2 > \omega^2$).
 - **Rotation-Dominated Vortex Core ($Q < -Q_{\text{th}}$)**: Coherent swirling halos, vortex filaments, and bound accretion cores ($\omega^2 > s^2$).
@@ -133,9 +133,9 @@ $$Q \equiv s^2 - \omega^2 = \operatorname{Tr}(S^2) - \operatorname{Tr}(\Omega\Om
 
 #### Principle Invariants and $(Q_J, R_J)$ Vieillefosse Diagnostics:
 The characteristic polynomial of $J$ is $\det(\lambda I - J) = \lambda^3 + P \lambda^2 + Q_J \lambda + R_J = 0$, where:
-$$P = -\operatorname{Tr}(J) = -\nabla \cdot \mathbf{v} = -\theta$$
-$$Q_J = \frac{1}{2}\left[ (\operatorname{Tr} J)^2 - \operatorname{Tr}(J^2) \right] = \frac{1}{2}(P^2 - s^2 + \omega^2) = \frac{1}{2}\left( P^2 - s^2 + \frac{1}{2}|\boldsymbol{\omega}|^2 \right)$$
-$$R_J = -\det(J) = -\frac{1}{3}\operatorname{Tr}(J^3) - \frac{1}{2} P \operatorname{Tr}(J^2) - \frac{1}{6} P^3$$
+$$P = -\mathrm{Tr}(J) = -\nabla \cdot \mathbf{v} = -\theta$$
+$$Q_J = \frac{1}{2}\left[ (\mathrm{Tr} J)^2 - \mathrm{Tr}(J^2) \right] = \frac{1}{2}(P^2 - s^2 + \omega^2) = \frac{1}{2}\left( P^2 - s^2 + \frac{1}{2}|\boldsymbol{\omega}|^2 \right)$$
+$$R_J = -\det(J) = -\frac{1}{3}\mathrm{Tr}(J^3) - \frac{1}{2} P \mathrm{Tr}(J^2) - \frac{1}{6} P^3$$
 
 For traceless flow ($P=0$), the Cardan discriminant $\Delta = 27 R_J^2 + 4 Q_J^3 = 0$ defines the **Vieillefosse Zero-Discriminant Boundary**:
 $$\frac{27}{4} R_J^2 + Q_J^3 = 0 \iff Q_J = -3\left(\frac{R_J}{2}\right)^{2/3}$$
@@ -284,12 +284,12 @@ $$\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \left[ J(\mathbf{x}^{(k)}) \right]^{-1
 with proven $q$-quadratic convergence $\|\mathbf{e}^{(k+1)}\| \le \beta\gamma \|\mathbf{e}^{(k)}\|^2$.
 
 #### Critical Point Spectrum:
-- **Repeller Source**: $\operatorname{Re}(\lambda_i) > 0$ for all $i=1,2,3$ (Morse index $\mu=0$, Cosmic Void Core).
+- **Repeller Source**: $\mathrm{Re}(\lambda_i) > 0$ for all $i=1,2,3$ (Morse index $\mu=0$, Cosmic Void Core).
 - **1-Saddle**: One negative, two positive eigenvalues ($\mu=1$, Cosmic Wall Hub).
 - **2-Saddle**: Two negative, one positive eigenvalue ($\mu=2$, Cosmic Filament Hub).
-- **Attractor Sink**: $\operatorname{Re}(\lambda_i) < 0$ for all $i=1,2,3$ ($\mu=3$, Galaxy Cluster Halo).
+- **Attractor Sink**: $\mathrm{Re}(\lambda_i) < 0$ for all $i=1,2,3$ ($\mu=3$, Galaxy Cluster Halo).
 
-The **Morse-Smale Complex** decomposes space into cells $\Gamma(p, q) = W^u(p) \cap W^s(q)$ of dimension $\dim \Gamma = \operatorname{ind}(q) - \operatorname{ind}(p)$.
+The **Morse-Smale Complex** decomposes space into cells $\Gamma(p, q) = W^u(p) \cap W^s(q)$ of dimension $\dim \Gamma = \mathrm{ind}(q) - \mathrm{ind}(p)$.
 
 #### Section Citations:
 1. Smale, S. (1961), *Annals of Mathematics*, 74(1), 199–206. [DOI: 10.2307/1970311](https://doi.org/10.2307/1970311)
@@ -304,7 +304,7 @@ The **Morse-Smale Complex** decomposes space into cells $\Gamma(p, q) = W^u(p) \
 
 On a 3D cubical complex $K$, chain groups $C_k(K; \mathbb{Z}_2)$ with boundary operators $\partial_k: C_k \to C_{k-1}$ satisfy:
 $$\partial_k \circ \partial_{k+1} \equiv 0 \pmod 2$$
-The $k$-th Betti number is $\beta_k(\delta_{\text{th}}) = \dim(\ker \partial_k) - \dim(\operatorname{im} \partial_{k+1})$:
+The $k$-th Betti number is $\beta_k(\delta_{\text{th}}) = \dim(\ker \partial_k) - \dim(\mathrm{im} \partial_{k+1})$:
 - $\beta_0(\delta_{\text{th}})$: Connected supercluster components.
 - $\beta_1(\delta_{\text{th}})$: Filament loops and topological handles.
 - $\beta_2(\delta_{\text{th}})$: Enclosed void bubbles.
@@ -414,11 +414,11 @@ Proposals are accepted with probability $\alpha = \min(1, \exp(-\Delta \mathcal{
 
 For empirical sample covariance $S$, the conditioned covariance matrix $\Sigma^*$ is:
 $$\Sigma^* = (1 - \lambda^*) S + \lambda^* \mu I$$
-where $\mu = \frac{1}{p} \operatorname{Tr}(S)$.
+where $\mu = \frac{1}{p} \mathrm{Tr}(S)$.
 
 - **Ledoit-Wolf Intensity**: $\hat{\lambda}^* = \frac{b^2}{d^2} \in [0, 1]$ minimizes expected Frobenius loss $\mathbb{E}[\|\Sigma^* - \Sigma\|_F^2]$.
 - **Oracle Approximating Shrinkage (OAS)**:
-  $$\hat{\rho}_{\text{OAS}} = \frac{\left(1 - \frac{2}{p}\right)\operatorname{Tr}(S^2) + \operatorname{Tr}^2(S)}{\left(n + 1 - \frac{2}{p}\right)\left(\operatorname{Tr}(S^2) - \frac{1}{p}\operatorname{Tr}^2(S)\right)}$$
+  $$\hat{\rho}_{\text{OAS}} = \frac{\left(1 - \frac{2}{p}\right)\mathrm{Tr}(S^2) + \mathrm{Tr}^2(S)}{\left(n + 1 - \frac{2}{p}\right)\left(\mathrm{Tr}(S^2) - \frac{1}{p}\mathrm{Tr}^2(S)\right)}$$
 
 #### Section Citations:
 1. Ledoit, O., & Wolf, M. (2004), *Journal of Multivariate Analysis*, 88(2), 365–411. [DOI: 10.1016/S0047-259X(03)00096-4](https://doi.org/10.1016/S0047-259X(03)00096-4)
@@ -432,7 +432,7 @@ where $\mu = \frac{1}{p} \operatorname{Tr}(S)$.
 ### 3.14 MCMC Convergence Diagnostics: Gelman-Rubin R-hat, ESS Suite & Geweke Scores
 
 - **Rank-Split $\hat{R}$**: $\hat{R} = \sqrt{\frac{\widehat{V}^+}{W} \cdot \frac{df}{df-2}} \le 1.01$ (Vehtari et al. 2021).
-- **Multivariate MPSRF**: $\operatorname{MPSRF} = \sqrt{\frac{N-1}{N} + \frac{M+1}{M}\lambda_{\max}(W^{-1}B/N)}$.
+- **Multivariate MPSRF**: $\mathrm{MPSRF} = \sqrt{\frac{N-1}{N} + \frac{M+1}{M}\lambda_{\max}(W^{-1}B/N)}$.
 - **Effective Sample Size**: $\text{ESS} = \frac{MN}{\hat{\tau}_{\text{int}}}$, $\text{ESS}_{\text{bulk}} \ge 400, \text{ESS}_{\text{tail}} \ge 200$.
 - **Geweke $Z$-Score**: $Z = \frac{\bar{\theta}_A - \bar{\theta}_B}{\sqrt{\widehat{S}_A(0)/n_A + \widehat{S}_B(0)/n_B}} \sim \mathcal{N}(0, 1) \implies |Z| \le 1.96$.
 
