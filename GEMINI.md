@@ -71,3 +71,9 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
 * Every dataset, intermediate field, and publication export must carry SHA-256 digests and W3C PROV-O lineage.
 * Citing CF4 density/velocity products requires: **Courtois et al. (2023), A&A 670, L15** (DOI: `10.1051/0004-6361/202245331`).
 * Citing CF4 watershed products requires: **Dupuy & Courtois (2023), A&A 678, A176** (DOI: `10.1051/0004-6361/202346802`).
+
+## 13. JavaScript Variable Scope, TDZ Invariants & Boot Error Trapping
+1. In all mathematical inversion, solver, and utility functions in JavaScript (`solveTullyFisher`, `jacobiDiagonalize`, `integrateRK4`), all intermediate quantities (`sigmaMu`, `mAbs`, `mu`, `wCorr`) MUST be declared and initialized strictly prior to any calculation that consumes them.
+2. Never rely on variable hoisting or compute derived statistical error adjustments before their root parameter definitions.
+3. Core WebGL bootstrap routines (`init()`, `animate()`, `rebuildStreamlines()`, `splashController.dismiss()`) must reside inside defensive try-catch error barriers so that any single non-critical formula or dataset parsing failure never blocks the 3D canvas animation loop or mouse/touch event listeners.
+

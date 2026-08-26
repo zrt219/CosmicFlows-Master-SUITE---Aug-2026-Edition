@@ -303,13 +303,14 @@ window.onerror = function(msg, url, line, col, error) {
   .ctrl-row {
     display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; font-size: 13px;
   }
-  .ctrl-row label { color: var(--text-bright); flex: 1; font-weight: 700; white-space: nowrap; font-size: 13px; }
+  .ctrl-row label { color: var(--text-bright); flex: 1; font-weight: 700; white-space: nowrap; font-size: 13px; display: flex; align-items: center; gap: 6px; }
   .ctrl-row input[type=range] {
     flex: 1.2; accent-color: var(--accent-cyan); height: 6px; background: rgba(125,140,160,0.3); border-radius: 3px; cursor: pointer;
   }
   .ctrl-row .val {
     width: auto; min-width: 55px; text-align: right; color: var(--accent-cyan); font-variant-numeric: tabular-nums;
-    font-size: 13px; flex-shrink: 0; font-weight: 800; white-space: nowrap; font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 12px; flex-shrink: 0; font-weight: 800; white-space: nowrap; font-family: ui-monospace, "SF Mono", monospace;
+    background: rgba(2, 132, 199, 0.10); border: 1px solid rgba(2, 132, 199, 0.25); padding: 2px 7px; border-radius: 4px;
   }
   .ctrl-row select, .ctrl-select {
     flex: 1; background: var(--panel-bg); border: 1.5px solid var(--panel-border); color: var(--text-bright);
@@ -6325,24 +6326,24 @@ function solveTullyFisher(params = {}) {
   // 3. Extinction-corrected Distance Modulus: mu_0 = m - A - M
   const mu = mApp - aExt - mAbs;
 
-  // 4. Metric distance d = 10^((mu - 25)/5) Mpc
+  // 4. Error propagation (5% on W, 0.08 mag on photometric calibration)
+  const sigmaMu = Math.sqrt(Math.pow(cal.slope * (0.05 / Math.LN10), 2) + 0.08 * 0.08);
+
+  // 5. Metric distance d = 10^((mu - 25)/5) Mpc
   // Homogeneous Malmquist Bias Correction: Delta_mu = -1.381551 * sigma_mu^2
   const deltaMuMalm = -1.381551 * (sigmaMu * sigmaMu);
   const muCorr = mu + deltaMuMalm;
   const distMpc = Math.pow(10, (muCorr - 25.0) / 5.0);
   const distKms = distMpc * H0_val;
+  const sigmaDistMpc = 0.461 * distMpc * sigmaMu;
 
-  // 5. Radial Peculiar Velocity: v_pec = cz - H0 * d
+  // 6. Radial Peculiar Velocity: v_pec = cz - H0 * d
   const vHubble = distMpc * H0_val;
   const vPec = cz - vHubble;
-
-  // 6. Baryonic Tully-Fisher Mass: M_b = A * V_rot^4
-  const mBaryonic = TULLY_FISHER_BTFR.A * Math.pow(vRot, TULLY_FISHER_BTFR.alpha);
-
-  // 7. Error propagation (5% on W, 0.08 mag on photometric calibration)
-  const sigmaMu = Math.sqrt(Math.pow(cal.slope * (0.05 / Math.LN10), 2) + 0.08 * 0.08);
-  const sigmaDistMpc = 0.461 * distMpc * sigmaMu;
   const sigmaVPec = Math.sqrt(25.0 * 25.0 + Math.pow(H0_val * sigmaDistMpc, 2));
+
+  // 7. Baryonic Tully-Fisher Mass: M_b = A * V_rot^4
+  const mBaryonic = TULLY_FISHER_BTFR.A * Math.pow(vRot, TULLY_FISHER_BTFR.alpha);
 
   return {
     wObs,
