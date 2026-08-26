@@ -424,49 +424,84 @@ window.onerror = function(msg, url, line, col, error) {
   #tour-overlay button:hover { border-color: var(--accent-cyan); }
   #tour-overlay button.tour-exit { background: rgba(255, 68, 68, 0.1); border-color: #ff4444; color: #ff4444; }
 
-  /* BOTTOM-RIGHT CINEMATIC CAMERA HUD */
+    /* BOTTOM-RIGHT UNIVERSAL COSMOGRAPHIC SEARCH & CAMERA DOCK */
   #cam-shortcuts {
-    position: absolute; bottom: 12px; right: 16px; z-index: 20;
+    position: absolute; bottom: 12px; right: 16px; z-index: 25;
     display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
-    pointer-events: auto;
+    pointer-events: auto; max-width: 480px; width: 100%;
   }
-  .cam-btn-row {
-    display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;
-    background: var(--panel-bg); border: 1.5px solid var(--panel-border); padding: 4px 6px;
-    border-radius: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); backdrop-filter: blur(16px);
+  .search-dock-container {
+    position: relative; width: 100%; display: flex; flex-direction: column; align-items: flex-end;
   }
-  .cam-btn {
-    background: transparent; border: 1px solid transparent; color: var(--text-main);
-    font-family: inherit; font-size: 10.5px; padding: 4px 10px; border-radius: 20px; cursor: pointer;
-    backdrop-filter: blur(10px); transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); font-weight: 700;
-    display: inline-flex; align-items: center; gap: 5px; user-select: none;
+  .search-bar-row {
+    display: flex; gap: 6px; align-items: center; width: 100%;
+    background: var(--panel-bg); border: 1.5px solid var(--panel-border); padding: 5px 10px;
+    border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.14); backdrop-filter: blur(18px);
+    transition: all 0.2s ease;
   }
-  .cam-btn:hover {
-    color: var(--accent-cyan); border-color: rgba(2, 132, 199, 0.35); background: rgba(2, 132, 199, 0.08);
-    transform: translateY(-1px); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+  .search-bar-row:focus-within {
+    border-color: var(--accent-cyan); box-shadow: 0 0 16px rgba(2, 132, 199, 0.3);
   }
-  .cam-btn:active { transform: translateY(1px) scale(0.97); }
-  .cam-btn.active {
-    background: rgba(2, 132, 199, 0.16); border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800;
-    box-shadow: 0 0 12px rgba(2, 132, 199, 0.25);
+  .search-icon { font-size: 13px; color: var(--accent-cyan); display: flex; align-items: center; }
+  #cosmic-search-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text-bright); font-family: inherit; font-size: 11.5px; font-weight: 700;
+    min-width: 140px;
   }
-  .cam-btn.nature-hero {
-    border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800;
-    background: rgba(2, 132, 199, 0.12); box-shadow: 0 0 10px rgba(2, 132, 199, 0.2);
+  #cosmic-search-input::placeholder {
+    color: var(--text-dim); font-weight: 600; font-size: 11px; opacity: 0.85;
   }
-  .btn-kbd {
-    background: rgba(125, 140, 160, 0.15); border: 1px solid var(--panel-border);
-    border-radius: 4px; padding: 1px 4px; font-size: 9px; font-family: ui-monospace, monospace;
-    font-weight: 800; color: var(--text-bright); line-height: 1;
+  .search-btn-hero {
+    background: rgba(2, 132, 199, 0.12); border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan); font-family: inherit; font-size: 10.5px; padding: 4px 10px;
+    border-radius: 20px; cursor: pointer; font-weight: 800; display: inline-flex; align-items: center;
+    gap: 4px; transition: all 0.18s; white-space: nowrap;
   }
-  #kbd-legend {
-    font-size: 9px; color: var(--text-dim); text-align: right; line-height: 1.5;
-    background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 3px 10px;
-    border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); backdrop-filter: blur(12px);
+  .search-btn-hero:hover {
+    background: rgba(2, 132, 199, 0.22); transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
   }
-  #kbd-legend kbd {
-    border: 1px solid var(--panel-border); border-radius: 3px; padding: 1px 4px;
-    color: var(--accent-cyan); font-weight: 800; background: rgba(2, 132, 199, 0.08);
+  .search-btn-hero:active { transform: translateY(1px) scale(0.97); }
+
+  /* AUTOCOMPLETE DROPDOWN */
+  #cosmic-search-results {
+    display: none; position: absolute; bottom: 44px; right: 0; width: 100%; max-width: 440px;
+    max-height: 320px; overflow-y: auto; background: var(--panel-bg);
+    border: 1.5px solid var(--panel-border); border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3); backdrop-filter: blur(20px);
+    padding: 6px; z-index: 100; flex-direction: column; gap: 4px;
+  }
+  .search-result-item {
+    padding: 8px 10px; border-radius: 8px; cursor: pointer; display: flex;
+    justify-content: space-between; align-items: center; transition: all 0.15s;
+    border: 1px solid transparent; font-size: 11.5px;
+  }
+  .search-result-item:hover, .search-result-item.selected {
+    background: rgba(2, 132, 199, 0.12); border-color: rgba(2, 132, 199, 0.35);
+  }
+  .search-res-left { display: flex; flex-direction: column; gap: 2px; }
+  .search-res-title { font-weight: 800; color: var(--text-bright); display: flex; align-items: center; gap: 6px; }
+  .search-res-meta { font-size: 10px; color: var(--text-dim); font-family: ui-monospace, monospace; }
+  .search-tag-badge {
+    font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 6px;
+    border-radius: 4px; letter-spacing: 0.03em;
+  }
+  .tag-supercluster { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.35); }
+  .tag-cluster { background: rgba(2, 132, 199, 0.15); color: var(--accent-cyan); border: 1px solid rgba(2, 132, 199, 0.35); }
+  .tag-void { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); }
+  .tag-filament { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+  .tag-basin { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+
+  .quick-chips-row {
+    display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; margin-top: 4px;
+  }
+  .quick-chip {
+    background: var(--panel-bg); border: 1px solid var(--panel-border); color: var(--text-dim);
+    font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; cursor: pointer;
+    backdrop-filter: blur(10px); transition: all 0.15s;
+  }
+  .quick-chip:hover {
+    color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(2, 132, 199, 0.08);
   }
 
   /* LOADING */
@@ -2072,20 +2107,32 @@ window.onerror = function(msg, url, line, col, error) {
   </div>
 </div>
 
-<!-- BOTTOM RIGHT CINEMATIC CAMERA HUD -->
+<!-- BOTTOM RIGHT UNIVERSAL COSMOGRAPHIC SEARCH & CAMERA DOCK -->
 <div id="cam-shortcuts">
-  <div class="cam-btn-row">
-    <button class="cam-btn nature-hero" id="btn-cam-wiener" title="Nature Reference Perspective [Key: 0]"><span>★</span> <span>Nature View</span></button>
-    <button class="cam-btn" data-target="overview" title="All-Sky Overview [Key: 1]"><kbd class="btn-kbd">1</kbd> <span>Overview</span></button>
-    <button class="cam-btn" data-target="laniakea" title="Laniakea Basin Core [Key: 2]"><kbd class="btn-kbd">2</kbd> <span>Laniakea</span></button>
-    <button class="cam-btn" data-target="shapley" title="Shapley Concentration Attractor [Key: 3]"><kbd class="btn-kbd">3</kbd> <span>Shapley</span></button>
-    <button class="cam-btn" data-target="vela" title="Vela Supercluster (2026 Discovery) [Key: 4]"><kbd class="btn-kbd">4</kbd> <span>Vela (2026)</span></button>
-    <button class="cam-btn" data-target="sloan" title="Sloan Great Wall Filaments [Key: 5]"><kbd class="btn-kbd">5</kbd> <span>Sloan GW</span></button>
-    <button class="cam-btn" data-target="dipole" title="Dipole Repeller Outflow Void [Key: 6]"><kbd class="btn-kbd">6</kbd> <span>Dipole Repeller</span></button>
+  <div class="search-dock-container">
+    <div id="cosmic-search-results"></div>
+    <div class="search-bar-row">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="cosmic-search-input" placeholder="Search galaxies, clusters, voids, basins... (Press /)" autocomplete="off" spellcheck="false">
+      <kbd class="btn-kbd" style="cursor:pointer;" id="search-kbd-trigger" title="Focus search bar">/</kbd>
+      <button class="search-btn-hero" id="btn-cam-wiener" title="Nature Reference Perspective (Key: 0)">
+        <span>★</span> <span>Nature View</span>
+      </button>
+    </div>
+    <div class="quick-chips-row">
+      <span style="font-size:8.5px; color:var(--text-dim); margin-right:2px; font-weight:700;">QUICK TARGETS:</span>
+      <span class="quick-chip" data-search="Virgo">Virgo (M87)</span>
+      <span class="quick-chip" data-search="Shapley">Shapley</span>
+      <span class="quick-chip" data-search="Coma">Coma</span>
+      <span class="quick-chip" data-search="Norma">Great Attractor</span>
+      <span class="quick-chip" data-search="Dipole Repeller">Dipole Void</span>
+      <span class="quick-chip" data-search="Vela">Vela</span>
+    </div>
   </div>
   <div id="kbd-legend">
-    <div><kbd>0-6</kbd> presets &middot; <kbd>Space</kbd> time &middot; <kbd>C</kbd> clean &middot; <kbd>A</kbd> callouts &middot; <kbd>I</kbd> inset &middot; <kbd>P</kbd> export &middot; <kbd>T</kbd> theme &middot; <kbd>?</kbd> guide</div>
+    <div><kbd>/</kbd> search &middot; <kbd>0</kbd> nature view &middot; <kbd>Space</kbd> time &middot; <kbd>C</kbd> clean &middot; <kbd>A</kbd> callouts &middot; <kbd>P</kbd> export &middot; <kbd>T</kbd> theme</div>
   </div>
+</div>
 </div>
 
 <script>
@@ -8105,6 +8152,277 @@ if (window.cosmicflows) {
     exportBasinCSV, exportSkeletonJSON, exportConvergenceJSON,
     exportBulkFlowCSV, exportStreamlinesJSON
   };
+}
+
+
+// ============================================================================
+// UNIVERSAL COSMOGRAPHIC ENTITY SEARCH & CAMERA NAVIGATION ENGINE
+// ============================================================================
+function initCosmicSearchEngine() {
+  const searchInput = document.getElementById('cosmic-search-input');
+  const searchResults = document.getElementById('cosmic-search-results');
+  const searchKbd = document.getElementById('search-kbd-trigger');
+  let selectedIndex = -1;
+  let currentMatches = [];
+
+  // Build searchable database
+  function getSearchableEntities() {
+    const list = [];
+    
+    // 1. Astrometric Features
+    if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
+      ASTROMETRIC_FEATURES.forEach(item => {
+        list.push({
+          id: item.id,
+          name: item.name,
+          short: item.short || item.name,
+          category: item.cat || (item.tier === 1 ? 'supercluster' : 'cluster'),
+          pos: item.pos,
+          dist: item.dist,
+          cz: item.cz,
+          mass: item.mass,
+          citation: item.citation
+        });
+      });
+    }
+    
+    // 2. Official Basins
+    if (typeof DUPUY_2023_BASINS !== 'undefined' && Array.isArray(DUPUY_2023_BASINS)) {
+      DUPUY_2023_BASINS.forEach(b => {
+        if (!list.some(x => x.name.toLowerCase().includes(b.name.toLowerCase()))) {
+          list.push({
+            id: `basin_${b.id}`,
+            name: `${b.name} Supercluster Basin`,
+            short: `${b.name} Basin`,
+            category: 'basin',
+            pos: new THREE.Vector3(b.sgx, b.sgy, b.sgz),
+            dist: Math.round(Math.sqrt(b.sgx*b.sgx + b.sgy*b.sgy + b.sgz*b.sgz) / 74.6),
+            cz: Math.round(Math.sqrt(b.sgx*b.sgx + b.sgy*b.sgy + b.sgz*b.sgz)),
+            citation: 'Dupuy & Courtois (2023) Table A.1'
+          });
+        }
+      });
+    }
+    
+    return list;
+  }
+
+  const allEntities = getSearchableEntities();
+
+  function renderResults(matches) {
+    currentMatches = matches;
+    selectedIndex = -1;
+    if (!searchResults) return;
+
+    if (matches.length === 0) {
+      searchResults.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-dim); font-size:11px;">No astronomical entities found matching query.</div>';
+      searchResults.style.display = 'flex';
+      return;
+    }
+
+    searchResults.innerHTML = matches.map((item, idx) => {
+      let tagClass = 'tag-cluster';
+      let tagLabel = item.category.toUpperCase();
+      if (item.category === 'supercluster') tagClass = 'tag-supercluster';
+      else if (item.category === 'void') tagClass = 'tag-void';
+      else if (item.category === 'filament') tagClass = 'tag-filament';
+      else if (item.category === 'basin') tagClass = 'tag-basin';
+
+      const distText = item.dist ? `${item.dist} Mpc` : '';
+      const czText = item.cz ? `cz = ${item.cz.toLocaleString()} km/s` : '';
+      const metaLine = [distText, czText].filter(Boolean).join(' · ');
+
+      return `
+        <div class="search-result-item" data-idx="${idx}">
+          <div class="search-res-left">
+            <div class="search-res-title">
+              <span>${item.name}</span>
+            </div>
+            <div class="search-res-meta">${metaLine}</div>
+          </div>
+          <span class="search-tag-badge ${tagClass}">${tagLabel}</span>
+        </div>
+      `;
+    }).join('');
+
+    searchResults.style.display = 'flex';
+
+    searchResults.querySelectorAll('.search-result-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.getAttribute('data-idx'), 10);
+        selectEntity(currentMatches[idx]);
+      });
+    });
+  }
+
+  function selectEntity(item) {
+    if (!item || !item.pos) return;
+    
+    // 1. Convert Supergalactic coordinates to Three.js world space
+    const targetThree = sgToThree(item.pos.x, item.pos.y, item.pos.z);
+    const cameraOffset = new THREE.Vector3(3200, 2400, 3600);
+    const cameraPos = targetThree.clone().add(cameraOffset);
+    
+    // 2. Smoothly fly camera to entity
+    if (typeof setCameraView === 'function') {
+      setCameraView(cameraPos, targetThree, 1400);
+    }
+    
+    // 3. Open scientific inspection dossier if available
+    if (typeof openDossier === 'function' && item.id) {
+      setTimeout(() => openDossier(item.id), 400);
+    }
+    
+    // 4. Create visual targeting beacon
+    createTargetingBeacon(targetThree);
+
+    // 5. Hide search results and blur input
+    if (searchResults) searchResults.style.display = 'none';
+    if (searchInput) {
+      searchInput.value = item.name;
+      searchInput.blur();
+    }
+  }
+
+  let beaconMesh = null;
+  function createTargetingBeacon(pos) {
+    if (beaconMesh) {
+      scene.remove(beaconMesh);
+      if (beaconMesh.geometry) beaconMesh.geometry.dispose();
+      if (beaconMesh.material) beaconMesh.material.dispose();
+      beaconMesh = null;
+    }
+
+    const geo = new THREE.RingGeometry(200, 260, 32);
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0x00e5ff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false
+    });
+    beaconMesh = new THREE.Mesh(geo, mat);
+    beaconMesh.position.copy(pos);
+    beaconMesh.lookAt(camera.position);
+    scene.add(beaconMesh);
+
+    let start = performance.now();
+    function animateBeacon() {
+      if (!beaconMesh) return;
+      const elapsed = performance.now() - start;
+      if (elapsed > 4000) {
+        scene.remove(beaconMesh);
+        beaconMesh = null;
+        return;
+      }
+      const scale = 1.0 + (elapsed / 4000) * 3.0;
+      beaconMesh.scale.set(scale, scale, 1);
+      beaconMesh.material.opacity = Math.max(0, 0.9 * (1.0 - elapsed / 4000));
+      beaconMesh.lookAt(camera.position);
+      requestAnimationFrame(animateBeacon);
+    }
+    animateBeacon();
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        renderResults(allEntities.slice(0, 10));
+        return;
+      }
+      const matches = allEntities.filter(e => {
+        return e.name.toLowerCase().includes(q) ||
+               (e.short && e.short.toLowerCase().includes(q)) ||
+               (e.category && e.category.toLowerCase().includes(q)) ||
+               (e.id && e.id.toLowerCase().includes(q));
+      });
+      renderResults(matches.slice(0, 12));
+    });
+
+    searchInput.addEventListener('focus', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        renderResults(allEntities.slice(0, 10));
+      } else {
+        searchInput.dispatchEvent(new Event('input'));
+      }
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const items = searchResults ? searchResults.querySelectorAll('.search-result-item') : [];
+        if (items.length > 0) {
+          selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+          items.forEach((it, i) => it.classList.toggle('selected', i === selectedIndex));
+          items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const items = searchResults ? searchResults.querySelectorAll('.search-result-item') : [];
+        if (items.length > 0) {
+          selectedIndex = Math.max(selectedIndex - 1, 0);
+          items.forEach((it, i) => it.classList.toggle('selected', i === selectedIndex));
+          items[selectedIndex]?.scrollIntoView({ block: 'nearest' });
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selectedIndex >= 0 && currentMatches[selectedIndex]) {
+          selectEntity(currentMatches[selectedIndex]);
+        } else if (currentMatches.length > 0) {
+          selectEntity(currentMatches[0]);
+        }
+      } else if (e.key === 'Escape') {
+        if (searchResults) searchResults.style.display = 'none';
+        searchInput.blur();
+      }
+    });
+  }
+
+  // Quick target chips
+  document.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const term = chip.getAttribute('data-search').toLowerCase();
+      const match = allEntities.find(e => e.name.toLowerCase().includes(term) || (e.short && e.short.toLowerCase().includes(term)));
+      if (match) {
+        selectEntity(match);
+      }
+    });
+  });
+
+  // Global hotkey '/' or 'Ctrl+K'
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      searchInput?.focus();
+      searchInput?.select();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      searchInput?.focus();
+      searchInput?.select();
+    }
+  });
+
+  if (searchKbd) {
+    searchKbd.addEventListener('click', () => {
+      searchInput?.focus();
+      searchInput?.select();
+    });
+  }
+
+  // Close search on click outside
+  document.addEventListener('click', (e) => {
+    if (searchResults && !e.target.closest('#cam-shortcuts')) {
+      searchResults.style.display = 'none';
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCosmicSearchEngine);
+} else {
+  initCosmicSearchEngine();
 }
 
 })();
