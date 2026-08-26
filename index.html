@@ -6294,8 +6294,35 @@ window.cosmicflows = {
     computeCosmology: computeCosmology,
     setTime: function(t) { applyCosmicTime(t); },
     getTime: function() { return simState.cosmicTime; },
-    play: function() { simState.timePlaying = true; updatePlayButton(); },
-    pause: function() { simState.timePlaying = false; updatePlayButton(); },
+    play: function() { 
+      simState.timePlaying = true; 
+      updatePlayButton(); 
+      if (!window._cosmicTimeInterval) {
+        let lastT = performance.now();
+        window._cosmicTimeInterval = setInterval(() => {
+          if (!simState.timePlaying) {
+            clearInterval(window._cosmicTimeInterval);
+            window._cosmicTimeInterval = null;
+            return;
+          }
+          const nowT = performance.now();
+          const dt = (nowT - lastT) / 1000.0;
+          lastT = nowT;
+          const spd = typeof simState.timeSpeed === 'number' ? simState.timeSpeed : 1.0;
+          let nt = simState.cosmicTime + dt * spd * 2.0;
+          if (nt > 10.0) nt = -13.78;
+          applyCosmicTime(nt);
+        }, 30);
+      }
+    },
+    pause: function() { 
+      simState.timePlaying = false; 
+      if (window._cosmicTimeInterval) {
+        clearInterval(window._cosmicTimeInterval);
+        window._cosmicTimeInterval = null;
+      }
+      updatePlayButton(); 
+    },
     isPlaying: function() { return !!simState.timePlaying; },
     setPlaybackSpeed: function(s) { simState.timeSpeed = s; },
     setSpeed: function(s) { simState.timeSpeed = s; },
