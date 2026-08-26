@@ -30,11 +30,13 @@ when $a=1$ and $H=H_0$. This is a linear-regime scientific validation diagnostic
 ## 5. Watershed IDs Are Reconstruction-Specific
 Never use one universal hard-coded basin-ID table for every CosmicFlows watershed file. The official watershed files follow the ordering of **Dupuy & Courtois (2023), Table A.1**.
 
-## 6. GitHub MathJax & KaTeX Formatting Invariants
+## 6. GitHub MathJax & KaTeX Inviolable Syntax Invariants
 1. **Display Math Isolation**: Every `$$ ... $$` display equation MUST be isolated with dedicated empty blank lines before and after.
-2. **Subscript / Superscript Bracing**: Every command or macro in subscripts/superscripts MUST be enclosed in curly braces (`\nabla_{\mathbf{x}}`, `\sigma_{\theta}`, `\sigma_{\phi}`, `\int_0^{\infty}`, `\sigma_{\mu}`, `C^{\infty}`, `M_{\nu}`, `\Psi_{\epsilon}`, `T_{\sigma}`).
-3. **Universal Matrix Syntax**: Use `\left( \begin{matrix} ... \end{matrix} \right)` or standard `\begin{matrix}` instead of `\begin{pmatrix}` with external subscripts.
-4. **No Naked `aligned` Blocks**: Avoid embedding `\begin{aligned}` directly inside `\boxed{...}` or unconfigured KaTeX display blocks without testing.
+2. **Subscript / Superscript Macro Bracing**: Every command or macro in subscripts/superscripts MUST be enclosed in curly braces (`\nabla_{\mathbf{x}}`, `\sigma_{\theta}`, `\sigma_{\phi}`, `\int_0^{\infty}`, `\sigma_{\mu}`, `C^{\infty}`, `M_{\nu}`, `\Psi_{\epsilon}`, `T_{\sigma}`).
+3. **Explicit Subscript Underscores**: Always include explicit underscores for variable labels: `\mathbf{v}_{\text{pot}}`, `\mathbf{v}_{\text{sol}}`, `\mathbf{v}_0`, `\mathbf{v}_1`, `E_{\text{pot}}`, `E_{\text{sol}}`, `\hat{v}_i^{\text{pot}}`, `\mathcal{P}_{ij}^{\parallel}`.
+4. **Universal Matrix Syntax**: Use `\left( \begin{matrix} ... \end{matrix} \right)` or standard `\begin{matrix}` instead of `\begin{pmatrix}` with external subscripts.
+5. **No Naked `aligned` Blocks in Boxes**: Avoid embedding `\begin{aligned}` directly inside `\boxed{...}` or unconfigured KaTeX display blocks without testing. Prefer clean separated display equations.
+6. **Universal Operators**: Use `\mathrm{Tr}`, `\det`, `\mathrm{diag}`, `\mathrm{rank}`.
 
 ## 7. Universal Android APK Signing Protocol
 1. Sideloadable Android APKs must support `minSdk = 21` and `targetSdk = 34`.
