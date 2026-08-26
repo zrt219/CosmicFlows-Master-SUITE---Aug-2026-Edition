@@ -1,4 +1,4 @@
-package com.example.cosmicflows4
+package ca.umattr.cosmicflows4
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -193,13 +193,11 @@ class MainActivity : ComponentActivity() {
                     }
                     val data = Base64.decode(cleanBase64, Base64.DEFAULT)
 
-                    // 1. Save to App external cache / documents directory for sharing
                     val shareDir = File(context.cacheDir, "exports")
                     if (!shareDir.exists()) shareDir.mkdirs()
                     val shareFile = File(shareDir, filename)
                     FileOutputStream(shareFile).use { it.write(data) }
 
-                    // 2. Also save to public Downloads folder if accessible
                     try {
                         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                         val publicFile = File(downloadsDir, filename)
@@ -209,10 +207,9 @@ class MainActivity : ComponentActivity() {
                         Toast.makeText(context, "Exported: $filename", Toast.LENGTH_SHORT).show()
                     }
 
-                    // 3. Launch Android System Share Sheet
                     val uri: Uri = FileProvider.getUriForFile(
                         context,
-                        "${context.packageName}.fileprovider",
+                        "ca.umattr.cosmicflows4.fileprovider",
                         shareFile
                     )
 

@@ -1,7 +1,7 @@
 # ZRT CosmicFlows-4 Research Workbench: Mathematical Monograph & Visual Cosmography Atlas
 
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-CF4--Production-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://cf4-five.vercel.app)
-[![Android APK](https://img.shields.io/badge/Android%20APK-12.8%20MB-3DDC84?style=for-the-badge&logo=android&logoColor=white)](CosmicFlows4.apk)
+[![Android APK](https://img.shields.io/badge/Android%20APK-16.2%20MB%20Signed%20Release-3DDC84?style=for-the-badge&logo=android&logoColor=white)](CosmicFlows4.apk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Tests Passing](https://img.shields.io/badge/Tests-1%2C032%20Passed-brightgreen?style=for-the-badge)](tests/)
 [![Lines of Code](https://img.shields.io/badge/LOC-87%2C516%20Non--HTML-orange?style=for-the-badge)](src/)

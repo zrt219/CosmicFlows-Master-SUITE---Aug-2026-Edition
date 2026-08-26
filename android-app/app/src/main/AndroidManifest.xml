@@ -22,7 +22,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.cosmicflows4.fileprovider"
+            android:authorities="ca.umattr.cosmicflows4.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -31,7 +31,7 @@
         </provider>
 
         <activity
-            android:name=".MainActivity"
+            android:name="ca.umattr.cosmicflows4.MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:theme="@style/Theme.CosmicFlows4">
