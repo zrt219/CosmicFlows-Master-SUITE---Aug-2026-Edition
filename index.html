@@ -90,28 +90,28 @@ window.onerror = function(msg, url, line, col, error) {
   #branding {
     pointer-events: auto;
     flex-shrink: 0;
-    max-width: 480px;
+    max-width: 540px;
   }
   #branding h1 {
-    font-size: 14.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--text-bright); display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-bright); display: flex; align-items: center; gap: 8px; margin: 0;
   }
   #branding h1 .badge {
-    font-size: 10px; padding: 2px 7px; border-radius: 4px;
+    font-size: 9.5px; padding: 1.5px 6px; border-radius: 4px;
     background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.4);
     color: var(--accent-cyan); font-weight: 700;
   }
   #branding .sub {
-    margin-top: 3px; font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.01em;
-    line-height: 1.35; font-weight: 500;
+    margin: 2px 0 4px 0; font-size: 10px; color: var(--text-dim); letter-spacing: 0.01em;
+    line-height: 1.3; font-weight: 500;
   }
 
   /* TOP LEFT PROMO PILLS */
   #promo-pills {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 5px;
+    gap: 5px;
+    margin-top: 3px;
     flex-wrap: wrap;
     pointer-events: auto;
   }
@@ -229,7 +229,7 @@ window.onerror = function(msg, url, line, col, error) {
 
   /* 10-TAB FLOATING SCIENCE & LAYER DRAWER */
   #panel {
-    position: absolute; top: 76px; left: 16px;
+    position: absolute; top: 108px; left: 16px;
     width: 480px; max-width: calc(100vw - 32px);
     background: var(--panel-bg);
     border: 1.5px solid var(--panel-border);
@@ -240,7 +240,7 @@ window.onerror = function(msg, url, line, col, error) {
     max-height: calc(100vh - 140px);
     display: flex; flex-direction: column;
     overflow: hidden;
-    transition: transform 0.25s ease, opacity 0.25s ease;
+    transition: transform 0.25s ease, opacity 0.25s ease, top 0.2s ease;
   }
   .panel-top {
     padding: 11px 16px; display: flex; align-items: center; justify-content: space-between;
@@ -4874,6 +4874,23 @@ document.querySelectorAll('.cam-btn').forEach(btn => {
 
 // Panel Collapse
 const panelBody = document.getElementById('panel-body');
+
+// Dynamic panel position adjustment to prevent topbar overlap
+function updatePanelPosition() {
+  const branding = document.getElementById('branding');
+  const panel = document.getElementById('panel');
+  if (window.innerWidth > 768 && branding && panel) {
+    const rect = branding.getBoundingClientRect();
+    const targetTop = Math.max(104, Math.round(rect.bottom + 8));
+    panel.style.top = `${targetTop}px`;
+  } else if (panel && window.innerWidth <= 768) {
+    panel.style.top = '';
+  }
+}
+window.addEventListener('resize', updatePanelPosition);
+window.addEventListener('orientationchange', updatePanelPosition);
+setTimeout(updatePanelPosition, 200);
+
 const btnCollapse = document.getElementById('btn-collapse');
 btnCollapse?.addEventListener('click', () => {
   if (!panelBody) return;
