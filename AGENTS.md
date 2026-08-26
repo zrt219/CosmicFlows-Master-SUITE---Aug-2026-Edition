@@ -91,4 +91,13 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
 3. **Click / Tap Invariant**: Discrete taps ($\Delta r < 5\,\text{px}, \Delta t < 350\,\text{ms}$) on cluster nodes must reliably trigger raycasting and modal inspection dossiers.
 4. **Interaction Liveness**: Canvas drag sequences must maintain 60 FPS performance budgets ($< 16.6\,\text{ms/frame}$) and must never leak pointer capture or lock the UI thread upon `pointerup` or `pointercancel`.
 
+## 16. In-App Visual Error Reporting & Resilient Canvas Fallback
+1. All uncaught JavaScript runtime exceptions, unhandled promise rejections, and module initialization failures must be captured by a global error registry (`window.errorRegistry`).
+2. If any error occurs during initialization or interaction, the system MUST:
+   - Display a floating diagnostic alert pill (`#error-hud-pill`) with one-click access to the diagnostic dossier modal.
+   - Force-dismiss any active splash overlay (`pointer-events: none; display: none`).
+   - Re-enable OrbitControls camera dragging and maintain active WebGL animation frames.
+3. The diagnostics modal must provide a copyable JSON payload containing error stack traces, active cosmological engine, GPU context, and theme state.
+
+
 

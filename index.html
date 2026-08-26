@@ -2259,6 +2259,148 @@ const simState = {
 // SPLASH LOADING CONTROLLER
 // ==========================================
 
+
+// ============================================================================
+// GLOBAL ERROR REGISTRY, IN-APP DIAGNOSTICS & RESILIENT FALLBACK SYSTEM
+// ============================================================================
+window.errorRegistry = [];
+
+function recordRuntimeDiagnostic(type, msg, source, lineno, colno, error) {
+  const errEntry = {
+    id: window.errorRegistry.length + 1,
+    type: type || 'Error',
+    message: msg || (error && error.message) || 'Unknown error',
+    stack: (error && error.stack) || `${source}:${lineno}:${colno}`,
+    time: new Date().toISOString(),
+    engine: typeof currentScienceEngine !== 'undefined' ? currentScienceEngine : 'cf4-wf',
+    theme: typeof currentTheme !== 'undefined' ? currentTheme : 'dark',
+    camera: window.camera ? { x: Math.round(window.camera.position.x), y: Math.round(window.camera.position.y), z: Math.round(window.camera.position.z) } : null,
+    userAgent: navigator.userAgent
+  };
+  
+  window.errorRegistry.push(errEntry);
+  console.warn('[Diagnostic Logger]', errEntry);
+  
+  // 1. Update Error HUD Pill
+  const pill = document.getElementById('error-hud-pill');
+  const pillMsg = document.getElementById('error-hud-msg');
+  if (pill && pillMsg) {
+    pillMsg.textContent = `${window.errorRegistry.length} Diagnostic Alert${window.errorRegistry.length > 1 ? 's' : ''}`;
+    pill.style.display = 'flex';
+  }
+  
+  // 2. Fallback Recovery: guarantee splash dismissal and controls active
+  if (window.splashController && !window.splashController.isDismissed) {
+    try { window.splashController.dismiss(true); } catch (e) {}
+  }
+  if (window.controls) {
+    window.controls.enabled = true;
+  }
+}
+
+// Global window error listener
+window.addEventListener('error', function(e) {
+  recordRuntimeDiagnostic('Window Error', e.message, e.filename, e.lineno, e.colno, e.error);
+});
+
+// Global unhandled promise rejection listener
+window.addEventListener('unhandledrejection', function(e) {
+  recordRuntimeDiagnostic('Unhandled Rejection', e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejected', '', 0, 0, e.reason);
+});
+
+// Enhance safeBoot to record into errorRegistry
+function safeBoot(moduleName, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[SafeBoot] Non-fatal error in ${moduleName}:`, err);
+    recordRuntimeDiagnostic(`SafeBoot [${moduleName}]`, err.message, '', 0, 0, err);
+  }
+}
+
+// Modal opening & interaction listeners
+function initErrorDiagnosticsUI() {
+  const pill = document.getElementById('error-hud-pill');
+  const modal = document.getElementById('error-dossier-modal');
+  const btnClose = document.getElementById('btn-close-error-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-error-modal');
+  const btnCopy = document.getElementById('btn-copy-error-report');
+  const btnSafeReset = document.getElementById('btn-safe-mode-reset');
+  const reportBox = document.getElementById('error-report-container');
+  
+  function openErrorModal() {
+    if (!modal) return;
+    const metaEngine = document.getElementById('err-meta-engine');
+    const metaTheme = document.getElementById('err-meta-theme');
+    const metaControls = document.getElementById('err-meta-controls');
+    const metaPoints = document.getElementById('err-meta-points');
+    
+    if (metaEngine) metaEngine.textContent = typeof currentScienceEngine !== 'undefined' ? currentScienceEngine : 'cf4-wf';
+    if (metaTheme) metaTheme.textContent = typeof currentTheme !== 'undefined' ? currentTheme : 'dark';
+    if (metaControls && window.controls) metaControls.textContent = window.controls.enabled ? 'Active (Responsive)' : 'Disabled';
+    if (metaPoints) metaPoints.textContent = (window.cosmicflows && window.cosmicflows.activePointCount) ? window.cosmicflows.activePointCount.toLocaleString() : '38,065';
+    
+    if (reportBox) {
+      if (window.errorRegistry.length === 0) {
+        reportBox.textContent = 'No active errors recorded in diagnostic registry.\nAll systems operating at 100% nominal fidelity.';
+        reportBox.style.color = '#34d399';
+      } else {
+        reportBox.textContent = JSON.stringify(window.errorRegistry, null, 2);
+        reportBox.style.color = '#fca5a5';
+      }
+    }
+    modal.style.display = 'flex';
+  }
+  
+  if (pill) pill.addEventListener('click', openErrorModal);
+  if (btnClose) btnClose.addEventListener('click', () => modal.style.display = 'none');
+  if (btnDismiss) btnDismiss.addEventListener('click', () => modal.style.display = 'none');
+  
+  if (btnCopy && reportBox) {
+    btnCopy.addEventListener('click', () => {
+      const payload = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        errorCount: window.errorRegistry.length,
+        errors: window.errorRegistry,
+        environment: {
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+          screen: `${window.innerWidth}x${window.innerHeight}`,
+          theme: typeof currentTheme !== 'undefined' ? currentTheme : 'dark'
+        }
+      }, null, 2);
+      
+      navigator.clipboard.writeText(payload).then(() => {
+        btnCopy.innerHTML = '<span>✅</span> <span>Copied to Clipboard!</span>';
+        setTimeout(() => {
+          btnCopy.innerHTML = '<span>📋</span> <span>Copy Debug Report</span>';
+        }, 2500);
+      }).catch(() => {
+        alert('Could not copy report automatically. Please select and copy text manually.');
+      });
+    });
+  }
+  
+  if (btnSafeReset) {
+    btnSafeReset.addEventListener('click', () => {
+      if (window.splashController) window.splashController.dismiss(true);
+      if (typeof setCameraNatureRefView === 'function') setCameraNatureRefView();
+      if (window.controls) {
+        window.controls.enabled = true;
+        window.controls.reset();
+      }
+      modal.style.display = 'none';
+      if (pill) pill.style.display = 'none';
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initErrorDiagnosticsUI);
+} else {
+  initErrorDiagnosticsUI();
+}
+
 // Safe execution barrier for auxiliary cosmography modules
 function safeBoot(moduleName, fn) {
   try {
@@ -7949,6 +8091,60 @@ if (window.cosmicflows) {
     </div>
   </div>
 </div>
+
+
+<!-- FLOATING DIAGNOSTICS & ERROR ALERT PILL -->
+<div id="error-hud-pill" style="display:none; position:fixed; top:72px; right:16px; z-index:99999; background:rgba(239,68,68,0.92); backdrop-filter:blur(16px); color:#ffffff; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:800; border:1px solid rgba(255,255,255,0.4); box-shadow:0 8px 24px rgba(239,68,68,0.4); cursor:pointer; align-items:center; gap:8px; animation:errorPulse 2s infinite;">
+  <span style="font-size:14px;">⚠️</span>
+  <span id="error-hud-msg">1 Diagnostic Alert</span>
+  <span style="background:rgba(0,0,0,0.25); padding:2px 8px; border-radius:10px; font-size:10px; margin-left:4px;">Inspect</span>
+</div>
+
+<!-- ERROR DIAGNOSTICS DOSSIER MODAL -->
+<div id="error-dossier-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(3,6,12,0.85); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:1.5px solid rgba(239,68,68,0.5); border-radius:12px; max-width:680px; width:92%; max-height:85vh; display:flex; flex-direction:column; padding:24px; box-shadow:0 24px 60px rgba(0,0,0,0.7); color:var(--text-main); font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:12px; margin-bottom:16px;">
+      <h3 style="margin:0; font-size:16px; font-weight:800; color:#ef4444; display:flex; align-items:center; gap:8px;">
+        <span>⚠️</span> <span>System Diagnostic & Runtime Error Report</span>
+      </h3>
+      <button id="btn-close-error-modal" style="background:transparent; border:none; font-size:20px; color:var(--text-dim); cursor:pointer; font-weight:700;">&times;</button>
+    </div>
+    <div style="flex:1; overflow-y:auto; font-size:12px; margin-bottom:16px; padding-right:6px;">
+      <p style="margin:0 0 10px 0; color:var(--text-dim); line-height:1.5;">
+        A runtime diagnostic alert was intercepted. The 3D canvas and camera controls have been kept active in <b>Safe Fallback Mode</b>. You can inspect or copy the diagnostic trace below.
+      </p>
+      <div id="error-report-container" style="background:rgba(0,0,0,0.35); border:1px solid var(--panel-border); border-radius:8px; padding:14px; font-family:ui-monospace, monospace; font-size:11px; white-space:pre-wrap; word-break:break-all; max-height:260px; overflow-y:auto; color:#fca5a5;">
+      </div>
+      <div style="margin-top:14px; background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); border-radius:8px; padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px;">
+        <div><b>Active Engine:</b> <span id="err-meta-engine">CF4 Wiener Filter</span></div>
+        <div><b>Active Theme:</b> <span id="err-meta-theme">Dark Sci-Fi</span></div>
+        <div><b>Controls Active:</b> <span id="err-meta-controls" style="color:var(--accent-green);">Yes (OrbitControls)</span></div>
+        <div><b>Point Cloud Count:</b> <span id="err-meta-points">38,065</span></div>
+      </div>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid var(--panel-border); padding-top:14px;">
+      <button id="btn-copy-error-report" style="background:var(--accent-cyan); color:#020617; border:none; padding:8px 16px; border-radius:6px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+        <span>📋</span> <span>Copy Debug Report</span>
+      </button>
+      <div style="display:flex; gap:10px;">
+        <button id="btn-safe-mode-reset" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.5); color:#fca5a5; padding:8px 14px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">
+          🔄 Reset Safe View
+        </button>
+        <button id="btn-dismiss-error-modal" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:8px 16px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes errorPulse {
+  0% { transform: scale(1); box-shadow: 0 8px 24px rgba(239,68,68,0.4); }
+  50% { transform: scale(1.03); box-shadow: 0 12px 30px rgba(239,68,68,0.7); }
+  100% { transform: scale(1); box-shadow: 0 8px 24px rgba(239,68,68,0.4); }
+}
+</style>
 
 </body>
 </html>
