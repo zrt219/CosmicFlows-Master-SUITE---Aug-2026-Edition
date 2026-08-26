@@ -391,6 +391,23 @@ window.onerror = function(msg, url, line, col, error) {
   }
   #caption-modal .btn-row { display: flex; justify-content: flex-end; gap: 8px; }
 
+  
+  /* SLEEK TASTEFUL HOVER TOOLTIP SYSTEM */
+  #cosmic-tooltip {
+    position: fixed; z-index: 999999; pointer-events: none; display: none;
+    background: rgba(10, 18, 32, 0.94); border: 1px solid rgba(0, 229, 255, 0.35);
+    border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600;
+    color: #f1f5f9; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5); backdrop-filter: blur(14px);
+    white-space: nowrap; opacity: 0; transform: translateY(4px) scale(0.97);
+    transition: opacity 0.15s ease, transform 0.15s ease; font-family: inherit; line-height: 1.35;
+  }
+  #cosmic-tooltip.visible { opacity: 1; transform: translateY(0) scale(1); }
+  #cosmic-tooltip .tooltip-kbd {
+    background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px; padding: 1px 4px; font-size: 9.5px; font-family: ui-monospace, monospace;
+    margin-left: 6px; color: #38bdf8; font-weight: 800;
+  }
+
   /* HOVER CARD */
   #hover-card {
     position: absolute; pointer-events: none; z-index: 25; display: none;
@@ -1318,28 +1335,28 @@ window.onerror = function(msg, url, line, col, error) {
   <!-- TOP CENTER CLUSTER: ACTION BUTTONS & ACTIVE ENGINE BANNER -->
   <div id="top-center-cluster">
     <div id="top-actions">
-      <button class="top-btn explore-pill" id="btn-explore-toggle" title="Explore The Local Universe [Toggle Science Drawer]">
+      <button class="top-btn explore-pill" id="btn-explore-toggle" data-tooltip="Toggle 10-tab scientific cosmography drawer" title="Explore The Local Universe [Toggle Science Drawer]">
         <span>✨</span> <b>Explore Universe</b>
       </button>
-      <button class="top-btn clean-btn" id="btn-clean-mode" title="Toggle Clean Figure Mode [Key: C]">
+      <button class="top-btn clean-btn" id="btn-clean-mode" data-tooltip="Hide all HUDs for clean publication figures [Key: C]" title="Toggle Clean Figure Mode [Key: C]">
         <span>🖼️</span> <b id="clean-label">Clean (C)</b>
       </button>
-      <button class="top-btn theme-btn" id="btn-theme-toggle" title="Toggle Publication White / Dark Sci-Fi Mode [Key: T]">
+      <button class="top-btn theme-btn" id="btn-theme-toggle" data-tooltip="Toggle 600-DPI Publication White / Dark Sci-Fi mode [Key: T]" title="Toggle Publication White / Dark Sci-Fi Mode [Key: T]">
         <span id="theme-icon">☀️</span> <b id="theme-label">White Mode</b>
       </button>
-      <button class="top-btn" id="btn-callouts-toggle" title="Toggle 3D Leader Callout Annotations [Key: A]">
+      <button class="top-btn" id="btn-callouts-toggle" data-tooltip="Toggle 3D leader annotations & cluster pins [Key: A]" title="Toggle 3D Leader Callout Annotations [Key: A]">
         <span>🏷️</span> Callouts (A)
       </button>
-      <button class="top-btn" id="btn-inset-toggle" title="Toggle 2D Equatorial Inset Map [Key: I]">
+      <button class="top-btn" id="btn-inset-toggle" data-tooltip="Toggle 2D Equatorial Plane (SGZ=0) overview [Key: I]" title="Toggle 2D Equatorial Inset Map [Key: I]">
         <span>🗺️</span> Inset (I)
       </button>
-            <button class="top-btn" id="btn-shortcuts-toggle" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
+            <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut guide [Key: ?]" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
         <span>⌨️</span> <b>Shortcuts (?)</b>
       </button>
-      <button class="top-btn" id="btn-pub-export" title="600 DPI Print Exporter with LaTeX Caption [Key: P]">
+      <button class="top-btn" id="btn-pub-export" data-tooltip="Export 600-DPI high-res figure with LaTeX caption [Key: P]" title="600 DPI Print Exporter with LaTeX Caption [Key: P]">
         <span>📜</span> Print (P)
       </button>
-      <div id="dataset-picker-container" style="display:inline-flex; align-items:center; background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:5px; padding:3px 8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(12px);">
+      <div id="dataset-picker-container" data-tooltip="Switch cosmic velocity reconstruction dataset" style="display:inline-flex; align-items:center; background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:5px; padding:3px 8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(12px);">
         <span style="font-size:10px; font-weight:800; margin-right:5px; color:var(--accent-cyan);">📡 DATASET:</span>
         <select id="dataset-select" style="background:transparent; border:none; font-family:inherit; font-size:10.5px; font-weight:700; color:var(--text-main); cursor:pointer; outline:none;">
           <option value="cf4_ungrouped_64">CF4 Ungrouped (64³ Base)</option>
@@ -1414,9 +1431,9 @@ window.onerror = function(msg, url, line, col, error) {
 
 <!-- COSMOLOGICAL TIME EVOLUTION SCRUBBER & TRANSPORT (R1) -->
 <div id="cosmic-time-bar">
-  <button class="time-ctrl-btn" id="btn-time-play" title="Play / Pause Time Evolution (Space)">▶ Play</button>
+  <button class="time-ctrl-btn" id="btn-time-play" data-tooltip="Play / pause cosmic time evolution [Space]" title="Play / Pause Time Evolution (Space)">▶ Play</button>
   <button id="btn-cosmo-play" style="display:none;"></button>
-  <input type="range" id="rng-cosmic-time" min="-13.8" max="10.0" step="0.1" value="0.0" title="Cosmic Time Scrubber [-13.8 Gyr, +10.0 Gyr]">
+  <input type="range" id="rng-cosmic-time" data-tooltip="Scrub cosmological time [-13.8 Gyr to +10 Gyr]" min="-13.8" max="10.0" step="0.1" value="0.0" title="Cosmic Time Scrubber [-13.8 Gyr, +10.0 Gyr]">
   <div class="time-badge" id="time-telemetry-badge">
     <span>t = <span class="telemetry-val" id="hud-cosmic-time">+0.00 Gyr</span><span id="cosmo-t" style="display:none;">+0.00 Gyr</span></span>
     <span>z = <span class="telemetry-val" id="hud-redshift">0.00</span><span id="cosmo-z" style="display:none;">0.00</span></span>
@@ -1425,14 +1442,14 @@ window.onerror = function(msg, url, line, col, error) {
     <span>H(z) = <span class="telemetry-val" id="hud-hubble">74.6</span><span id="cosmo-hz" style="display:none;">74.6</span></span>
   </div>
   <div style="display:flex; gap:4px;">
-    <button class="time-ctrl-btn" id="btn-time-bb" title="Big Bang (t = -13.78 Gyr)">Big Bang</button>
+    <button class="time-ctrl-btn" id="btn-time-bb" data-tooltip="Jump to Cosmic Dawn / Big Bang (z = ∞)" title="Big Bang (t = -13.78 Gyr)">Big Bang</button>
     <button id="btn-cosmo-preset-bb" style="display:none;"></button>
-    <button class="time-ctrl-btn" id="btn-time-noon" title="Cosmic Noon (z ~ 2)">Cosmic Noon</button>
+    <button class="time-ctrl-btn" id="btn-time-noon" data-tooltip="Jump to Cosmic Noon peak star formation (z ~ 2)" title="Cosmic Noon (z ~ 2)">Cosmic Noon</button>
     <button id="btn-cosmo-preset-noon" style="display:none;"></button>
-    <button class="time-ctrl-btn active" id="btn-time-present" title="Present Day (z = 0)">Present (z=0)</button>
+    <button class="time-ctrl-btn active" id="btn-time-present" data-tooltip="Reset to Present Day observer epoch (z = 0)" title="Present Day (z = 0)">Present (z=0)</button>
     <button id="btn-cosmo-preset-now" style="display:none;"></button>
-    <button class="time-ctrl-btn" id="btn-time-plus5" title="+5.0 Gyr (Future)">+5 Gyr</button>
-    <button class="time-ctrl-btn" id="btn-time-plus10" title="+10.0 Gyr (Collapse)">+10 Gyr</button>
+    <button class="time-ctrl-btn" id="btn-time-plus5" data-tooltip="Simulate future cosmic expansion (+5.0 Gyr)" title="+5.0 Gyr (Future)">+5 Gyr</button>
+    <button class="time-ctrl-btn" id="btn-time-plus10" data-tooltip="Simulate ultimate cosmic collapse (+10.0 Gyr)" title="+10.0 Gyr (Collapse)">+10 Gyr</button>
     <button id="btn-cosmo-preset-future" style="display:none;"></button>
   </div>
 </div>
@@ -1491,16 +1508,16 @@ window.onerror = function(msg, url, line, col, error) {
   
   <div id="panel-body">
     <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-engines">Engines</button>
-      <button class="tab-btn" data-tab="tab-labels">Labels</button>
-      <button class="tab-btn" data-tab="tab-galaxies">Data</button>
-      <button class="tab-btn" data-tab="tab-structures">Structures</button>
-      <button class="tab-btn" data-tab="tab-bulk">Bulk Flow</button>
-      <button class="tab-btn" data-tab="tab-tfr">TFR</button>
-      <button class="tab-btn" data-tab="tab-sandbox">Sandbox</button>
-      <button class="tab-btn" data-tab="tab-slices">Slices</button>
-      <button class="tab-btn" data-tab="tab-streamlines">Flow</button>
-      <button class="tab-btn" data-tab="tab-compute">Compute</button>
+      <button class="tab-btn active" data-tab="tab-engines" data-tooltip="Select Wiener Filter, HMC, Vela ZoA, or N-Body engine">Engines</button>
+      <button class="tab-btn" data-tab="tab-labels" data-tooltip="Toggle 3D cluster, void, and galaxy label visibility">Labels</button>
+      <button class="tab-btn" data-tab="tab-galaxies" data-tooltip="Filter 56k galaxies by magnitude, distance, or survey">Data</button>
+      <button class="tab-btn" data-tab="tab-structures" data-tooltip="Inspect Laniakea, Shapley, and major superclusters">Structures</button>
+      <button class="tab-btn" data-tab="tab-bulk" data-tooltip="Evaluate dipole bulk motion relative to CMB">Bulk Flow</button>
+      <button class="tab-btn" data-tab="tab-tfr" data-tooltip="Tully-Fisher relation & distance modulus calibration">TFR</button>
+      <button class="tab-btn" data-tab="tab-sandbox" data-tooltip="Interactive N-body particle gravitational sandbox">Sandbox</button>
+      <button class="tab-btn" data-tab="tab-slices" data-tooltip="Supergalactic Cartesian slices (SGX, SGY, SGZ = 0)">Slices</button>
+      <button class="tab-btn" data-tab="tab-streamlines" data-tooltip="Trace 4,200 velocity streamlines with RK4 integration">Flow</button>
+      <button class="tab-btn" data-tab="tab-compute" data-tooltip="Velocity shear tensor, eigenvalues, and watershed topology">Compute</button>
     </div>
 
     <div class="tab-content">
@@ -2113,9 +2130,9 @@ window.onerror = function(msg, url, line, col, error) {
     <div id="cosmic-search-results"></div>
     <div class="search-bar-row">
       <span class="search-icon">🔍</span>
-      <input type="text" id="cosmic-search-input" placeholder="Search galaxies, clusters, voids, basins... (Press /)" autocomplete="off" spellcheck="false">
+      <input type="text" id="cosmic-search-input" data-tooltip="Search galaxies, clusters, voids, and basins [Key: /]" placeholder="Search galaxies, clusters, voids, basins... (Press /)" autocomplete="off" spellcheck="false">
       <kbd class="btn-kbd" style="cursor:pointer;" id="search-kbd-trigger" title="Focus search bar">/</kbd>
-      <button class="search-btn-hero" id="btn-cam-wiener" title="Nature Reference Perspective (Key: 0)">
+      <button class="search-btn-hero" id="btn-cam-wiener" data-tooltip="Reset camera to the Nature (2014) publication view [Key: 0]" title="Nature Reference Perspective (Key: 0)">
         <span>★</span> <span>Nature View</span>
       </button>
     </div>
@@ -8425,6 +8442,96 @@ if (document.readyState === 'loading') {
   initCosmicSearchEngine();
 }
 
+
+// ============================================================================
+// SLEEK NON-INTRUSIVE HOVER TOOLTIP SYSTEM
+// ============================================================================
+function initCosmicTooltips() {
+  const tooltip = document.getElementById('cosmic-tooltip');
+  if (!tooltip) return;
+
+  let showTimer = null;
+  let activeElement = null;
+
+  function showTooltip(el, e) {
+    const rawTip = el.getAttribute('data-tooltip');
+    if (!rawTip) return;
+
+    // Parse [Key: X] into keyboard shortcut badges
+    let formattedTip = rawTip.replace(/\[Key:\s*([^ \]]+)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
+    formattedTip = formattedTip.replace(/\[(Space|\/|Ctrl\+K|0|C|A|I|P|T|\?)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
+
+    tooltip.innerHTML = formattedTip;
+    tooltip.style.display = 'block';
+
+    const rect = el.getBoundingClientRect();
+    const tipRect = tooltip.getBoundingClientRect();
+
+    // Position above or below element
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    let top = rect.top - tipRect.height - 8;
+
+    // Flip to below if too close to top
+    if (top < 10) {
+      top = rect.bottom + 8;
+    }
+
+    // Horizontal clamping
+    left = Math.max(10, Math.min(left, window.innerWidth - tipRect.width - 10));
+
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.top = `${Math.round(top)}px`;
+
+    requestAnimationFrame(() => {
+      tooltip.classList.add('visible');
+    });
+  }
+
+  function hideTooltip() {
+    clearTimeout(showTimer);
+    tooltip.classList.remove('visible');
+    setTimeout(() => {
+      if (!tooltip.classList.contains('visible')) {
+        tooltip.style.display = 'none';
+      }
+    }, 150);
+    activeElement = null;
+  }
+
+  document.addEventListener('mouseover', (e) => {
+    const target = e.target.closest('[data-tooltip]');
+    if (!target) {
+      hideTooltip();
+      return;
+    }
+    if (target === activeElement) return;
+
+    hideTooltip();
+    activeElement = target;
+    showTimer = setTimeout(() => {
+      if (activeElement === target) {
+        showTooltip(target, e);
+      }
+    }, 220); // 220ms subtle delay prevents flashing
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    const target = e.target.closest('[data-tooltip]');
+    if (target && target === activeElement) {
+      hideTooltip();
+    }
+  });
+
+  document.addEventListener('click', hideTooltip);
+  window.addEventListener('scroll', hideTooltip, true);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCosmicTooltips);
+} else {
+  initCosmicTooltips();
+}
+
 })();
 </script>
 
@@ -8472,7 +8579,7 @@ if (document.readyState === 'loading') {
 
 
 <!-- FLOATING DIAGNOSTICS & ERROR ALERT PILL -->
-<div id="error-hud-pill" style="display:none; position:fixed; top:72px; right:16px; z-index:99999; background:rgba(239,68,68,0.92); backdrop-filter:blur(16px); color:#ffffff; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:800; border:1px solid rgba(255,255,255,0.4); box-shadow:0 8px 24px rgba(239,68,68,0.4); cursor:pointer; align-items:center; gap:8px; animation:errorPulse 2s infinite;">
+<div id="error-hud-pill" data-tooltip="Click to inspect runtime diagnostic logs & safe fallback" style="display:none; position:fixed; top:72px; right:16px; z-index:99999; background:rgba(239,68,68,0.92); backdrop-filter:blur(16px); color:#ffffff; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:800; border:1px solid rgba(255,255,255,0.4); box-shadow:0 8px 24px rgba(239,68,68,0.4); cursor:pointer; align-items:center; gap:8px; animation:errorPulse 2s infinite;">
   <span style="font-size:14px;">⚠️</span>
   <span id="error-hud-msg">1 Diagnostic Alert</span>
   <span style="background:rgba(0,0,0,0.25); padding:2px 8px; border-radius:10px; font-size:10px; margin-left:4px;">Inspect</span>
@@ -8524,5 +8631,6 @@ if (document.readyState === 'loading') {
 }
 </style>
 
+<div id="cosmic-tooltip"></div>
 </body>
 </html>
