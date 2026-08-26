@@ -1189,20 +1189,6 @@ window.onerror = function(msg, url, line, col, error) {
     <button id="btn-splash-enter" class="splash-enter-btn" style="display: none;">ENTER WORKBENCH</button>
   </div>
 </div>
-    <div class="splash-branding">
-      <div class="splash-title">COSMICFLOWS-4</div>
-      <div class="splash-subtitle">RESEARCH WORKBENCH &middot; COSMOGRAPHY SUITE</div>
-    </div>
-    <div class="splash-telemetry-box">
-      <div class="splash-step" id="splash-step-msg">INITIALIZING CANONICAL RECONSTRUCTION GRID...</div>
-      <div class="splash-progress-track">
-        <div class="splash-progress-bar" id="splash-progress-bar"></div>
-      </div>
-      <div class="splash-pct" id="splash-pct-num">0%</div>
-    </div>
-    <button id="btn-splash-enter" class="splash-enter-btn" style="display: none;">ENTER WORKBENCH</button>
-  </div>
-</div>
 <div id="scene"></div>
 
 <!-- TOP BAR HEADER -->
@@ -1250,6 +1236,9 @@ window.onerror = function(msg, url, line, col, error) {
       </button>
       <button class="top-btn" id="btn-inset-toggle" title="Toggle 2D Equatorial Inset Map [Key: I]">
         <span>🗺️</span> Inset (I)
+      </button>
+            <button class="top-btn" id="btn-shortcuts-toggle" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
+        <span>⌨️</span> <b>Shortcuts (?)</b>
       </button>
       <button class="top-btn" id="btn-pub-export" title="600 DPI Print Exporter with LaTeX Caption [Key: P]">
         <span>📜</span> Print (P)
@@ -7885,5 +7874,48 @@ if (window.cosmicflows) {
 
 })();
 </script>
+
+<!-- KEYBOARD SHORTCUTS & INTERACTIVE GUIDE MODAL -->
+<div id="shortcuts-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(3,6,12,0.75); backdrop-filter:blur(16px); align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:1.5px solid var(--panel-border); border-radius:12px; max-width:640px; width:90%; padding:24px; box-shadow:0 24px 60px rgba(0,0,0,0.5); color:var(--text-main); font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:12px; margin-bottom:18px;">
+      <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-bright); display:flex; align-items:center; gap:8px;">
+        <span>⌨️</span> <span>Keyboard Shortcuts & Quick Controls</span>
+      </h3>
+      <button id="btn-close-shortcuts" style="background:transparent; border:none; font-size:18px; color:var(--text-dim); cursor:pointer; font-weight:700;">&times;</button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:12px;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Toggle Dark / White Theme</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">T</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Play / Pause Cosmic Time</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">Space</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Clean Figure Screenshot Mode</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">C</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Toggle 3D Leader Callouts</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">A</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Toggle 2D Equatorial Inset Map</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">I</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>600 DPI Publication Export</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">P</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Reset Camera to Origin (0,0,0)</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">R</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Close Modal / Open Dossier</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">Esc</kbd>
+      </div>
+    </div>
+    <div style="margin-top:18px; padding-top:14px; border-top:1.5px solid var(--panel-border); display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-dim);">
+      <span>CF4 Cosmography Workbench &middot; W3C Lineage Verified</span>
+      <button id="btn-close-shortcuts-footer" style="background:var(--accent-cyan); color:#020617; border:none; padding:6px 14px; border-radius:6px; font-weight:800; cursor:pointer;">Got It</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
