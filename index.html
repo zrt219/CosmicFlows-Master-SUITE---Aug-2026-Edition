@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Cosmicflows Master Suite: August 2026 Multi-Reconstruction Cosmography Environment</title>
+<script>
+window.__globalErrors = [];
+window.onerror = function(msg, url, line, col, error) {
+  window.__globalErrors.push({ msg: msg, url: url, line: line, col: col, stack: error ? error.stack : '' });
+};
+</script>
 <!-- Three.js r128 and Addons -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -1968,12 +1973,11 @@ controls.touches = {
   ONE: THREE.TOUCH.ROTATE,
   TWO: THREE.TOUCH.DOLLY_PAN
 };
-renderer.domElement.style.touchAction = 'none';
-
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0xffffff, 1.0);
+renderer.domElement.style.touchAction = 'none';
 container.appendChild(renderer.domElement);
 
 const renderPass = new THREE.RenderPass(scene, camera);
@@ -6383,7 +6387,8 @@ window.cosmicflows = {
 Object.defineProperty(window, 'galaxyPointsMesh', { get: () => galaxyPointsMesh });
 Object.defineProperty(window, 'erositaGroup', { get: () => erositaGroup });
 window.ASTROMETRIC_FEATURES = ASTROMETRIC_FEATURES;
-window.openSpectroscopyDossier = openSpectroscopyDossier;
+window.openSpectroscopyDossier = typeof openDossier !== 'undefined' ? openDossier : null;
+window.openDossier = typeof openDossier !== 'undefined' ? openDossier : null;
 window.simState = simState;
 window.composer = composer;
 window.renderer = renderer;
