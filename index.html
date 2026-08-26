@@ -2258,6 +2258,16 @@ const simState = {
 // ==========================================
 // SPLASH LOADING CONTROLLER
 // ==========================================
+
+// Safe execution barrier for auxiliary cosmography modules
+function safeBoot(moduleName, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[SafeBoot] Non-fatal error in ${moduleName}:`, err);
+  }
+}
+
 const splashController = {
   progress: 0,
   stepEl: null,
@@ -2280,6 +2290,13 @@ const splashController = {
         if (!this.isDismissed && enterBtn) enterBtn.style.display = 'inline-block';
       }, 2000);
     }
+    // Fail-safe watchdog: guarantees splash dismissal after 4.5s even if async data stalls
+    setTimeout(() => {
+      if (!this.isDismissed) {
+        console.warn('[SplashController] Watchdog timer expired. Forcing splash dismissal.');
+        this.dismiss(true);
+      }
+    }, 4500);
   },
 
   update(pct, msg) {
@@ -6873,13 +6890,15 @@ window.integrateRK4 = integrateRK4;
 window.solveTullyFisher = solveTullyFisher;
 window.disposeHierarchy = disposeHierarchy;
 
-updateTFRUI();
-updateBulkFlowDisplay();
+safeBoot('TFRUI', () => updateTFRUI());
+safeBoot('BulkFlowDisplay', () => updateBulkFlowDisplay());
 splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
-rebuildStreamlines();
+safeBoot('Streamlines', () => rebuildStreamlines());
 splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
 setTimeout(() => splashController.dismiss(), 350);
-animFrameId = requestAnimationFrame(animate);
+if (!animFrameId) {
+  animFrameId = requestAnimationFrame(animate);
+}
 
 setTimeout(() => {
   const loader = document.getElementById('loading');
