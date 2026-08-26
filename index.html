@@ -1161,7 +1161,48 @@ window.onerror = function(msg, url, line, col, error) {
 </head>
 <body class="theme-white">
 
-<div id="loading">GENERATING COSMICFLOWS-4 WIENER FILTER FLOW FIELD...</div>
+<!-- COSMIC SINGULARITY SPLASH LOADING SCREEN -->
+<div id="cosmic-splash">
+  <div class="splash-content">
+    <div class="splash-vortex-container">
+      <div class="splash-orbit ring-outer"></div>
+      <div class="splash-orbit ring-middle"></div>
+      <div class="splash-orbit ring-inner"></div>
+      <div class="splash-singularity-glow"></div>
+      <div class="splash-core"></div>
+      <div class="splash-particle p1"></div>
+      <div class="splash-particle p2"></div>
+      <div class="splash-particle p3"></div>
+      <div class="splash-particle p4"></div>
+    </div>
+    <div class="splash-brand">
+      <h1 class="splash-title">COSMICFLOWS-4</h1>
+      <div class="splash-subtitle">RESEARCH WORKBENCH &middot; COSMOGRAPHY ATLAS</div>
+    </div>
+    <div class="splash-telemetry-box">
+      <div class="splash-step" id="splash-step-msg">Initializing Canonical Supergalactic Grid...</div>
+      <div class="splash-progress-track">
+        <div class="splash-progress-bar" id="splash-progress-bar"></div>
+      </div>
+      <div class="splash-pct" id="splash-pct-num">0%</div>
+    </div>
+    <button id="btn-splash-enter" class="splash-enter-btn" style="display: none;">ENTER WORKBENCH</button>
+  </div>
+</div>
+    <div class="splash-branding">
+      <div class="splash-title">COSMICFLOWS-4</div>
+      <div class="splash-subtitle">RESEARCH WORKBENCH &middot; COSMOGRAPHY SUITE</div>
+    </div>
+    <div class="splash-telemetry-box">
+      <div class="splash-step" id="splash-step-msg">INITIALIZING CANONICAL RECONSTRUCTION GRID...</div>
+      <div class="splash-progress-track">
+        <div class="splash-progress-bar" id="splash-progress-bar"></div>
+      </div>
+      <div class="splash-pct" id="splash-pct-num">0%</div>
+    </div>
+    <button id="btn-splash-enter" class="splash-enter-btn" style="display: none;">ENTER WORKBENCH</button>
+  </div>
+</div>
 <div id="scene"></div>
 
 <!-- TOP BAR HEADER -->
@@ -2234,8 +2275,10 @@ const splashController = {
   pctEl: null,
   splashEl: null,
   isDismissed: false,
+  startTime: Date.now(),
 
   init() {
+    this.startTime = Date.now();
     this.stepEl = document.getElementById('splash-step-msg');
     this.barEl = document.getElementById('splash-progress-bar');
     this.pctEl = document.getElementById('splash-pct-num');
@@ -2245,7 +2288,7 @@ const splashController = {
       enterBtn.addEventListener('click', () => this.dismiss(true));
       setTimeout(() => {
         if (!this.isDismissed && enterBtn) enterBtn.style.display = 'inline-block';
-      }, 2500);
+      }, 2000);
     }
   },
 
@@ -2260,6 +2303,11 @@ const splashController = {
     if (this.isDismissed) return;
     this.update(100, 'Cosmic Web Online');
     this.isDismissed = true;
+    
+    // Ensure splash remains visible for at least 1400ms so the user experiences the vortex animation
+    const elapsed = Date.now() - this.startTime;
+    const minDelay = force ? 0 : Math.max(200, 1400 - elapsed);
+    
     setTimeout(() => {
       if (this.splashEl) {
         this.splashEl.classList.add('splash-dismiss');
@@ -2267,8 +2315,8 @@ const splashController = {
           if (this.splashEl) this.splashEl.style.display = 'none';
         }, 850);
       }
-      triggerNativeHaptic('click');
-    }, force ? 0 : 300);
+      if (typeof triggerNativeHaptic === 'function') triggerNativeHaptic('click');
+    }, minDelay);
   }
 };
 splashController.init();
