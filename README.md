@@ -605,9 +605,20 @@ Cubic voxels are decomposed into 6 Kuhn / Freudenthal tetrahedra ($\det > 0$) or
 
 ---
 
-## 4. 52-Screenshot Visual Cosmography Atlas & Landmark Catalogue
+## 4. 52-Screenshot Visual Cosmography Atlas & Dynamic Screen Recordings
 
 Below is the verified photographic and astrometric atlas of the **52 canonical landmark structures, superclusters, clusters, voids, scientific engines, time epochs, spectroscopy profiles, and mobile viewports** captured live from the ZRT CosmicFlows WebGL environment.
+
+### 4.0 Dynamic Screen Recordings & Animated Demonstrations (3–5s / < 5 MB)
+
+| Dynamic Simulation Feature | Optimized 3–5s Animated GIF | High-Definition MP4 Recording | Description & Scientific Focus |
+| :--- | :--- | :--- | :--- |
+| **360° Orbital Flyaround** | ![01_orbital_rotation](assets/recordings/01_orbital_rotation_cosmography.gif) *(3.45 MB)* | [`01_orbital_rotation.mp4`](assets/recordings/01_orbital_rotation_cosmography.mp4) *(0.94 MB)* | Continuous 3D orbit around the Laniakea & Shapley basin convergence corridors showing dynamic streamline advection and chromatic Doppler velocity halos. |
+| **4D FLRW Cosmic Time Travel** | ![02_cosmic_time_evolution](assets/recordings/02_cosmic_time_evolution_4d.gif) *(0.75 MB)* | [`02_cosmic_time.mp4`](assets/recordings/02_cosmic_time_evolution_4d.mp4) *(0.10 MB)* | Continuous sweep from the Big Bang ($t = -13.78\,\text{Gyr}, z \to \infty$) Lagrangian mesh through Cosmic Noon ($z \sim 2$) to Future Sinks Collapse ($t = +10.0\,\text{Gyr}$). |
+| **7-Engine Scientific Model Switching** | ![03_science_engine_switching](assets/recordings/03_science_engine_switching.gif) *(1.05 MB)* | [`03_science_engine.mp4`](assets/recordings/03_science_engine_switching.mp4) *(0.28 MB)* | Seamless runtime switching across CF4 Wiener Filter, CF4++ HMC (65k PVs), Hidden Vela ZoA, and V-Web kinematic shear deformation tensors. |
+| **Spectroscopic Dossier Raycast Modal** | ![04_spectroscopy_dossier](assets/recordings/04_spectroscopy_dossier_modal.gif) *(0.49 MB)* | [`04_spectroscopy.mp4`](assets/recordings/04_spectroscopy_dossier_modal.mp4) *(0.10 MB)* | Raycast cluster picking opening the high-resolution Gaussian line-of-sight velocity dispersion dossier modal ($\sigma_v = 1008\,\text{km}/\text{s}$ for Coma). |
+
+---
 
 ### 4.1 Tier 1: Major Superclusters & Convergence Basins (01–10)
 
