@@ -896,6 +896,267 @@ window.onerror = function(msg, url, line, col, error) {
     }
   }
 
+
+/* ==========================================
+   COSMIC SINGULARITY SPLASH LOADING SCREEN
+   ========================================== */
+#cosmic-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: radial-gradient(circle at center, #091224 0%, #03060c 60%, #010204 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+  overflow: hidden;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, filter, transform;
+}
+
+#cosmic-splash.splash-dismiss {
+  opacity: 0;
+  filter: blur(16px);
+  transform: scale(1.06);
+  pointer-events: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 520px;
+  width: 90%;
+  position: relative;
+  z-index: 2;
+}
+
+.splash-vortex-container {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.splash-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  pointer-events: none;
+}
+
+.splash-orbit.ring-outer {
+  width: 200px;
+  height: 200px;
+  border-top-color: #38bdf8;
+  border-bottom-color: rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+  animation: splashSpin 6s linear infinite;
+}
+
+.splash-orbit.ring-middle {
+  width: 140px;
+  height: 140px;
+  border-left-color: #f59e0b;
+  border-right-color: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  animation: splashSpinReverse 4s linear infinite;
+}
+
+.splash-orbit.ring-inner {
+  width: 80px;
+  height: 80px;
+  border-top-color: #a855f7;
+  border-bottom-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+  animation: splashSpin 2.5s linear infinite;
+}
+
+.splash-core {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 35px 12px rgba(56, 189, 248, 0.8), 0 0 70px 24px rgba(168, 85, 247, 0.5);
+  animation: splashPulse 1.8s ease-in-out infinite alternate;
+}
+
+.splash-singularity-glow {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(168, 85, 247, 0.08) 45%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: splashGlowPulse 3s ease-in-out infinite alternate;
+}
+
+.splash-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+.splash-particle.p1 { top: 15px; left: 50%; animation: splashParticleFloat 3s ease-in-out infinite; }
+.splash-particle.p2 { bottom: 20px; right: 40px; background: #f59e0b; box-shadow: 0 0 10px #f59e0b; animation: splashParticleFloat 2.4s ease-in-out infinite 0.5s; }
+.splash-particle.p3 { top: 60px; left: 20px; background: #a855f7; box-shadow: 0 0 10px #a855f7; animation: splashParticleFloat 3.6s ease-in-out infinite 1s; }
+.splash-particle.p4 { bottom: 60px; left: 45px; animation: splashParticleFloat 2.8s ease-in-out infinite 1.5s; }
+
+@keyframes splashSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes splashSpinReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes splashPulse {
+  0% { transform: scale(0.85); box-shadow: 0 0 25px 8px rgba(56, 189, 248, 0.6), 0 0 50px 18px rgba(168, 85, 247, 0.4); }
+  100% { transform: scale(1.2); box-shadow: 0 0 45px 16px rgba(56, 189, 248, 0.95), 0 0 90px 32px rgba(168, 85, 247, 0.7); }
+}
+
+@keyframes splashGlowPulse {
+  0% { opacity: 0.5; transform: scale(0.9); }
+  100% { opacity: 1.0; transform: scale(1.15); }
+}
+
+@keyframes splashParticleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-12px) scale(1.4); opacity: 1.0; }
+}
+
+.splash-brand {
+  margin-bottom: 22px;
+}
+
+.splash-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #f8fafc;
+  text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+}
+
+.splash-accent {
+  color: #38bdf8;
+}
+
+.splash-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  margin-top: 6px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.splash-telemetry-box {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 8px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(56, 189, 248, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.splash-step-text {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 600;
+  margin-bottom: 10px;
+  text-align: left;
+  min-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.splash-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.splash-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8 0%, #a855f7 50%, #f59e0b 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+  transition: width 0.25s ease-out;
+}
+
+.splash-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9.5px;
+}
+
+.splash-meta {
+  color: #64748b;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.splash-pct {
+  color: #f8fafc;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.splash-enter-btn {
+  margin-top: 18px;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.splash-enter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(2, 132, 199, 0.6);
+}
+
+@media (max-width: 768px) {
+  .splash-vortex-container {
+    width: 170px;
+    height: 170px;
+    margin-bottom: 20px;
+  }
+  .splash-orbit.ring-outer { width: 155px; height: 155px; }
+  .splash-orbit.ring-middle { width: 110px; height: 110px; }
+  .splash-orbit.ring-inner { width: 65px; height: 65px; }
+  .splash-core { width: 20px; height: 20px; }
+  .splash-title { font-size: 21px; letter-spacing: 3px; }
+  .splash-subtitle { font-size: 9px; letter-spacing: 1px; }
+  .splash-telemetry-box { padding: 12px 14px; }
+  .splash-step-text { font-size: 10px; }
+}
+
 </style>
 </head>
 <body class="theme-white">
@@ -1962,6 +2223,57 @@ const simState = {
 // ==========================================
 // 3. THREE.JS SCENE, CAMERAS & RENDERER
 // ==========================================
+
+// ==========================================
+// SPLASH LOADING CONTROLLER
+// ==========================================
+const splashController = {
+  progress: 0,
+  stepEl: null,
+  barEl: null,
+  pctEl: null,
+  splashEl: null,
+  isDismissed: false,
+
+  init() {
+    this.stepEl = document.getElementById('splash-step-msg');
+    this.barEl = document.getElementById('splash-progress-bar');
+    this.pctEl = document.getElementById('splash-pct-num');
+    this.splashEl = document.getElementById('cosmic-splash');
+    const enterBtn = document.getElementById('btn-splash-enter');
+    if (enterBtn) {
+      enterBtn.addEventListener('click', () => this.dismiss(true));
+      setTimeout(() => {
+        if (!this.isDismissed && enterBtn) enterBtn.style.display = 'inline-block';
+      }, 2500);
+    }
+  },
+
+  update(pct, msg) {
+    this.progress = Math.min(100, Math.max(this.progress, pct));
+    if (this.barEl) this.barEl.style.width = this.progress + '%';
+    if (this.pctEl) this.pctEl.textContent = Math.round(this.progress) + '%';
+    if (this.stepEl && msg) this.stepEl.textContent = msg;
+  },
+
+  dismiss(force = false) {
+    if (this.isDismissed) return;
+    this.update(100, 'Cosmic Web Online');
+    this.isDismissed = true;
+    setTimeout(() => {
+      if (this.splashEl) {
+        this.splashEl.classList.add('splash-dismiss');
+        setTimeout(() => {
+          if (this.splashEl) this.splashEl.style.display = 'none';
+        }, 850);
+      }
+      triggerNativeHaptic('click');
+    }, force ? 0 : 300);
+  }
+};
+splashController.init();
+splashController.update(25, 'Initializing Supergalactic Coordinate System...');
+
 const container = document.getElementById('scene');
 const scene = new THREE.Scene();
 
@@ -2412,6 +2724,7 @@ function buildRulerBox() {
   rulerBoxGroup.visible = simState.rulerVisible;
   scene.add(rulerBoxGroup);
 }
+splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
 buildRulerBox();
 
 // ==========================================
@@ -4123,7 +4436,10 @@ function switchScienceEngine(key) {
 
   setSandboxMode(false);
   if (changed) {
-    rebuildStreamlines();
+    splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
     if (simState.quiverVisible) updateQuiverField();
   }
 }
@@ -4165,14 +4481,18 @@ function toggleTheme(targetTheme = null) {
     if (paperTitle) paperTitle.style.display = 'none';
   }
 
-  buildRulerBox();
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
   buildChromaticHalos();
   buildCallouts();
   initWatershedShells();
   buildZoneOfAvoidance();
   generateFullCF4Catalog();
   if (typeof buildErositaOverlays === 'function') buildErositaOverlays();
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
   updateBulkFlowDisplay();
   if (simState.quiverVisible) updateQuiverField();
   if (typeof activeDossier !== 'undefined' && activeDossier && typeof drawVelocityDispersionProfile === 'function') {
@@ -4291,14 +4611,20 @@ if (datasetSelect) {
     if (progBar) progBar.style.width = '100%';
     setTimeout(() => {
       if (progContainer) progContainer.style.display = 'none';
-      if (typeof rebuildStreamlines === 'function') rebuildStreamlines();
+      if (typeof rebuildStreamlines === 'function') splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
     }, 300);
   });
 }
 
 document.getElementById('chk-chevrons')?.addEventListener('change', e => {
   simState.chevronsVisible = e.target.checked;
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 document.getElementById('chk-galaxies')?.addEventListener('change', e => {
   simState.galaxiesVisible = e.target.checked;
@@ -4314,11 +4640,13 @@ document.getElementById('chk-halos')?.addEventListener('change', e => {
 });
 document.getElementById('chk-floor-grid')?.addEventListener('change', e => {
   simState.floorGridVisible = e.target.checked;
-  buildRulerBox();
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
 });
 document.getElementById('chk-equator-grid')?.addEventListener('change', e => {
   simState.equatorGridVisible = e.target.checked;
-  buildRulerBox();
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
 });
 document.getElementById('chk-zoa')?.addEventListener('change', e => {
   simState.zoaVisible = e.target.checked;
@@ -4367,7 +4695,8 @@ document.getElementById('sel-label-contrast')?.addEventListener('change', e => {
   simState.labelBacking = e.target.value;
   buildCallouts();
   buildRangeRings();
-  buildRulerBox();
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
 });
 document.getElementById('sel-marker-style')?.addEventListener('change', e => {
   simState.markerStyle = e.target.value;
@@ -4383,7 +4712,10 @@ document.getElementById('rng-leader-len')?.addEventListener('input', e => {
 // Flow Controls Event Listeners
 document.getElementById('sel-colormap')?.addEventListener('change', e => {
   simState.colormap = e.target.value;
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 document.getElementById('sel-seed-mode')?.addEventListener('change', e => {
@@ -4398,7 +4730,10 @@ document.getElementById('sel-seed-mode')?.addEventListener('change', e => {
   } else if (transformControls.object === brushMesh) {
     transformControls.detach();
   }
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 document.getElementById('rng-brush-radius')?.addEventListener('input', e => {
@@ -4406,19 +4741,28 @@ document.getElementById('rng-brush-radius')?.addEventListener('input', e => {
   const vEl = document.getElementById('v-brush-rad');
   if (vEl) vEl.textContent = simState.brushRadius;
   if (brushMesh) brushMesh.scale.set(simState.brushRadius, simState.brushRadius, simState.brushRadius);
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 document.getElementById('rng-flow-growth')?.addEventListener('input', e => {
   simState.flowGrowth = parseFloat(e.target.value) / 100.0;
   const vEl = document.getElementById('v-flow-growth');
   if (vEl) vEl.textContent = Math.round(simState.flowGrowth * 100) + '%';
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 document.getElementById('sel-integ-dir')?.addEventListener('change', e => {
   simState.integDir = e.target.value;
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 document.getElementById('chk-flow-particles')?.addEventListener('change', e => {
@@ -4452,7 +4796,10 @@ document.getElementById('rng-opac')?.addEventListener('input', e => {
   simState.lineOpac = parseFloat(e.target.value) / 100.0;
   const vEl = document.getElementById('v-opac');
   if (vEl) vEl.textContent = e.target.value + '%';
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 document.getElementById('rng-dt')?.addEventListener('input', e => {
@@ -4548,7 +4895,10 @@ document.getElementById('btn-reset-sandbox').addEventListener('click', () => {
   document.getElementById('sel-gizmo-mode').value = 'off';
   setSandboxMode(false);
   buildCallouts();
-  rebuildStreamlines();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 });
 
 // Point Cloud LOD & Sub-catalog filters
@@ -6305,7 +6655,10 @@ window.cosmicflows = {
   switchScienceEngine: function(engineId) { switchScienceEngine(engineId); },
   toggleTheme: function(targetTheme) { toggleTheme(targetTheme); },
   exportPublicationFigure: function() { exportPublicationFigure(); },
-  rebuildStreamlines: function() { rebuildStreamlines(); },
+  rebuildStreamlines: function() { splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350); },
   generateFullCF4Catalog: function() { generateFullCF4Catalog(); },
   render2DInsetMap: function() { render2DInsetMap(); },
   disposeHierarchy: function(obj) { disposeHierarchy(obj); },
@@ -6442,6 +6795,9 @@ window.scene = scene;
 window.camera = camera;
 window.controls = controls;
 window.switchScienceEngine = switchScienceEngine;
+window.toggleTheme = toggleTheme;
+window.splashController = splashController;
+Object.defineProperty(window, 'currentTheme', { get: () => currentTheme, set: (v) => toggleTheme(v) });
 window.getVelocitySg = getVelocitySg;
 window.getDivergenceSg = getDivergenceSg;
 window.getVorticitySg = getVorticitySg;
@@ -6451,7 +6807,10 @@ window.disposeHierarchy = disposeHierarchy;
 
 updateTFRUI();
 updateBulkFlowDisplay();
+splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
 rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
 animFrameId = requestAnimationFrame(animate);
 
 setTimeout(() => {
