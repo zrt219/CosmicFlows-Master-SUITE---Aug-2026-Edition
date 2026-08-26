@@ -26,3 +26,12 @@ Thumbs.db
 .agents/
 .vercel
 .env*
+
+# Android Build artifacts
+android-app/.gradle/
+android-app/build/
+android-app/app/build/
+android-app/.idea/
+android-app/local.properties
+android-app/app/src/main/assets/
+
