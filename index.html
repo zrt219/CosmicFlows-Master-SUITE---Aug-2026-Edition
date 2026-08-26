@@ -165,22 +165,42 @@ window.onerror = function(msg, url, line, col, error) {
     flex-wrap: wrap;
     justify-content: center;
     pointer-events: auto;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--panel-border);
+    padding: 4px 8px;
+    border-radius: 30px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    backdrop-filter: blur(16px);
   }
   .top-btn {
-    background: var(--panel-bg); border: 1px solid var(--panel-border);
-    padding: 6px 11px; border-radius: 5px; font-size: 10.5px; cursor: pointer;
-    display: flex; align-items: center; gap: 6px; backdrop-filter: blur(12px); color: var(--text-main);
-    font-family: inherit; text-transform: uppercase; font-weight: 700; transition: all 0.15s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    white-space: nowrap;
+    background: transparent; border: 1px solid transparent;
+    padding: 5px 11px; border-radius: 20px; font-size: 10.5px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; backdrop-filter: blur(12px); color: var(--text-main);
+    font-family: inherit; text-transform: uppercase; font-weight: 700; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap; user-select: none;
   }
-  .top-btn:hover { border-color: var(--accent-cyan); color: var(--text-bright); }
-  .top-btn.active { border-color: var(--accent-green); color: var(--accent-green); }
-  .top-btn.theme-btn { border-color: #0284c7; color: #0284c7; background: rgba(2, 132, 199, 0.08); }
-  .top-btn.clean-btn { border-color: var(--accent-amber); color: var(--accent-amber); }
+  .top-btn:hover {
+    border-color: rgba(2, 132, 199, 0.35); color: var(--text-bright);
+    background: rgba(2, 132, 199, 0.08); transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+  }
+  .top-btn:active { transform: translateY(1px) scale(0.97); }
+  .top-btn.active {
+    border-color: var(--accent-green); color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.12); box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  }
+  .top-btn.theme-btn {
+    border-color: rgba(2, 132, 199, 0.4); color: var(--accent-cyan);
+    background: rgba(2, 132, 199, 0.10);
+  }
+  .top-btn.clean-btn {
+    border-color: rgba(245, 158, 11, 0.4); color: var(--accent-amber);
+    background: rgba(245, 158, 11, 0.08);
+  }
   .top-btn.explore-pill {
     border-color: var(--accent-cyan); color: var(--accent-cyan);
-    background: rgba(0, 229, 255, 0.08); font-weight: 800;
+    background: rgba(0, 229, 255, 0.12); font-weight: 800;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
   }
 
   /* TOP STATUS & ENGINE BANNER */
@@ -407,21 +427,47 @@ window.onerror = function(msg, url, line, col, error) {
   /* BOTTOM-RIGHT CINEMATIC CAMERA HUD */
   #cam-shortcuts {
     position: absolute; bottom: 12px; right: 16px; z-index: 20;
-    display: flex; flex-direction: column; gap: 4px; align-items: flex-end;
+    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
     pointer-events: auto;
   }
-  .cam-btn-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .cam-btn-row {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+    background: var(--panel-bg); border: 1.5px solid var(--panel-border); padding: 4px 6px;
+    border-radius: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); backdrop-filter: blur(16px);
+  }
   .cam-btn {
-    background: var(--panel-bg); border: 1.5px solid var(--panel-border); color: var(--text-bright);
-    font-family: inherit; font-size: 9.5px; padding: 4px 8px; border-radius: 4px; cursor: pointer;
-    backdrop-filter: blur(10px); transition: all 0.15s; font-weight: 700;
+    background: transparent; border: 1px solid transparent; color: var(--text-main);
+    font-family: inherit; font-size: 10.5px; padding: 4px 10px; border-radius: 20px; cursor: pointer;
+    backdrop-filter: blur(10px); transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); font-weight: 700;
+    display: inline-flex; align-items: center; gap: 5px; user-select: none;
   }
-  .cam-btn:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); background: var(--panel-header); }
-  .cam-btn.nature-hero { border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800; background: rgba(2, 132, 199, 0.12); }
+  .cam-btn:hover {
+    color: var(--accent-cyan); border-color: rgba(2, 132, 199, 0.35); background: rgba(2, 132, 199, 0.08);
+    transform: translateY(-1px); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+  }
+  .cam-btn:active { transform: translateY(1px) scale(0.97); }
+  .cam-btn.active {
+    background: rgba(2, 132, 199, 0.16); border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.25);
+  }
+  .cam-btn.nature-hero {
+    border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800;
+    background: rgba(2, 132, 199, 0.12); box-shadow: 0 0 10px rgba(2, 132, 199, 0.2);
+  }
+  .btn-kbd {
+    background: rgba(125, 140, 160, 0.15); border: 1px solid var(--panel-border);
+    border-radius: 4px; padding: 1px 4px; font-size: 9px; font-family: ui-monospace, monospace;
+    font-weight: 800; color: var(--text-bright); line-height: 1;
+  }
   #kbd-legend {
-    font-size: 8px; color: var(--text-dim); text-align: right; line-height: 1.5; opacity: 0.85;
+    font-size: 9px; color: var(--text-dim); text-align: right; line-height: 1.5;
+    background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 3px 10px;
+    border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); backdrop-filter: blur(12px);
   }
-  #kbd-legend kbd { border: 1px solid var(--panel-border); border-radius: 2px; padding: 0 3px; color: var(--text-bright); }
+  #kbd-legend kbd {
+    border: 1px solid var(--panel-border); border-radius: 3px; padding: 1px 4px;
+    color: var(--accent-cyan); font-weight: 800; background: rgba(2, 132, 199, 0.08);
+  }
 
   /* LOADING */
   #loading {
@@ -433,30 +479,44 @@ window.onerror = function(msg, url, line, col, error) {
   /* COSMOLOGICAL TIME TRANSPORT BAR (R1) */
   #cosmic-time-bar {
     position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-    z-index: 20; display: flex; align-items: center; gap: 8px;
+    z-index: 20; display: flex; align-items: center; gap: 10px;
     background: var(--panel-bg); border: 1.5px solid var(--panel-border);
-    padding: 5px 14px; border-radius: 30px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2); backdrop-filter: blur(16px);
+    padding: 6px 16px; border-radius: 40px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.18); backdrop-filter: blur(18px);
     transition: all 0.25s ease; white-space: nowrap;
   }
   .time-badge {
-    font-size: 9px; font-weight: 700; color: var(--accent-cyan);
+    font-size: 10px; font-weight: 700; color: var(--accent-cyan);
     letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
-    display: flex; gap: 6px; align-items: center;
+    display: flex; gap: 8px; align-items: center; font-family: ui-monospace, monospace;
+    background: rgba(2, 132, 199, 0.06); border: 1px solid rgba(2, 132, 199, 0.2);
+    padding: 3px 10px; border-radius: 20px;
   }
   .time-badge span.telemetry-val { color: var(--text-bright); font-weight: 800; }
   .time-ctrl-btn {
     background: var(--panel-header); border: 1px solid var(--panel-border);
-    color: var(--text-bright); font-family: inherit; font-size: 9px;
-    padding: 3px 7px; border-radius: 4px; cursor: pointer; font-weight: 700;
-    transition: all 0.15s;
+    color: var(--text-main); font-family: inherit; font-size: 10px;
+    padding: 4px 10px; border-radius: 20px; cursor: pointer; font-weight: 700;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); display: inline-flex; align-items: center; gap: 4px;
   }
-  .time-ctrl-btn:hover { border-color: var(--accent-cyan); }
-  .time-ctrl-btn.active { background: rgba(2, 132, 199, 0.18); border-color: var(--accent-cyan); }
-  #rng-cosmic-time { width: 120px; cursor: pointer; accent-color: var(--accent-cyan); }
-  .time-ctrl-btn:hover { border-color: var(--accent-cyan); }
-  .time-ctrl-btn.active { background: rgba(2, 132, 199, 0.18); border-color: var(--accent-cyan); }
-  #rng-cosmic-time { width: 130px; cursor: pointer; accent-color: var(--accent-cyan); }
+  .time-ctrl-btn:hover {
+    border-color: var(--accent-cyan); color: var(--text-bright);
+    background: rgba(2, 132, 199, 0.1); transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15);
+  }
+  .time-ctrl-btn:active { transform: translateY(1px) scale(0.97); }
+  .time-ctrl-btn.active {
+    background: rgba(2, 132, 199, 0.20); border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 800;
+    box-shadow: 0 0 10px rgba(2, 132, 199, 0.25);
+  }
+  .time-ctrl-btn#btn-time-play {
+    background: rgba(2, 132, 199, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan);
+    font-weight: 800; padding: 4px 12px;
+  }
+  #rng-cosmic-time {
+    width: 130px; height: 6px; cursor: pointer; accent-color: var(--accent-cyan);
+    background: rgba(125, 140, 160, 0.25); border-radius: 3px;
+  }
 
   /* SPECTROSCOPY DOSSIER MODAL (R2) */
   #spectroscopy-modal {
@@ -2015,16 +2075,16 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- BOTTOM RIGHT CINEMATIC CAMERA HUD -->
 <div id="cam-shortcuts">
   <div class="cam-btn-row">
-    <button class="cam-btn nature-hero" id="btn-cam-wiener">★ Nature Reference View</button>
-    <button class="cam-btn" data-target="overview">Overview</button>
-    <button class="cam-btn" data-target="laniakea">Laniakea</button>
-    <button class="cam-btn" data-target="shapley">Shapley</button>
-    <button class="cam-btn" data-target="vela">Vela (2026)</button>
-    <button class="cam-btn" data-target="sloan">Sloan GW</button>
-    <button class="cam-btn" data-target="dipole">Dipole Repeller</button>
+    <button class="cam-btn nature-hero" id="btn-cam-wiener" title="Nature Reference Perspective [Key: 0]"><span>★</span> <span>Nature View</span></button>
+    <button class="cam-btn" data-target="overview" title="All-Sky Overview [Key: 1]"><kbd class="btn-kbd">1</kbd> <span>Overview</span></button>
+    <button class="cam-btn" data-target="laniakea" title="Laniakea Basin Core [Key: 2]"><kbd class="btn-kbd">2</kbd> <span>Laniakea</span></button>
+    <button class="cam-btn" data-target="shapley" title="Shapley Concentration Attractor [Key: 3]"><kbd class="btn-kbd">3</kbd> <span>Shapley</span></button>
+    <button class="cam-btn" data-target="vela" title="Vela Supercluster (2026 Discovery) [Key: 4]"><kbd class="btn-kbd">4</kbd> <span>Vela (2026)</span></button>
+    <button class="cam-btn" data-target="sloan" title="Sloan Great Wall Filaments [Key: 5]"><kbd class="btn-kbd">5</kbd> <span>Sloan GW</span></button>
+    <button class="cam-btn" data-target="dipole" title="Dipole Repeller Outflow Void [Key: 6]"><kbd class="btn-kbd">6</kbd> <span>Dipole Repeller</span></button>
   </div>
   <div id="kbd-legend">
-    <div><kbd>0</kbd> home &middot; <kbd>C</kbd> clean &middot; <kbd>A</kbd> callouts &middot; <kbd>I</kbd> inset &middot; <kbd>P</kbd> export &middot; <kbd>T</kbd> theme &middot; <kbd>E</kbd> engine &middot; <kbd>F</kbd> floor &middot; <kbd>R</kbd> recompute</div>
+    <div><kbd>0-6</kbd> presets &middot; <kbd>Space</kbd> time &middot; <kbd>C</kbd> clean &middot; <kbd>A</kbd> callouts &middot; <kbd>I</kbd> inset &middot; <kbd>P</kbd> export &middot; <kbd>T</kbd> theme &middot; <kbd>?</kbd> guide</div>
   </div>
 </div>
 
