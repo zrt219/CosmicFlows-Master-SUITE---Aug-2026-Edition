@@ -4028,11 +4028,16 @@ function exportPublicationFigure() {
   ctx.fillText('github.com/zrt219 · umattr.ca', canvas.width - 16, textY);
 
   const dataUrl = exportCanvas.toDataURL('image/png');
+  const filename = `Figure1_CF4_Wiener_Flow_${Date.now()}.png`;
 
-  const link = document.createElement('a');
-  link.download = `Figure1_CF4_Wiener_Flow_${Date.now()}.png`;
-  link.href = dataUrl;
-  link.click();
+  if (window.AndroidBridge && typeof window.AndroidBridge.exportAndShare === 'function') {
+    window.AndroidBridge.exportAndShare(filename, 'image/png', dataUrl);
+  } else {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    link.click();
+  }
 
   const eng = ENGINES[currentEngineKey];
   const latexText = `\\begin{figure*}[t]
@@ -4841,7 +4846,21 @@ function computeCosmology(tGyr) {
   };
 }
 
+
+function triggerNativeHaptic(type) {
+  try {
+    if (window.AndroidBridge && typeof window.AndroidBridge.triggerHaptic === 'function') {
+      window.AndroidBridge.triggerHaptic(type || 'tick');
+    } else if (navigator.vibrate) {
+      if (type === 'heavy' || type === 'buzz') navigator.vibrate([30, 20, 30]);
+      else if (type === 'click') navigator.vibrate(20);
+      else navigator.vibrate(10);
+    }
+  } catch (e) {}
+}
+
 function applyCosmicTime(tGyr) {
+  triggerNativeHaptic('tick');
   const dt = Math.max(-13.8, Math.min(10.0, tGyr));
   simState.cosmicTime = dt;
 
