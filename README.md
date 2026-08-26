@@ -1,11 +1,15 @@
 # ZRT CosmicFlows-4 Research Workbench: Mathematical Monograph & Visual Cosmography Atlas
 
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-CF4--Production-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://cf4-five.vercel.app)
-[![Android APK](https://img.shields.io/badge/Android%20APK-11.0%20MB%20Universal%20Signed-3DDC84?style=for-the-badge&logo=android&logoColor=white)](CosmicFlows4.apk)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Tests Passing](https://img.shields.io/badge/Tests-1%2C032%20Passed-brightgreen?style=for-the-badge)](tests/)
-[![Lines of Code](https://img.shields.io/badge/LOC-87%2C516%20Non--HTML-orange?style=for-the-badge)](src/)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](tests/)
+[![JavaScript ES6+](https://img.shields.io/badge/JavaScript-ES6%2B%20%2F%20Three.js-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](src/)
+[![WebGL 2.0](https://img.shields.io/badge/WebGL-2.0%20Hardware%20Accelerated-990000?style=for-the-badge&logo=webgl&logoColor=white)](index.html)
+[![Android APK](https://img.shields.io/badge/Android%20APK-19.1%20MB%20Universal%20Signed-3DDC84?style=for-the-badge&logo=android&logoColor=white)](CosmicFlows4.apk)
+[![Tests Passing](https://img.shields.io/badge/Tests-1%2C032%20Automated%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![LOC](https://img.shields.io/badge/LOC-87%2C516%20Meaningful%20Code-orange?style=for-the-badge)](src/)
 [![Provenance: PROV-JSONLD](https://img.shields.io/badge/Provenance-W3C%20PROV--JSONLD-purple?style=for-the-badge)](src/export/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Datasets: CF4](https://img.shields.io/badge/Dataset-CF4%20(Courtois%202023)-0284c7?style=for-the-badge)](https://doi.org/10.1051/0004-6361/202245331)
+[![Watersheds: CF4](https://img.shields.io/badge/Watersheds-Dupuy%20%26%20Courtois%202023-f59e0b?style=for-the-badge)](https://doi.org/10.1051/0004-6361/202346802)
 
 ---
 
