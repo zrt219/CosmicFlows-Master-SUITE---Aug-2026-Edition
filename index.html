@@ -75,15 +75,19 @@ window.onerror = function(msg, url, line, col, error) {
   #scene { position: absolute; inset: 0; z-index: 1; }
   canvas { display: block; width: 100%; height: 100%; }
 
-  /* TOP BAR HEADER WRAPPER - SLIM COMPACT SINGLE ROW */
+  /* TOP BAR HEADER WRAPPER - ACCESSIBLE HIGH-LEGIBILITY & ZERO EMPTY SPACE */
+  :root {
+    --ui-scale: 1.0;
+  }
+
   #topbar {
     position: absolute; top: 0; left: 0; right: 0; width: 100%;
-    padding: 5px 14px; z-index: 10;
+    padding: calc(6px * var(--ui-scale)) calc(16px * var(--ui-scale)); z-index: 10;
     pointer-events: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: calc(10px * var(--ui-scale));
     background: var(--topbar-gradient);
     transition: opacity 0.25s ease;
     box-sizing: border-box;
@@ -93,28 +97,28 @@ window.onerror = function(msg, url, line, col, error) {
   #branding {
     pointer-events: auto;
     flex-shrink: 0;
-    max-width: 420px;
+    max-width: calc(460px * var(--ui-scale));
   }
   #branding h1 {
-    font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: calc(13px * var(--ui-scale)); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
     color: var(--text-bright); display: flex; align-items: center; gap: 6px; margin: 0;
   }
   #branding h1 .badge {
-    font-size: 8.5px; padding: 1px 5px; border-radius: 4px;
-    background: rgba(2, 132, 199, 0.12); border: 1px solid rgba(2, 132, 199, 0.4);
-    color: var(--accent-cyan); font-weight: 700;
+    font-size: calc(9px * var(--ui-scale)); padding: 1.5px 6px; border-radius: 4px;
+    background: rgba(2, 132, 199, 0.14); border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan); font-weight: 800;
   }
   #branding .sub {
-    margin: 1px 0 2px 0; font-size: 9px; color: var(--text-dim); letter-spacing: 0.01em;
-    line-height: 1.2; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px;
+    margin: 1px 0 2px 0; font-size: calc(10px * var(--ui-scale)); color: var(--text-dim); letter-spacing: 0.01em;
+    line-height: 1.25; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(400px * var(--ui-scale));
   }
 
   /* TOP LEFT PROMO PILLS */
   #promo-pills {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-top: 1px;
+    gap: calc(5px * var(--ui-scale));
+    margin-top: 2px;
     flex-wrap: nowrap;
     pointer-events: auto;
   }
@@ -122,13 +126,13 @@ window.onerror = function(msg, url, line, col, error) {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 1.5px 7px;
-    border-radius: 12px;
-    font-size: 9px;
+    padding: calc(2px * var(--ui-scale)) calc(8px * var(--ui-scale));
+    border-radius: 14px;
+    font-size: calc(9.5px * var(--ui-scale));
     font-weight: 700;
     text-decoration: none;
     background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
+    border: 1.5px solid var(--panel-border);
     color: var(--text-main);
     transition: all 0.18s ease;
     backdrop-filter: blur(14px);
@@ -142,78 +146,82 @@ window.onerror = function(msg, url, line, col, error) {
     box-shadow: 0 2px 8px rgba(0, 229, 255, 0.22);
   }
   .promo-dot {
-    width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+    width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0;
   }
   .promo-dot.umattr-dot { background: #00e5ff; box-shadow: 0 0 6px #00e5ff; }
   .promo-dot.career-dot { background: #10b981; box-shadow: 0 0 6px #10b981; }
   .promo-dot.github-dot { background: #a855f7; box-shadow: 0 0 6px #a855f7; }
   .promo-dot.linkedin-dot { background: #0284c7; box-shadow: 0 0 6px #0284c7; }
 
-  /* TOP CENTER CLUSTER - SINGLE HORIZONTAL ROW */
+  /* TOP CENTER CLUSTER - SINGLE ROW WITH COMFORTABLE CONTRAST */
   #top-center-cluster {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: calc(6px * var(--ui-scale));
     pointer-events: auto;
     flex-shrink: 1;
     z-index: 10;
   }
 
-  /* TOP ACTION BUTTONS - COMPACT CRISP GLASSMORPHISM */
+  /* TOP ACTION BUTTONS - ACCESSIBLE HIGH-LEGIBILITY GLASSMORPHISM */
   #top-actions {
     display: flex;
-    gap: 3.5px;
+    gap: calc(4px * var(--ui-scale));
     align-items: center;
     flex-wrap: nowrap;
     justify-content: center;
     pointer-events: auto;
     background: var(--panel-bg);
     border: 1.5px solid var(--panel-border);
-    padding: 2.5px 6px;
-    border-radius: 24px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: calc(3px * var(--ui-scale)) calc(7px * var(--ui-scale));
+    border-radius: 28px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.10);
     backdrop-filter: blur(16px);
   }
   .top-btn {
-    background: transparent; border: 1px solid transparent;
-    padding: 3.5px 8px; border-radius: 14px; font-size: 9.5px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 4px; backdrop-filter: blur(12px); color: var(--text-main);
-    font-family: inherit; text-transform: uppercase; font-weight: 700; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(255, 255, 255, 0.04); border: 1.5px solid var(--panel-border);
+    padding: calc(5px * var(--ui-scale)) calc(10px * var(--ui-scale));
+    border-radius: 18px; font-size: calc(11px * var(--ui-scale)); cursor: pointer;
+    display: inline-flex; align-items: center; gap: calc(5px * var(--ui-scale));
+    backdrop-filter: blur(12px); color: var(--text-main);
+    font-family: inherit; text-transform: uppercase; font-weight: 800;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap; user-select: none; line-height: 1.2;
   }
   .top-btn:hover {
-    border-color: rgba(2, 132, 199, 0.35); color: var(--text-bright);
-    background: rgba(2, 132, 199, 0.08); transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+    border-color: var(--accent-cyan); color: var(--text-bright);
+    background: rgba(2, 132, 199, 0.12); transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.22);
   }
   .top-btn:active { transform: translateY(1px) scale(0.97); }
   .top-btn.active {
     border-color: var(--accent-green); color: var(--accent-green);
-    background: rgba(16, 185, 129, 0.12); box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.16); box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
   }
   .top-btn.theme-btn {
-    border-color: rgba(2, 132, 199, 0.35); color: var(--accent-cyan);
-    background: rgba(2, 132, 199, 0.08);
+    border-color: var(--accent-cyan); color: var(--accent-cyan);
+    background: rgba(2, 132, 199, 0.12);
   }
   .top-btn.clean-btn {
-    border-color: rgba(245, 158, 11, 0.35); color: var(--accent-amber);
-    background: rgba(245, 158, 11, 0.06);
+    border-color: var(--accent-amber); color: var(--accent-amber);
+    background: rgba(245, 158, 11, 0.10);
   }
   .top-btn.explore-pill {
     border-color: var(--accent-cyan); color: var(--accent-cyan);
-    background: rgba(0, 229, 255, 0.12); font-weight: 800;
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    background: rgba(0, 229, 255, 0.16); font-weight: 900;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.28);
   }
 
   /* TOP STATUS & ENGINE BANNER - INLINE SLEEK PILL */
   #engine-banner {
     display: flex; align-items: center; gap: 6px;
-    background: var(--panel-bg); border: 1px solid var(--panel-border);
-    padding: 3px 10px; border-radius: 18px; font-size: 9.5px; font-weight: 600;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.06); backdrop-filter: blur(14px);
+    background: var(--panel-bg); border: 1.5px solid var(--panel-border);
+    padding: calc(4px * var(--ui-scale)) calc(12px * var(--ui-scale));
+    border-radius: 20px; font-size: calc(10.5px * var(--ui-scale)); font-weight: 700;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08); backdrop-filter: blur(14px);
     transition: all 0.25s; cursor: pointer; pointer-events: auto;
-    white-space: nowrap; max-width: 240px; text-overflow: ellipsis; overflow: hidden;
+    white-space: nowrap; max-width: calc(260px * var(--ui-scale)); text-overflow: ellipsis; overflow: hidden;
   }
   #engine-banner:hover { border-color: var(--accent-cyan); }
   #engine-banner .engine-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
@@ -1382,6 +1390,9 @@ window.onerror = function(msg, url, line, col, error) {
       </button>
       <button class="top-btn" id="btn-gpu-stats-toggle" data-tooltip="Toggle real-time GPU stats, FPS & memory metrics HUD [Key: G]" title="Toggle Real-Time GPU & FPS Stats [Key: G]">
         <span>⚡</span> <b id="top-fps-badge">60 FPS</b>
+      </button>
+      <button class="top-btn" id="btn-ui-scale-toggle" data-tooltip="Cycle UI Size Scaling (100% · 125% · 150%) [Key: U]" title="UI Size Scale (100% / 125% / 150%) [Key: U]">
+        <span>🔍</span> <b id="ui-scale-label">UI: 100%</b>
       </button>
       <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut guide [Key: ?]" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
         <span>⌨️</span> <b>Shortcuts (?)</b>
@@ -10799,6 +10810,77 @@ function renderGPUSparkline() {
 window.GPU_TELEMETRY = GPU_TELEMETRY;
 window.updateGPUTelemetryFrame = updateGPUTelemetryFrame;
 
+
+// ============================================================================
+// UI SCALING & COLOR-BLIND ACCENT CONTROLLER
+// ============================================================================
+let _currentUiScale = 1.0;
+const UI_SCALES = [1.0, 1.25, 1.50];
+
+function setUiScale(scale) {
+  _currentUiScale = scale;
+  document.documentElement.style.setProperty('--ui-scale', scale);
+  
+  const lbl = document.getElementById('ui-scale-label');
+  if (lbl) lbl.textContent = `UI: ${Math.round(scale * 100)}%`;
+  
+  const modalVal = document.getElementById('val-ui-scale-modal');
+  if (modalVal) modalVal.textContent = `${Math.round(scale * 100)}% (${scale >= 1.4 ? 'XL' : scale >= 1.2 ? 'Large' : 'Standard'})`;
+  
+  const rng = document.getElementById('rng-ui-scale-modal');
+  if (rng) rng.value = Math.round(scale * 100);
+
+  // Trigger dynamic viewport safe area recalculation (Rule 9)
+  window.dispatchEvent(new Event('resize'));
+}
+window.setUiScale = setUiScale;
+
+function cycleUiScale() {
+  const currentIdx = UI_SCALES.findIndex(s => Math.abs(s - _currentUiScale) < 0.05);
+  const nextIdx = (currentIdx + 1) % UI_SCALES.length;
+  setUiScale(UI_SCALES[nextIdx]);
+}
+window.cycleUiScale = cycleUiScale;
+
+function applyCustomAccent(primaryCyan, secondaryBlue) {
+  document.documentElement.style.setProperty('--accent-cyan', primaryCyan);
+  document.documentElement.style.setProperty('--accent-blue', secondaryBlue);
+  try {
+    localStorage.setItem('cosmicflows_accent_cyan', primaryCyan);
+    localStorage.setItem('cosmicflows_accent_blue', secondaryBlue);
+  } catch(e) {}
+}
+window.applyCustomAccent = applyCustomAccent;
+
+function initUiScalingAndAccents() {
+  const btnToggle = document.getElementById('btn-ui-scale-toggle');
+  if (btnToggle) btnToggle.addEventListener('click', cycleUiScale);
+
+  const rngModal = document.getElementById('rng-ui-scale-modal');
+  if (rngModal) {
+    rngModal.addEventListener('input', () => {
+      setUiScale(parseInt(rngModal.value, 10) / 100);
+    });
+  }
+
+  // Restore saved custom accent if present
+  try {
+    const savedCyan = localStorage.getItem('cosmicflows_accent_cyan');
+    const savedBlue = localStorage.getItem('cosmicflows_accent_blue');
+    if (savedCyan && savedBlue) {
+      applyCustomAccent(savedCyan, savedBlue);
+    }
+  } catch(e) {}
+
+  // Key: 'U' toggles UI scale
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+    if (e.key === 'u' || e.key === 'U') {
+      cycleUiScale();
+    }
+  });
+}
+
 function initCameraSettingsModal() {
   const modal = document.getElementById('camera-settings-modal');
   const btnToggle = document.getElementById('btn-camera-settings-toggle');
@@ -10949,6 +11031,7 @@ function initCosmographyApp() {
   initTooltipModeToggle();
   initCameraSettingsModal();
   initGPUStatsHUD();
+  initUiScalingAndAccents();
   window.appReady = true;
 }
 window.initCosmicSearchEngine = initCosmicSearchEngine;
@@ -11142,11 +11225,51 @@ if (document.readyState === 'loading') {
       </div>
     </div>
 
-    <!-- ACCESSIBILITY & MOTION TOGGLES -->
+    <!-- ACCESSIBILITY & COLOR-BLIND CONTRAST PALETTE -->
     <div style="margin-bottom:20px; background:var(--panel-header); padding:16px; border-radius:8px; border:1px solid var(--panel-border);">
       <h3 style="font-size:13px; font-weight:800; color:var(--text-bright); margin-top:0; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">
-        ♿ Accessibility & Motion Options
+        ♿ Accessibility, UI Scaling & Color-Blind Palettes
       </h3>
+
+      <!-- UI Size Scaling Slider -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">
+          <span>UI Size Scaling:</span>
+          <span id="val-ui-scale-modal" style="color:var(--accent-cyan);">100% (Standard)</span>
+        </div>
+        <input type="range" id="rng-ui-scale-modal" min="90" max="150" step="5" value="100" style="width:100%;">
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--text-dim); margin-top:2px;">
+          <span>Compact (90%)</span>
+          <span>Comfortable (100%)</span>
+          <span>Large (125%)</span>
+          <span>Extra Large (150%)</span>
+        </div>
+      </div>
+
+      <!-- Color-Blind Safe Accent Palettes -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11.5px; font-weight:700; margin-bottom:8px; color:var(--text-bright);">
+          🎨 Accessible Accent & Border Palettes:
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:6px;">
+          <button type="button" class="accent-preset-btn" onclick="applyCustomAccent('#00e5ff', '#0284c7');" style="background:#0284c7; color:#fff; border:1px solid rgba(255,255,255,0.4); padding:6px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+            🔷 Cyan / Blue
+          </button>
+          <button type="button" class="accent-preset-btn" onclick="applyCustomAccent('#f59e0b', '#d97706');" style="background:#d97706; color:#fff; border:1px solid rgba(255,255,255,0.4); padding:6px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+            🔶 Solar Gold
+          </button>
+          <button type="button" class="accent-preset-btn" onclick="applyCustomAccent('#a855f7', '#9333ea');" style="background:#9333ea; color:#fff; border:1px solid rgba(255,255,255,0.4); padding:6px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+            🟣 Violet (Tritan)
+          </button>
+          <button type="button" class="accent-preset-btn" onclick="applyCustomAccent('#10b981', '#059669');" style="background:#059669; color:#fff; border:1px solid rgba(255,255,255,0.4); padding:6px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+            🟢 Emerald
+          </button>
+          <button type="button" class="accent-preset-btn" onclick="applyCustomAccent('#f8fafc', '#0f172a');" style="background:#0f172a; color:#f8fafc; border:1px solid #f8fafc; padding:6px; border-radius:6px; font-size:10px; font-weight:800; cursor:pointer;">
+            ⚪ Monochrome
+          </button>
+        </div>
+      </div>
+
       <div style="display:flex; flex-direction:column; gap:10px; font-size:12px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
           <input type="checkbox" id="chk-reduced-motion" style="cursor:pointer;">
