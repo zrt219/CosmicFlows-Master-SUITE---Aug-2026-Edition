@@ -1394,6 +1394,9 @@ window.onerror = function(msg, url, line, col, error) {
       <button class="top-btn" id="btn-ui-scale-toggle" data-tooltip="Cycle UI Size Scaling (100% · 125% · 150%) [Key: U]" title="UI Size Scale (100% / 125% / 150%) [Key: U]">
         <span>🔍</span> <b id="ui-scale-label">UI: 100%</b>
       </button>
+      <button class="top-btn" id="btn-spotlight-tour" data-tooltip="Launch interactive step-by-step walkthrough tutorial [Key: /]" title="Interactive Walkthrough Tutorial [Key: /]">
+        <span>🎓</span> <b>Tour (/)</b>
+      </button>
       <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut guide [Key: ?]" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
         <span>⌨️</span> <b>Shortcuts (?)</b>
       </button>
@@ -1440,6 +1443,7 @@ window.onerror = function(msg, url, line, col, error) {
   <span>◌ Posterior Sample</span>
   <span>◇ Simulated</span>
   <span>★ Sandbox</span>
+  <button id="btn-epistemic-bar-help" style="background:rgba(2,132,199,0.15); border:1px solid var(--accent-cyan); color:var(--accent-cyan); border-radius:12px; padding:1px 7px; font-size:9px; font-weight:800; cursor:pointer; margin-left:6px;" title="What is Epistemic Code & Scientific Uncertainty?">❓ What is this?</button>
 </div>
 
 <!-- 2D EQUATORIAL INSET MAP -->
@@ -1566,16 +1570,17 @@ window.onerror = function(msg, url, line, col, error) {
   
   <div id="panel-body">
     <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-engines" data-tooltip="Select Wiener Filter, HMC, Vela ZoA, or N-Body engine">Engines</button>
-      <button class="tab-btn" data-tab="tab-labels" data-tooltip="Toggle 3D cluster, void, and galaxy label visibility">Labels</button>
-      <button class="tab-btn" data-tab="tab-galaxies" data-tooltip="Filter 56k galaxies by magnitude, distance, or survey">Data</button>
-      <button class="tab-btn" data-tab="tab-structures" data-tooltip="Inspect Laniakea, Shapley, and major superclusters">Structures</button>
-      <button class="tab-btn" data-tab="tab-bulk" data-tooltip="Evaluate dipole bulk motion relative to CMB">Bulk Flow</button>
-      <button class="tab-btn" data-tab="tab-tfr" data-tooltip="Tully-Fisher relation & distance modulus calibration">TFR</button>
-      <button class="tab-btn" data-tab="tab-sandbox" data-tooltip="Interactive N-body particle gravitational sandbox">Sandbox</button>
-      <button class="tab-btn" data-tab="tab-slices" data-tooltip="Supergalactic Cartesian slices (SGX, SGY, SGZ = 0)">Slices</button>
-      <button class="tab-btn" data-tab="tab-streamlines" data-tooltip="Trace 4,200 velocity streamlines with RK4 integration">Flow</button>
-      <button class="tab-btn" data-tab="tab-compute" data-tooltip="Velocity shear tensor, eigenvalues, and watershed topology">Compute</button>
+      <button class="tab-btn active" data-tab="tab-engines" data-tooltip="Select Wiener Filter, HMC, Vela ZoA, or N-Body field model">🌌 Field Models</button>
+      <button class="tab-btn" data-tab="tab-labels" data-tooltip="Toggle 3D cluster, void, and galaxy label markers">🏷️ 3D Labels</button>
+      <button class="tab-btn" data-tab="tab-galaxies" data-tooltip="Filter 56k galaxies by magnitude, distance, or survey">📊 56k Galaxies</button>
+      <button class="tab-btn" data-tab="tab-structures" data-tooltip="Inspect Laniakea, Shapley, and major superclusters">🏛️ Superclusters</button>
+      <button class="tab-btn" data-tab="tab-bulk" data-tooltip="Evaluate dipole bulk motion relative to CMB">🧭 Cosmic Drift</button>
+      <button class="tab-btn" data-tab="tab-tfr" data-tooltip="Tully-Fisher relation & distance calibration">🔭 Tully-Fisher</button>
+      <button class="tab-btn" data-tab="tab-sandbox" data-tooltip="Interactive N-body particle gravitational sandbox">⚛️ Gravity Sim</button>
+      <button class="tab-btn" data-tab="tab-slices" data-tooltip="Supergalactic Cartesian 2D slices (SGX, SGY, SGZ)">📐 2D Slices</button>
+      <button class="tab-btn" data-tab="tab-streamlines" data-tooltip="Trace 4,200 velocity streamlines with RK4 integration">🌊 Streamlines</button>
+      <button class="tab-btn" data-tab="tab-compute" data-tooltip="Velocity shear tensor, eigenvalues, and epistemic certainty">🧮 V-Web & Math</button>
+      <button class="tab-btn" data-tab="tab-settings" data-tooltip="Application preferences, tooltips, UI scale, and color palettes">⚙️ Settings</button>
     </div>
 
     <div class="tab-content">
@@ -2177,6 +2182,72 @@ window.onerror = function(msg, url, line, col, error) {
         </div>
       </div>
     </div>
+
+    <!-- TAB 11: PREFERENCES & SETTINGS (PLAIN-ENGLISH USER CONTROLS) -->
+    <div class="pane" id="tab-settings">
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">🎓 Interactive Onboarding & Guide</div>
+        <p style="font-size:8.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;">
+          Step-by-step interactive walkthrough highlighting top navigation, search, 3D controls, and scientific field models.
+        </p>
+        <button class="action-btn primary" id="btn-start-tour-from-settings" style="width:100%;">
+          🎓 Launch Step-by-Step Interactive Tour
+        </button>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">💬 Hover Tooltip Explainer Mode</div>
+        <div class="ctrl-row">
+          <label>Tooltip Level</label>
+          <select id="sel-settings-tooltip-mode" class="ctrl-select">
+            <option value="detailed">Detailed (University-Grade Concepts & Equations)</option>
+            <option value="minimal">Minimal (Short Action Summary)</option>
+            <option value="off">Off (Zero Tooltips)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">🔍 UI Size Scaling & Legibility</div>
+        <div class="ctrl-row">
+          <label>UI Scale Size</label>
+          <select id="sel-settings-ui-scale" class="ctrl-select">
+            <option value="1.0">Comfortable Standard (100%)</option>
+            <option value="1.25">Large High-Legibility (125%)</option>
+            <option value="1.50">Extra Large (150%)</option>
+            <option value="0.90">Compact (90%)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">🎨 Color-Blind Accessible Palettes</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;">
+          <button type="button" class="action-btn" onclick="applyCustomAccent('#00e5ff', '#0284c7');" style="border-color:#00e5ff;">🔷 Cyan / Blue</button>
+          <button type="button" class="action-btn" onclick="applyCustomAccent('#f59e0b', '#d97706');" style="border-color:#f59e0b;">🔶 Solar Gold</button>
+          <button type="button" class="action-btn" onclick="applyCustomAccent('#a855f7', '#9333ea');" style="border-color:#a855f7;">🟣 Violet (Tritan)</button>
+          <button type="button" class="action-btn" onclick="applyCustomAccent('#10b981', '#059669');" style="border-color:#10b981;">🟢 Emerald</button>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">⚡ Real-Time GPU & FPS Stats HUD</div>
+        <div class="ctrl-row">
+          <label>Floating Stats Pill</label>
+          <input type="checkbox" id="chk-settings-gpu-pill" checked>
+          <span class="val">Visible</span>
+        </div>
+        <button class="action-btn" id="btn-settings-open-gpu-modal" style="width:100%; margin-top:6px;">📊 Open Full GPU Telemetry Graph (Key: G)</button>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">❓ Epistemic Uncertainty & Code</div>
+        <button class="action-btn" id="btn-settings-epistemic-explainer" style="width:100%;">
+          ❓ What is Epistemic Code & Uncertainty?
+        </button>
+      </div>
+    </div>
+
 
     </div>
   </div>
@@ -10881,6 +10952,177 @@ function initUiScalingAndAccents() {
   });
 }
 
+
+// ============================================================================
+// SPOTLIGHT WALKTHROUGH TOUR & EPISTEMIC EXPLAINER CONTROLLER
+// ============================================================================
+const SPOTLIGHT_STEPS = [
+  {
+    title: "🧭 1. Top Navigation & Global Controls",
+    desc: "Use the top navigation bar to toggle between 600-DPI Publication White Mode and Dark Sci-Fi Mode [T], activate Clean Figure Mode [C], switch reconstruction datasets, monitor real-time GPU/FPS telemetry [G], or scale the UI size [U].",
+    badge: "Step 1 of 5"
+  },
+  {
+    title: "🔍 2. Universal Cosmic Search Dock",
+    desc: "Located in the bottom-right corner, search across 126,000 CosmicFlows-4 galaxies, famous Messier/NGC objects (M87, Andromeda, Sombrero), Abell clusters (A1656, ACO 3627), and cosmic voids. Press Enter or click to smoothly fly the camera to any target.",
+    badge: "Step 2 of 5"
+  },
+  {
+    title: "🌌 3. Interactive 3D Canvas Navigation",
+    desc: "Left-click & drag to orbit the camera around supergalactic coordinates. Scroll to zoom smoothly from the Local Group out to 400 Mpc/h. Click any glowing cluster beacon to open its comprehensive scientific study and documentary dossier.",
+    badge: "Step 3 of 5"
+  },
+  {
+    title: "✨ 4. Scientific Cosmography Drawer",
+    desc: "Click [Explore Universe] to open the 11-tab drawer. Access 3D density contours, 4,200 RK4 velocity streamlines, cosmic web eigenvalues, Tully-Fisher calibrations, 4D cosmic time scrubbing (-13.8 to +10 Gyr), and N-body gravitational simulations.",
+    badge: "Step 4 of 5"
+  },
+  {
+    title: "⚙️ 5. Preferences, Tooltips & Epistemic Uncertainty",
+    desc: "Customize your experience in Tab 11 (Settings) with adjustable hover tooltip depth, UI scaling (100%-150%), color-blind safe palettes, and inspect epistemic uncertainty metrics (observational measurement error bounds).",
+    badge: "Step 5 of 5"
+  }
+];
+
+let _spotlightCurrentStep = 0;
+
+function showSpotlightStep(index) {
+  _spotlightCurrentStep = Math.max(0, Math.min(index, SPOTLIGHT_STEPS.length - 1));
+  const step = SPOTLIGHT_STEPS[_spotlightCurrentStep];
+  
+  const elBadge = document.getElementById('spotlight-step-badge');
+  if (elBadge) elBadge.textContent = step.badge;
+  
+  const elTitle = document.getElementById('spotlight-title');
+  if (elTitle) elTitle.textContent = step.title;
+  
+  const elDesc = document.getElementById('spotlight-desc');
+  if (elDesc) elDesc.textContent = step.desc;
+
+  const btnPrev = document.getElementById('btn-spotlight-prev');
+  if (btnPrev) btnPrev.style.visibility = _spotlightCurrentStep === 0 ? 'hidden' : 'visible';
+
+  const btnNext = document.getElementById('btn-spotlight-next');
+  if (btnNext) btnNext.textContent = _spotlightCurrentStep === SPOTLIGHT_STEPS.length - 1 ? 'Finish Tour 🚀' : 'Next ▶';
+
+  renderSpotlightDots();
+}
+
+function renderSpotlightDots() {
+  const container = document.getElementById('spotlight-dots');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < SPOTLIGHT_STEPS.length; i++) {
+    const dot = document.createElement('div');
+    dot.style.width = '8px';
+    dot.style.height = '8px';
+    dot.style.borderRadius = '50%';
+    dot.style.background = i === _spotlightCurrentStep ? 'var(--accent-cyan)' : 'var(--panel-border)';
+    dot.style.transition = 'background 0.2s';
+    container.appendChild(dot);
+  }
+}
+
+function startSpotlightTour() {
+  const overlay = document.getElementById('spotlight-tour-overlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    showSpotlightStep(0);
+  }
+}
+window.startSpotlightTour = startSpotlightTour;
+
+function closeSpotlightTour() {
+  const overlay = document.getElementById('spotlight-tour-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function openEpistemicExplainer() {
+  const modal = document.getElementById('epistemic-explainer-modal');
+  if (modal) modal.style.display = 'flex';
+}
+window.openEpistemicExplainer = openEpistemicExplainer;
+
+function closeEpistemicExplainer() {
+  const modal = document.getElementById('epistemic-explainer-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function initTourAndEpistemicExplainer() {
+  const btnTopTour = document.getElementById('btn-spotlight-tour');
+  if (btnTopTour) btnTopTour.addEventListener('click', startSpotlightTour);
+
+  const btnSettingsTour = document.getElementById('btn-start-tour-from-settings');
+  if (btnSettingsTour) btnSettingsTour.addEventListener('click', startSpotlightTour);
+
+  const btnSkip = document.getElementById('btn-spotlight-skip');
+  if (btnSkip) btnSkip.addEventListener('click', closeSpotlightTour);
+
+  const btnPrev = document.getElementById('btn-spotlight-prev');
+  if (btnPrev) btnPrev.addEventListener('click', () => showSpotlightStep(_spotlightCurrentStep - 1));
+
+  const btnNext = document.getElementById('btn-spotlight-next');
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      if (_spotlightCurrentStep >= SPOTLIGHT_STEPS.length - 1) closeSpotlightTour();
+      else showSpotlightStep(_spotlightCurrentStep + 1);
+    });
+  }
+
+  // Epistemic bar help
+  const btnEpHelp = document.getElementById('btn-epistemic-bar-help');
+  if (btnEpHelp) btnEpHelp.addEventListener('click', openEpistemicExplainer);
+
+  const btnSettingsEp = document.getElementById('btn-settings-epistemic-explainer');
+  if (btnSettingsEp) btnSettingsEp.addEventListener('click', openEpistemicExplainer);
+
+  const btnCloseEp = document.getElementById('btn-close-epistemic-modal');
+  if (btnCloseEp) btnCloseEp.addEventListener('click', closeEpistemicExplainer);
+
+  const btnDismissEp = document.getElementById('btn-dismiss-epistemic-modal');
+  if (btnDismissEp) btnDismissEp.addEventListener('click', closeEpistemicExplainer);
+
+  // Sync Settings Tab Controls
+  const selTooltip = document.getElementById('sel-settings-tooltip-mode');
+  if (selTooltip) {
+    selTooltip.addEventListener('change', () => {
+      if (typeof setTooltipMode === 'function') setTooltipMode(selTooltip.value);
+    });
+  }
+
+  const selUiScale = document.getElementById('sel-settings-ui-scale');
+  if (selUiScale) {
+    selUiScale.addEventListener('change', () => {
+      if (typeof setUiScale === 'function') setUiScale(parseFloat(selUiScale.value));
+    });
+  }
+
+  const chkGpuPill = document.getElementById('chk-settings-gpu-pill');
+  if (chkGpuPill) {
+    chkGpuPill.addEventListener('change', () => {
+      const pill = document.getElementById('gpu-stats-pill');
+      if (pill) pill.style.display = chkGpuPill.checked ? 'flex' : 'none';
+    });
+  }
+
+  const btnOpenGpu = document.getElementById('btn-settings-open-gpu-modal');
+  if (btnOpenGpu) {
+    btnOpenGpu.addEventListener('click', () => {
+      const modal = document.getElementById('gpu-telemetry-modal');
+      if (modal) modal.style.display = 'flex';
+    });
+  }
+
+  // Key: '/' opens Tour
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+    if (e.key === '/') {
+      e.preventDefault();
+      startSpotlightTour();
+    }
+  });
+}
+
 function initCameraSettingsModal() {
   const modal = document.getElementById('camera-settings-modal');
   const btnToggle = document.getElementById('btn-camera-settings-toggle');
@@ -11032,6 +11274,7 @@ function initCosmographyApp() {
   initCameraSettingsModal();
   initGPUStatsHUD();
   initUiScalingAndAccents();
+  initTourAndEpistemicExplainer();
   window.appReady = true;
 }
 window.initCosmicSearchEngine = initCosmicSearchEngine;
@@ -11115,6 +11358,72 @@ if (document.readyState === 'loading') {
     <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button id="btn-toggle-hud-visibility" style="background:transparent; border:1px solid var(--panel-border); color:var(--text-main); padding:8px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Toggle Floating Pill</button>
       <button id="btn-dismiss-gpu-modal" style="background:var(--accent-cyan); color:#fff; border:none; padding:8px 18px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">Done</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- INTERACTIVE SPOTLIGHT WALKTHROUGH TOUR OVERLAY -->
+<div id="spotlight-tour-overlay" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(3,6,12,0.65); backdrop-filter:blur(8px); pointer-events:auto; align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:2px solid var(--accent-cyan); border-radius:14px; max-width:540px; width:90%; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.6); color:var(--text-main); font-family:inherit; position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <span id="spotlight-step-badge" style="background:rgba(2,132,199,0.18); border:1px solid var(--accent-cyan); color:var(--accent-cyan); font-size:10px; font-weight:800; padding:2px 8px; border-radius:12px; text-transform:uppercase;">Step 1 of 5</span>
+      <button id="btn-spotlight-skip" style="background:transparent; border:none; color:var(--text-dim); font-size:12px; font-weight:700; cursor:pointer;">Skip Tour &times;</button>
+    </div>
+    <h3 id="spotlight-title" style="margin:0 0 8px 0; font-size:16px; font-weight:800; color:var(--text-bright); display:flex; align-items:center; gap:8px;">
+      <span>🧭</span> Welcome to CosmicFlows-4 Workbench
+    </h3>
+    <div id="spotlight-desc" style="font-size:12px; line-height:1.55; color:var(--text-main); margin-bottom:18px;">
+      Discover the 3D velocity flows, cosmic watersheds, and gravitationally bound superclusters of our local 400 Mpc/h universe.
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--panel-border); padding-top:14px;">
+      <div id="spotlight-dots" style="display:flex; gap:6px;"></div>
+      <div style="display:flex; gap:8px;">
+        <button id="btn-spotlight-prev" style="background:var(--panel-header); border:1px solid var(--panel-border); color:var(--text-main); padding:6px 14px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">◀ Back</button>
+        <button id="btn-spotlight-next" style="background:var(--accent-cyan); color:#fff; border:none; padding:6px 18px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">Next ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EPISTEMIC UNCERTAINTY EXPLAINER MODAL -->
+<div id="epistemic-explainer-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(3,6,12,0.75); backdrop-filter:blur(14px); align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:1.5px solid var(--accent-cyan); border-radius:14px; max-width:620px; width:92%; max-height:85vh; overflow-y:auto; padding:24px; box-shadow:0 24px 60px rgba(0,0,0,0.55); color:var(--text-main); font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:12px; margin-bottom:16px;">
+      <h2 style="margin:0; font-size:17px; font-weight:800; color:var(--accent-cyan); display:flex; align-items:center; gap:8px;">
+        <span>❓</span> What is "Epistemic Code" & Scientific Uncertainty?
+      </h2>
+      <button id="btn-close-epistemic-modal" style="background:transparent; border:none; color:var(--text-dim); font-size:22px; cursor:pointer; font-weight:700;">&times;</button>
+    </div>
+    <div style="font-size:12px; line-height:1.6; color:var(--text-main); display:flex; flex-direction:column; gap:12px;">
+      <div style="background:var(--panel-header); padding:12px; border-radius:8px; border-left:4px solid var(--accent-cyan);">
+        <b>Epistemic (from Greek <i>epistēmē</i>, "knowledge"):</b> In physics and data science, <b>Epistemic Uncertainty</b> represents <i>limitations in our observational knowledge</i>, distinct from natural physical randomness.
+      </div>
+      <div>
+        <h4 style="margin:0 0 4px 0; color:var(--text-bright); font-size:12.5px;">🔭 Why Does Epistemic Code Exist in CosmicFlows-4?</h4>
+        When mapping the universe across 400 Mpc/h, astronomers cannot measure every galaxy with infinite precision:
+        <ul style="margin:6px 0 0 18px; display:flex; flex-direction:column; gap:4px;">
+          <li><b>Tully-Fisher & SNe Distance Scatter:</b> Galaxy rotation velocities give metric distances with ~15% statistical error.</li>
+          <li><b>Zone of Avoidance (ZoA):</b> The Milky Way's dense dust plane hides ~20% of the extragalactic sky.</li>
+          <li><b>Wiener Filter Posterior Variance ($\sigma_\delta$):</b> In dense data regions, the reconstruction is ~95% certain; in sparse deep space, it smoothly reverts to the mean cosmic density.</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="margin:0 0 4px 0; color:var(--text-bright); font-size:12.5px;">🏷️ What the Status Bar Symbols Mean:</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; font-size:11px;">
+          <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px;"><b>● Observed:</b> Real astronomical telescope measurements (56k galaxy redshift/TF data).</div>
+          <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px;"><b>≈ Reconstructed:</b> Statistically constrained Bayesian Wiener Filter / HMC continuous field.</div>
+          <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px;"><b>◌ Posterior Sample:</b> Constrained realization testing error variance bounds.</div>
+          <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px;"><b>◇ Simulated:</b> Gadget-4 N-body nonlinear gravitational simulation.</div>
+          <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px;"><b>★ Sandbox:</b> Interactive live user-modified particle gravity experiment.</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); border-top:1px solid var(--panel-border); padding-top:8px;">
+        <b>In short:</b> Epistemic code tells scientists whether a filament or void is a <i>definitively measured physical structure</i> or a <i>mathematical interpolation</i>!
+      </div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+      <button id="btn-dismiss-epistemic-modal" style="background:var(--accent-cyan); color:#fff; border:none; padding:8px 20px; border-radius:6px; font-size:11.5px; font-weight:800; cursor:pointer;">Got It</button>
     </div>
   </div>
 </div>
