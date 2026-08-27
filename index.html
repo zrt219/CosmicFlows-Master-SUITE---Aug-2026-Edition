@@ -1368,40 +1368,44 @@ window.onerror = function(msg, url, line, col, error) {
   <!-- TOP CENTER CLUSTER: ACTION BUTTONS & ACTIVE ENGINE BANNER -->
   <div id="top-center-cluster">
     <div id="top-actions">
-      <button class="top-btn explore-pill" id="btn-explore-toggle" data-tooltip="Toggle 10-tab scientific cosmography drawer" title="Explore The Local Universe [Toggle Science Drawer]">
-        <span>✨</span> <b>Explore Universe</b>
+      <button class="top-btn explore-pill" id="btn-explore-toggle" data-tooltip="Open 11-tab scientific cosmography controls drawer" title="Open Controls Drawer">
+        <span>✨</span> <b>Controls</b>
       </button>
-      <button class="top-btn clean-btn" id="btn-clean-mode" data-tooltip="Hide all HUDs for clean publication figures [Key: C]" title="Toggle Clean Figure Mode [Key: C]">
+      <button class="top-btn clean-btn" id="btn-clean-mode" data-tooltip="Hide all HUDs for clean publication figures [Key: C]" title="Clean View [Key: C]">
         <span>🖼️</span> <b id="clean-label">Clean (C)</b>
       </button>
-      <button class="top-btn theme-btn" id="btn-theme-toggle" data-tooltip="Toggle 600-DPI Publication White / Dark Sci-Fi mode [Key: T]" title="Toggle Publication White / Dark Sci-Fi Mode [Key: T]">
-        <span id="theme-icon">☀️</span> <b id="theme-label">White Mode</b>
+      <button class="top-btn theme-btn" id="btn-theme-toggle" data-tooltip="Toggle 600-DPI Publication White / Dark Sci-Fi mode [Key: T]" title="Switch Theme [Key: T]">
+        <span id="theme-icon">☀️</span> <b id="theme-label">Theme (T)</b>
       </button>
-      <button class="top-btn" id="btn-callouts-toggle" data-tooltip="Toggle 3D leader annotations & cluster pins [Key: A]" title="Toggle 3D Leader Callout Annotations [Key: A]">
-        <span>🏷️</span> Callouts (A)
+      <button class="top-btn" id="btn-callouts-toggle" data-tooltip="Toggle 3D cluster pins and galaxy name labels [Key: A]" title="Toggle Cluster Pins [Key: A]">
+        <span>🏷️</span> <b>Pins (A)</b>
       </button>
-      <button class="top-btn" id="btn-inset-toggle" data-tooltip="Toggle 2D Equatorial Plane (SGZ=0) overview [Key: I]" title="Toggle 2D Equatorial Inset Map [Key: I]">
-        <span>🗺️</span> Inset (I)
+      <button class="top-btn" id="btn-inset-toggle" data-tooltip="Toggle 2D Equatorial Plane (SGZ=0) mini-map [Key: I]" title="2D Mini-Map [Key: I]">
+        <span>🗺️</span> <b>Mini-Map (I)</b>
       </button>
-            <button class="top-btn" id="btn-tooltip-mode-toggle" data-tooltip="Toggle Tooltip Explainer Mode (Detailed / Minimal / Off)" title="Tooltip Mode"><span>💬</span> <b id="tooltip-mode-label">Tips: ON</b></button>
-      <button class="top-btn" id="btn-primer-toggle" data-tooltip="Open Interactive Cosmography Primer & Theory Guide [Key: H]" title="Cosmography Primer [Key: H]"><span>📘</span> <b>Primer (H)</b></button>
-      <button class="top-btn" id="btn-camera-settings-toggle" data-tooltip="Camera navigation controls, presets, speed & accessibility [Key: V]" title="Camera Controls & Presets [Key: V]">
+      <button class="top-btn" id="btn-tooltip-mode-toggle" data-tooltip="Toggle Hover Tooltips (Detailed / Minimal / Off)" title="Toggle Tooltips">
+        <span>💬</span> <b id="tooltip-mode-label">Tips: ON</b>
+      </button>
+      <button class="top-btn" id="btn-primer-toggle" data-tooltip="Open Interactive Cosmography Theory Primer [Key: H]" title="Cosmography Theory Guide [Key: H]">
+        <span>📘</span> <b>Primer (H)</b>
+      </button>
+      <button class="top-btn" id="btn-camera-settings-toggle" data-tooltip="Camera views, presets & navigation speed [Key: V]" title="Camera Navigation & Presets [Key: V]">
         <span>🎥</span> <b>Camera (V)</b>
       </button>
-      <button class="top-btn" id="btn-gpu-stats-toggle" data-tooltip="Toggle real-time GPU stats, FPS & memory metrics HUD [Key: G]" title="Toggle Real-Time GPU & FPS Stats [Key: G]">
+      <button class="top-btn" id="btn-gpu-stats-toggle" data-tooltip="Real-time GPU performance, FPS sparkline & memory [Key: G]" title="GPU & FPS Telemetry [Key: G]">
         <span>⚡</span> <b id="top-fps-badge">60 FPS</b>
       </button>
-      <button class="top-btn" id="btn-ui-scale-toggle" data-tooltip="Cycle UI Size Scaling (100% · 125% · 150%) [Key: U]" title="UI Size Scale (100% / 125% / 150%) [Key: U]">
+      <button class="top-btn" id="btn-ui-scale-toggle" data-tooltip="Scale UI size for higher readability (100% · 125% · 150%) [Key: U]" title="UI Size Scale [Key: U]">
         <span>🔍</span> <b id="ui-scale-label">UI: 100%</b>
       </button>
-      <button class="top-btn" id="btn-spotlight-tour" data-tooltip="Launch interactive step-by-step walkthrough tutorial [Key: /]" title="Interactive Walkthrough Tutorial [Key: /]">
+      <button class="top-btn" id="btn-spotlight-tour" data-tooltip="Launch interactive step-by-step walkthrough tutorial [Key: /]" title="Interactive Guided Tour [Key: /]">
         <span>🎓</span> <b>Tour (/)</b>
       </button>
-      <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut guide [Key: ?]" title="Keyboard Shortcuts & Interactive Guide [Key: ?]">
-        <span>⌨️</span> <b>Shortcuts (?)</b>
+      <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut reference [Key: ?]" title="Keyboard Shortcuts [Key: ?]">
+        <span>⌨️</span> <b>Keys (?)</b>
       </button>
-      <button class="top-btn" id="btn-pub-export" data-tooltip="Export 600-DPI high-res figure with LaTeX caption [Key: P]" title="600 DPI Print Exporter with LaTeX Caption [Key: P]">
-        <span>📜</span> Print (P)
+      <button class="top-btn" id="btn-pub-export" data-tooltip="Export high-res figure with LaTeX caption [Key: P]" title="Export Publication Figure [Key: P]">
+        <span>📜</span> <b>Print (P)</b>
       </button>
       <div id="dataset-picker-container" data-tooltip="Switch cosmic velocity reconstruction dataset" style="display:inline-flex; align-items:center; background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:14px; padding:2px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(12px);">
         <span style="font-size:9px; font-weight:800; margin-right:4px; color:var(--accent-cyan);">📡 DATASET:</span>
@@ -1570,17 +1574,17 @@ window.onerror = function(msg, url, line, col, error) {
   
   <div id="panel-body">
     <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-engines" data-tooltip="Select Wiener Filter, HMC, Vela ZoA, or N-Body field model">🌌 Field Models</button>
-      <button class="tab-btn" data-tab="tab-labels" data-tooltip="Toggle 3D cluster, void, and galaxy label markers">🏷️ 3D Labels</button>
-      <button class="tab-btn" data-tab="tab-galaxies" data-tooltip="Filter 56k galaxies by magnitude, distance, or survey">📊 56k Galaxies</button>
-      <button class="tab-btn" data-tab="tab-structures" data-tooltip="Inspect Laniakea, Shapley, and major superclusters">🏛️ Superclusters</button>
-      <button class="tab-btn" data-tab="tab-bulk" data-tooltip="Evaluate dipole bulk motion relative to CMB">🧭 Cosmic Drift</button>
-      <button class="tab-btn" data-tab="tab-tfr" data-tooltip="Tully-Fisher relation & distance calibration">🔭 Tully-Fisher</button>
-      <button class="tab-btn" data-tab="tab-sandbox" data-tooltip="Interactive N-body particle gravitational sandbox">⚛️ Gravity Sim</button>
-      <button class="tab-btn" data-tab="tab-slices" data-tooltip="Supergalactic Cartesian 2D slices (SGX, SGY, SGZ)">📐 2D Slices</button>
-      <button class="tab-btn" data-tab="tab-streamlines" data-tooltip="Trace 4,200 velocity streamlines with RK4 integration">🌊 Streamlines</button>
-      <button class="tab-btn" data-tab="tab-compute" data-tooltip="Velocity shear tensor, eigenvalues, and epistemic certainty">🧮 V-Web & Math</button>
-      <button class="tab-btn" data-tab="tab-settings" data-tooltip="Application preferences, tooltips, UI scale, and color palettes">⚙️ Settings</button>
+      <button class="tab-btn active" data-tab="tab-engines" data-tooltip="Select Wiener Filter, HMC, Vela ZoA, or N-Body cosmic models">🌌 Choose Model</button>
+      <button class="tab-btn" data-tab="tab-labels" data-tooltip="Toggle 3D cluster, void, and galaxy name markers">🏷️ Show Labels</button>
+      <button class="tab-btn" data-tab="tab-galaxies" data-tooltip="Filter and inspect 56,000 CosmicFlows-4 galaxies">📊 Filter Galaxies</button>
+      <button class="tab-btn" data-tab="tab-structures" data-tooltip="Explore Laniakea, Shapley, and giant superclusters">🏛️ Superclusters</button>
+      <button class="tab-btn" data-tab="tab-bulk" data-tooltip="Measure dipole bulk motion relative to the CMB">🧭 Track Drift</button>
+      <button class="tab-btn" data-tab="tab-tfr" data-tooltip="Calculate galaxy distances via Tully-Fisher rotation relation">🔭 Distances</button>
+      <button class="tab-btn" data-tab="tab-sandbox" data-tooltip="Simulate gravitational dynamics in an interactive N-body sandbox">⚛️ Gravity Sim</button>
+      <button class="tab-btn" data-tab="tab-slices" data-tooltip="View 2D planar map cross-sections (SGX, SGY, SGZ = 0)">📐 Slice 2D Maps</button>
+      <button class="tab-btn" data-tab="tab-streamlines" data-tooltip="Trace 4,200 velocity flow rivers across the universe">🌊 Flow Rivers</button>
+      <button class="tab-btn" data-tab="tab-compute" data-tooltip="Analyze cosmic web filaments, voids, and epistemic uncertainty">🧮 Cosmic Web</button>
+      <button class="tab-btn" data-tab="tab-settings" data-tooltip="Customize tooltips, UI scale, and color-blind safe palettes">⚙️ App Settings</button>
     </div>
 
     <div class="tab-content">
