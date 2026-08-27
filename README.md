@@ -309,13 +309,17 @@ $$
 L_i(t) = -a^2(t)\dot{D}(t)\bar{\rho}_0 \epsilon_{ijk} \left.\frac{\partial^2 \Phi_0}{\partial q_k \partial q_l}\right|_{\bar{\mathbf{q}}} \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, d^3\mathbf{q}
 $$
 
-Defining the protohalo homogeneous inertia tensor $I_{jl} \equiv \bar{\rho}_0 \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, d^3\mathbf{q}$ and tidal tensor $T_{kl} = \partial_k \partial_l \Phi_0$:
+Defining the protohalo homogeneous inertia tensor $I_{jl}$ and tidal tensor $T_{kl} \equiv \partial_k \partial_l \Phi_0$:
+
+$$
+I_{jl} \equiv \bar{\rho}_0 \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, \mathrm{d}^3\mathbf{q}
+$$
 
 $$
 \boxed{L_i(t) = a^2(t) \dot{D}(t) \sum_{j,k,l} \epsilon_{ijk} T_{jl} I_{lk} = a^2(t) \dot{D}(t) \epsilon_{ijk} (T \cdot I)_{jk}}
 $$
 
-In Einstein-de Sitter cosmology ($a(t) \propto t^{2/3}, D(t) \propto t^{2/3} \implies \dot{D}(t) \propto t^{-1/3} \propto a^{-1/2}$):
+In Einstein-de Sitter cosmology ($a(t) \propto t^{2/3}$, $D(t) \propto t^{2/3} \implies \dot{D}(t) \propto t^{-1/3} \propto a^{-1/2}$):
 
 $$
 L(t) \propto a^2 \cdot a^{-1/2} = a^{3/2}(t) \propto t
@@ -346,10 +350,10 @@ $$
 \beta(r) = 1 - \frac{\sigma_{\theta}^2(r) + \sigma_{\phi}^2(r)}{2 \sigma_r^2(r)} = 1 - \frac{\sigma_t^2(r)}{\sigma_r^2(r)}
 $$
 
-Under steady-state collisionless Boltzmann equilibrium, the enclosed dynamical Jeans mass $M_{\text{Jeans}}(<r)$ is:
+Under steady-state collisionless Boltzmann equilibrium, the enclosed dynamical Jeans mass $M_{\text{Jeans}}(r)$ is:
 
 $$
-\boxed{M_{\text{Jeans}}(<r) = -\frac{r \sigma_r^2(r)}{G} \left[ \frac{d \ln \rho(r)}{d \ln r} + \frac{d \ln \sigma_r^2(r)}{d \ln r} + 2\beta(r) \right]}
+\boxed{M_{\text{Jeans}}(< r) = -\frac{r \sigma_r^2(r)}{G} \left[ \frac{\mathrm{d} \ln \rho(r)}{\mathrm{d} \ln r} + \frac{\mathrm{d} \ln \sigma_r^2(r)}{\mathrm{d} \ln r} + 2\beta(r) \right]}
 $$
 
 #### Section Citations:
@@ -411,9 +415,14 @@ $$
 $$
 
 where:
-- $\mathbf{v}_{\text{pot}}(\mathbf{x}) = -\nabla \Phi_v(\mathbf{x})$ is the irrotational (potential / longitudinal) field satisfying $\nabla \times \mathbf{v}_{\text{pot}} = \mathbf{0}$,
-- $\mathbf{v}_{\text{sol}}(\mathbf{x}) = \nabla \times \mathbf{A}_v(\mathbf{x})$ is the solenoidal (rotational / transverse) field satisfying $\nabla \cdot \mathbf{v}_{\text{sol}} = 0$,
-- $\mathbf{v}_0 = \frac{1}{V} \int_{\mathbb{T}^3} \mathbf{v}(\mathbf{x})\, d^3\mathbf{x} = \hat{\mathbf{v}}(\mathbf{0})$ is the constant harmonic mean mode.
+
+$$
+\begin{aligned}
+\mathbf{v}_{\text{pot}}(\mathbf{x}) &= -\nabla \Phi_v(\mathbf{x}) \quad &\text{(Irrotational / longitudinal field satisfying } \nabla \times \mathbf{v}_{\text{pot}} = \mathbf{0}\text{)} \\
+\mathbf{v}_{\text{sol}}(\mathbf{x}) &= \nabla \times \mathbf{A}_v(\mathbf{x}) \quad &\text{(Solenoidal / transverse field satisfying } \nabla \cdot \mathbf{v}_{\text{sol}} = 0\text{)} \\
+\mathbf{v}_0 &= \frac{1}{V} \int_{\mathbb{T}^3} \mathbf{v}(\mathbf{x})\, \mathrm{d}^3\mathbf{x} = \hat{\mathbf{v}}(\mathbf{0}) \quad &\text{(Constant harmonic mean mode)}
+\end{aligned}
+$$
 
 In Fourier wavevector space ($\mathbf{k} \neq \mathbf{0}$), the decomposition is computed via the orthogonal projection tensors:
 
@@ -451,7 +460,11 @@ $$
 E_{\text{kin}} = E_0 + E_{\text{pot}} + E_{\text{sol}}
 $$
 
-where $E_0 = \frac{1}{2} V |\mathbf{v}_0|^2$, $E_{\text{pot}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}_{\text{pot}}(\mathbf{x})|^2 d^3\mathbf{x}$, and $E_{\text{sol}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}_{\text{sol}}(\mathbf{x})|^2 d^3\mathbf{x}$.
+where the individual kinetic energy components are:
+
+$$
+E_0 = \frac{1}{2} V |\mathbf{v}_0|^2, \quad E_{\text{pot}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}_{\text{pot}}(\mathbf{x})|^2\, \mathrm{d}^3\mathbf{x}, \quad E_{\text{sol}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}_{\text{sol}}(\mathbf{x})|^2\, \mathrm{d}^3\mathbf{x}
+$$
 
 #### Section Citations:
 1. Helmholtz, H. (1858), *Journal für die reine und angewandte Mathematik*, 55, 25–55. [DOI: 10.1515/crll.1858.55.25](https://doi.org/10.1515/crll.1858.55.25)
@@ -737,11 +750,15 @@ where $v \in \mathbb{R}^D$ represents the spatial field parameters, $p \in \math
 
 #### Symplectic Leapfrog Integrator:
 The time evolution for step size $\epsilon > 0$ follows the volume-preserving Störmer-Verlet operator:
-$$\begin{aligned}
+
+$$
+\begin{aligned}
 p\left(t + \frac{\epsilon}{2}\right) &= p(t) - \frac{\epsilon}{2} \nabla U(v(t)) \\
 v(t + \epsilon) &= v(t) + \epsilon M^{-1} p\left(t + \frac{\epsilon}{2}\right) \\
 p(t + \epsilon) &= p\left(t + \frac{\epsilon}{2}\right) - \frac{\epsilon}{2} \nabla U(v(t + \epsilon))
-\end{aligned}$$
+\end{aligned}
+$$
+
 Proposals $(v^*, p^*)$ at the end of $L$ integration steps are accepted with Metropolis probability:
 
 $$

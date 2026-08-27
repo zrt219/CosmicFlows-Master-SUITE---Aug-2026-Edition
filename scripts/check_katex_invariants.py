@@ -49,21 +49,36 @@ def main():
             
         display_eqs = re.findall(r'\$\$([\s\S]*?)\$\$', content)
         display_eqs_clean = [eq.strip() for eq in display_eqs if eq.strip()]
+        
+        # Also extract inline math (single dollar)
+        content_no_display = re.sub(r'\$\$[\s\S]*?\$\$', '', content)
+        inline_eqs = re.findall(r'(?<!\$)\$(?!\$)([^\$\n]+?)(?<!\$)\$(?!\$)', content_no_display)
+        inline_eqs_clean = [eq.strip() for eq in inline_eqs if eq.strip()]
+
         eqs_json = json.dumps(display_eqs_clean)
+        inline_json = json.dumps(inline_eqs_clean)
         
         js_eval = f"""
         (function() {{
             if (typeof katex === 'undefined') return {{ available: false }};
-            const eqs = {eqs_json};
+            const displayEqs = {eqs_json};
+            const inlineEqs = {inline_json};
             let errors = [];
-            eqs.forEach((eq, idx) => {{
+            displayEqs.forEach((eq, idx) => {{
                 try {{
                     katex.renderToString(eq, {{ displayMode: true, throwOnError: true }});
                 }} catch (e) {{
-                    errors.push({{ index: idx, error: e.message }});
+                    errors.push({{ type: 'display', index: idx, eq: eq, error: e.message }});
                 }}
             }});
-            return {{ available: true, total: eqs.length, errors: errors }};
+            inlineEqs.forEach((eq, idx) => {{
+                try {{
+                    katex.renderToString(eq, {{ displayMode: false, throwOnError: true }});
+                }} catch (e) {{
+                    errors.push({{ type: 'inline', index: idx, eq: eq, error: e.message }});
+                }}
+            }});
+            return {{ available: true, displayTotal: displayEqs.length, inlineTotal: inlineEqs.length, errors: errors }};
         }})()
         """
         res = client.evaluate(js_eval)
@@ -80,7 +95,7 @@ def main():
             print("  -", err)
         sys.exit(1)
     else:
-        print(f"[PASS] {len(display_eqs_clean)} display equations parsed with 0 KaTeX errors.")
+        print(f"[PASS] {len(display_eqs_clean)} display + {len(inline_eqs_clean)} inline equations parsed with 0 KaTeX errors.")
         sys.exit(0)
 
 if __name__ == "__main__":
