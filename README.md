@@ -180,7 +180,7 @@ Let $\mathbf{x} = (x_1, x_2, x_3)^T \equiv (\text{SGX}, \text{SGY}, \text{SGZ})^
 The spatial velocity gradient tensor $J \in \mathbb{R}^{3 \times 3}$ is defined in Cartesian index notation as:
 
 $$
-J_{ij} \equiv \frac{\partial v_i}{\partial x_j} = \begin{pmatrix} \frac{\partial v_x}{\partial x} & \frac{\partial v_x}{\partial y} & \frac{\partial v_x}{\partial z} \\ \frac{\partial v_y}{\partial x} & \frac{\partial v_y}{\partial y} & \frac{\partial v_y}{\partial z} \\ \frac{\partial v_z}{\partial x} & \frac{\partial v_z}{\partial y} & \frac{\partial v_z}{\partial z} \end{pmatrix}
+J_{ij} \equiv \frac{\partial v_i}{\partial x_j} = \left( \begin{matrix} \frac{\partial v_x}{\partial x} & \frac{\partial v_x}{\partial y} & \frac{\partial v_x}{\partial z} \\ \frac{\partial v_y}{\partial x} & \frac{\partial v_y}{\partial y} & \frac{\partial v_y}{\partial z} \\ \frac{\partial v_z}{\partial x} & \frac{\partial v_z}{\partial y} & \frac{\partial v_z}{\partial z} \end{matrix} \right)
 $$
 
 #### Decomposition into Rate-of-Strain and Vorticity:
@@ -300,13 +300,13 @@ $$
 The total physical angular momentum $\mathbf{L}(t)$ of a protogalaxy occupying Lagrangian volume $V_L$ is:
 
 $$
-\mathbf{L}(t) = a^2(t) \bar{\rho}_0 \int_{V_L} (\mathbf{x}(\mathbf{q}, t) - \bar{\mathbf{x}}) \times \dot{\mathbf{x}}(\mathbf{q}, t)\, d^3\mathbf{q}
+\mathbf{L}(t) = a^2(t) \bar{\rho}_0 \int_{V_L} (\mathbf{x}(\mathbf{q}, t) - \bar{\mathbf{x}}) \times \dot{\mathbf{x}}(\mathbf{q}, t)\, \mathrm{d}^3\mathbf{q}
 $$
 
 Expanding in the Zel'dovich regime and Taylor-expanding the external gravitational potential around the center of mass $\bar{\mathbf{q}}$:
 
 $$
-L_i(t) = -a^2(t)\dot{D}(t)\bar{\rho}_0 \epsilon_{ijk} \left.\frac{\partial^2 \Phi_0}{\partial q_k \partial q_l}\right|_{\bar{\mathbf{q}}} \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, d^3\mathbf{q}
+L_i(t) = -a^2(t)\dot{D}(t)\bar{\rho}_0 \epsilon_{ijk} \left.\frac{\partial^2 \Phi_0}{\partial q_k \partial q_l}\right|_{\bar{\mathbf{q}}} \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, \mathrm{d}^3\mathbf{q}
 $$
 
 Defining the protohalo homogeneous inertia tensor $I_{jl}$ and tidal tensor $T_{kl} \equiv \partial_k \partial_l \Phi_0$:
@@ -370,13 +370,13 @@ $$
 #### 1. Singular Isothermal Sphere (SIS):
 
 $$
-\rho(r) = \frac{\sigma^2}{2\pi G r^2}, \quad \frac{d\ln\rho(r)}{d\ln r} = -2, \quad M(<r) = \frac{2\sigma^2 r}{G}, \quad V_c(r) = \sqrt{2}\sigma = \text{const}
+\rho(r) = \frac{\sigma^2}{2\pi G r^2}, \quad \frac{\mathrm{d}\ln\rho(r)}{\mathrm{d}\ln r} = -2, \quad M(< r) = \frac{2\sigma^2 r}{G}, \quad V_c(r) = \sqrt{2}\sigma = \mathrm{const}
 $$
 
 #### 2. Hernquist (1990) Halo ($s = r/a_h$):
 
 $$
-\rho(r) = \frac{M a_h}{2\pi r (r + a_h)^3}, \quad M(<r) = M \frac{r^2}{(r + a_h)^2}, \quad \Phi(r) = -\frac{GM}{r + a_h}
+\rho(r) = \frac{M a_h}{2\pi r (r + a_h)^3}, \quad M(< r) = M \frac{r^2}{(r + a_h)^2}, \quad \Phi(r) = -\frac{GM}{r + a_h}
 $$
 
 $$
@@ -386,10 +386,10 @@ $$
 #### 3. Navarro-Frenk-White (NFW 1996) Halo ($x = r/r_s$):
 
 $$
-\rho(r) = \frac{\rho_0}{x(1+x)^2}, \quad M(<r) = 4\pi \rho_0 r_s^3 \left[ \ln(1+x) - \frac{x}{1+x} \right], \quad \Phi(r) = -4\pi G \rho_0 r_s^2 \frac{\ln(1+x)}{x}
+\rho(r) = \frac{\rho_0}{x(1+x)^2}, \quad M(< r) = 4\pi \rho_0 r_s^3 \left[ \ln(1+x) - \frac{x}{1+x} \right], \quad \Phi(r) = -4\pi G \rho_0 r_s^2 \frac{\ln(1+x)}{x}
 $$
 
-Using the Spence Dilogarithm $\mathrm{Li}_2(z) = -\int_0^z \frac{\ln(1-t)}{t}\, dt$:
+Using the Spence Dilogarithm $\mathrm{Li}_2(z) = -\int_{0}^{z} \frac{\ln(1-t)}{t}\, \mathrm{d}t$:
 
 $$
 \sigma_r^2(x) = \frac{1}{2} V_s^2 x(1+x)^2 \left[ \pi^2 - \ln x - \frac{1}{x} - \frac{1}{(1+x)^2} - \frac{6}{1+x} + \left( 1 + \frac{1}{x^2} - \frac{4}{x} - \frac{2}{1+x} \right) \ln(1+x) + 3\ln^2(1+x) + 6\mathrm{Li}_2(-x) \right]
@@ -408,7 +408,7 @@ where $V_s^2 = 4\pi G \rho_0 r_s^2$.
 
 ### 3.6 Helmholtz-Hodge Spectral Vector Decomposition & Parseval L2 Orthogonality
 
-On a 3D periodic torus $\mathbb{T}^3$, any smooth velocity field $\mathbf{v}(\mathbf{x}) \in C^\infty(\mathbb{T}^3; \mathbb{R}^3)$ decomposes uniquely into mutually orthogonal components:
+On a 3D periodic torus $\mathbb{T}^3$, any smooth velocity field $\mathbf{v}(\mathbf{x}) \in C^{\infty}(\mathbb{T}^3; \mathbb{R}^3)$ decomposes uniquely into mutually orthogonal components:
 
 $$
 \mathbf{v}(\mathbf{x}) = \mathbf{v}_{\text{pot}}(\mathbf{x}) + \mathbf{v}_{\text{sol}}(\mathbf{x}) + \mathbf{v}_0
@@ -427,11 +427,11 @@ $$
 In Fourier wavevector space ($\mathbf{k} \neq \mathbf{0}$), the decomposition is computed via the orthogonal projection tensors:
 
 $$
-\hat{v}^{\text{pot}}_i(\mathbf{k}) = \mathcal{P}^{\parallel}_{ij}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
+\hat{v}_i^{\text{pot}}(\mathbf{k}) = \mathcal{P}_{ij}^{\parallel}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
 $$
 
 $$
-\hat{v}^{\text{sol}}_i(\mathbf{k}) = \mathcal{P}^{\perp}_{ij}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\delta_{ij} - \frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
+\hat{v}_i^{\text{sol}}(\mathbf{k}) = \mathcal{P}_{ij}^{\perp}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\delta_{ij} - \frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
 $$
 
 where $k^2 \equiv |\mathbf{k}|^2 = k_1^2 + k_2^2 + k_3^2$.
@@ -441,20 +441,20 @@ where $k^2 \equiv |\mathbf{k}|^2 = k_1^2 + k_2^2 + k_3^2$.
 In the Hilbert space $L^2(\mathbb{T}^3)$, applying Plancherel's theorem:
 
 $$
-\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}^*(\mathbf{x})\, d^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}^*_{\text{sol}}(\mathbf{k})
+\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}^*(\mathbf{x})\, \mathrm{d}^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}_{\text{sol}}^*(\mathbf{k})
 $$
 
 For $\mathbf{k} = \mathbf{0}$, $\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0}) = \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}$. For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
 
 $$
-\mathcal{P}^{\parallel}_{im}(\mathbf{k}) \mathcal{P}^{\perp}_{in}(\mathbf{k}) = \left(\frac{k_i k_m}{k^2}\right) \left(\delta_{in} - \frac{k_i k_n}{k^2}\right) = \frac{(k_i \delta_{in}) k_m}{k^2} - \frac{(k_i k_i) k_m k_n}{k^4} = \frac{k_n k_m}{k^2} - \frac{k^2 k_m k_n}{k^4} = \frac{k_m k_n}{k^2} - \frac{k_m k_n}{k^2} \equiv 0
+\mathcal{P}_{im}^{\parallel}(\mathbf{k}) \mathcal{P}_{in}^{\perp}(\mathbf{k}) = \left(\frac{k_i k_m}{k^2}\right) \left(\delta_{in} - \frac{k_i k_n}{k^2}\right) = \frac{(k_i \delta_{in}) k_m}{k^2} - \frac{(k_i k_i) k_m k_n}{k^4} = \frac{k_n k_m}{k^2} - \frac{k^2 k_m k_n}{k^4} = \frac{k_m k_n}{k^2} - \frac{k_m k_n}{k^2} \equiv 0
 $$
 
 $$
 \boxed{\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \frac{1}{V} \sum_{\mathbf{k}} 0 \equiv 0 \quad \blacksquare}
 $$
 
-Total kinetic energy $E_{\text{kin}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}(\mathbf{x})|^2 d^3\mathbf{x}$ partitions exactly:
+Total kinetic energy $E_{\text{kin}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}(\mathbf{x})|^2\, \mathrm{d}^3\mathbf{x}$ partitions exactly:
 
 $$
 E_{\text{kin}} = E_0 + E_{\text{pot}} + E_{\text{sol}}
@@ -527,7 +527,7 @@ for $\mu(p) \le \mu(q)$ under transverse intersection $W^s(p) \pitchfork W^u(q)$
 On a 3D cubical complex filtration $K(\delta_{\text{th}})$, chain groups $C_k(K; \mathbb{Z}_2)$ with boundary operators $\partial_k: C_k \to C_{k-1}$ satisfy the exact nilpotency identity:
 
 $$
-\partial_k \circ \partial_{k+1} \equiv 0 \pmod 2 \quad (\partial^2 = 0)
+\partial_k \circ \partial_{k+1} \equiv 0 \pmod{2} \quad (\partial^2 = 0)
 $$
 
 The $k$-th homology group is $H_k(K; \mathbb{Z}_2) = \ker \partial_k / \mathrm{im}\,\partial_{k+1}$, and the $k$-th Betti number $\beta_k(\delta_{\text{th}})$ is:
@@ -592,7 +592,13 @@ This dimensionless constant serves as an exact topological benchmark; any observ
 
 ### 3.10 Multipolar Bulk Flow Estimators & Cosmic Variance Covariance
 
-For galaxies with measured line-of-sight velocities $u_n = \mathbf{v}_n \cdot \hat{\mathbf{r}}_n + \epsilon_n$ with weights $w_n = \frac{1}{\sigma_n^2 + \sigma_v^2}$ (where $\sigma_v \approx 187\,\mathrm{km}/\mathrm{s}$ is the 1D thermal cosmic velocity dispersion), the maximum-likelihood bulk flow dipole is:
+For galaxies with measured line-of-sight velocities $u_n$ and inverse-variance weights $w_n$:
+
+$$
+u_n = \mathbf{v}_n \cdot \hat{\mathbf{r}}_n + \epsilon_n, \quad w_n = \frac{1}{\sigma_n^2 + \sigma_v^2}
+$$
+
+where $\sigma_v \approx 187\,\mathrm{km}/\mathrm{s}$ is the 1D thermal cosmic velocity dispersion. The maximum-likelihood bulk flow dipole is:
 
 $$
 \mathbf{V}_{\mathrm{bulk}} = \mathbf{A}^{-1} \mathbf{B}, \quad A_{ij} = \sum_{n=1}^N w_n \hat{r}_{n,i} \hat{r}_{n,j}, \quad B_i = \sum_{n=1}^N w_n u_n \hat{r}_{n,i}
@@ -604,7 +610,11 @@ $$
 \mathbf{C}_{\mathrm{stat}} = \mathbf{A}^{-1}
 $$
 
-and 1D component uncertainties $\sigma_{V_i} = \sqrt{(\mathbf{A}^{-1})_{ii}}$, yielding bulk flow magnitude uncertainty $\sigma_{|\mathbf{V}_{\mathrm{bulk}}|} = \sqrt{\hat{\mathbf{V}}^T \mathbf{A}^{-1} \hat{\mathbf{V}}}$.
+and individual 1D component uncertainties and bulk flow magnitude error:
+
+$$
+\sigma_{V_i} = \sqrt{(\mathbf{A}^{-1})_{ii}}, \quad \sigma_{|\mathbf{V}_{\mathrm{bulk}}|} = \sqrt{\hat{\mathbf{V}}^T \mathbf{A}^{-1} \hat{\mathbf{V}}}
+$$
 
 #### Spherical Multipole Expansion:
 The radial velocity field on the sphere is expanded in orthonormal spherical harmonics $Y_{\ell m}(\theta, \phi)$:
@@ -699,10 +709,15 @@ $$
 m_{\mathrm{corr}} = m_{\mathrm{obs}} - R_{\mathrm{band}} E(B-V)_{\mathrm{SFD}} - \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) - K(z)
 $$
 
-where:
-- $E(B-V)_{\mathrm{SFD}}$ is the Galactic foreground dust reddening from the Schlegel, Finkbeiner & Davis (SFD98) / Schlafly & Finkbeiner (2011) maps with bandpass coefficient $R_{\mathrm{band}} = A_{\mathrm{band}} / E(B-V)$.
-- $A_{\mathrm{int}} = \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) = \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(1/\cos i)$ is the internal galaxy dust extinction.
-- $K(z) \approx k_1 z$ is the cosmological $K$-correction.
+where the individual extinction and correction terms are:
+
+$$
+\begin{aligned}
+A_{\mathrm{gal}} &= R_{\mathrm{band}} E(B-V)_{\mathrm{SFD}} \quad &\text{(Galactic foreground dust extinction)} \\
+A_{\mathrm{int}} &= \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) = \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(1/\cos i) \quad &\text{(Internal galaxy dust extinction)} \\
+K(z) &\approx k_1 z \quad &\text{(Cosmological } K\text{-correction)}
+\end{aligned}
+$$
 
 The calibrated distance modulus $\mu_0$, metric distance $d$, reduced Hubble distance $d_h$, and radial peculiar velocity $v_{\mathrm{pec}}$ are:
 
@@ -832,7 +847,11 @@ $$
 \mathrm{MPSRF} = \sqrt{\frac{N-1}{N} + \left(\frac{M+1}{M}\right)\lambda_{\max}\left(\mathbf{W}^{-1}\mathbf{B}/N\right)} \le 1.05
 $$
 
-- **Effective Sample Size (ESS)**: Computed via the multi-chain cross-variogram pooled autocorrelation function $\hat{\rho}_k = 1 - \frac{V_k}{2\widehat{V}^+}$:
+- **Effective Sample Size (ESS)**: Computed via the multi-chain cross-variogram pooled autocorrelation function:
+
+$$
+\hat{\rho}_k = 1 - \frac{V_k}{2\widehat{V}^+}
+$$
 
 $$
 \text{ESS} = \frac{MN}{\hat{\tau}_{\text{int}}} = \frac{MN}{1 + 2 \sum_{k=1}^{2K+1} \hat{\rho}_k}, \quad \text{ESS}_{\text{bulk}} \ge 400, \quad \text{ESS}_{\text{tail}} \ge 200
