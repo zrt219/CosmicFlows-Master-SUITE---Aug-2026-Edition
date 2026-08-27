@@ -16,7 +16,9 @@ All indexing, interpolation, derivative, visualization, streamline, watershed, a
 
 ## 3. CF4 Velocity Scale Factor (Exact 52.0 Multiplier)
 The official CosmicFlows project specifies that the values in the public CF4 velocity grids and associated error products must be multiplied by:
-$$52.0$$
+$$
+52.0
+$$
 before being interpreted as physical peculiar velocities. Apply this scaling:
 * only to validated CF4 velocity values and errors;
 * exactly once.
@@ -24,7 +26,9 @@ Attempting to apply it twice must fail loudly.
 
 ## 4. Linear-Theory Continuity Diagnostic
 Where linear perturbation theory is appropriate, evaluate consistency using:
-$$\nabla \cdot \mathbf{v} \approx -H_0 f \delta$$
+$$
+\nabla \cdot \mathbf{v} \approx -H_0 f \delta
+$$
 when $a=1$ and $H=H_0$. This is a linear-regime scientific validation diagnostic, not an exact identity in strongly non-linear collapsed regions.
 
 ## 5. Watershed IDs Are Reconstruction-Specific
@@ -121,9 +125,206 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
 2. **Asterisk Superscript Disambiguation (`^{\ast}`)**: Never use raw `^*` in LaTeX math formulas; always write `^{\ast}` (e.g. `\Sigma^{\ast}`, `\lambda^{\ast}`, `v^{\ast}`, `p^{\ast}`). Literal asterisks inside inline or display math are parsed by CommonMark as markdown italics and bullet triggers, which corrupts formulas on GitHub.
 3. **Subscript Superscript Double Bracing (`_{{...}}`)**: When a subscript contains a superscript (e.g. $L^2$), always wrap the outer subscript in double braces `_{{L^2}}` or write `_{L^{2}}` to prevent MathJax strict double-subscript parsing exceptions.
 4. **HTML Angle Bracket Escaping**: Never write raw angle brackets directly adjacent to letters in prose or inline math (e.g., `<r`, `<d`); always insert explicit whitespace (`< r`) or use LaTeX relational symbols (`\le`, `\ge`, `\prec`).
-5. **Strict Display Block Isolation**: The closing `$$` tag must always reside on its own dedicated line without any trailing prose on the same line, with empty blank lines preceding and following the block.
+5. **Strict Display Block Isolation**: The closing display math delimiter (`$$ ... $$`) must always reside on its own dedicated line without any trailing prose on the same line, with empty blank lines preceding and following the block.
 6. **Exhaustive Dual-Mode KaTeX Invariant Gate**: Every mathematical formula across all documentation (`README.md`, `AGENTS.md`, `GEMINI.md`) and in-app UI modals/tooltips (`#primer-modal`) MUST pass the automated in-browser KaTeX linter (`python scripts/check_katex_invariants.py`) asserting:
    - Zero display math errors (`displayMode: true`)
    - Zero inline math errors (`displayMode: false`)
    - Zero unparsed LaTeX macros visible as plain text.
 
+## 22. Comoving vs. Physical Velocity Transformation Invariants
+1. Peculiar velocity $\mathbf{v}_{\text{pec}}$ and proper recession velocity $\mathbf{v}_{\text{rec}}$ must strictly adhere to cosmological expansion kinematic transformations:
+
+$$
+\mathbf{v}_{\text{rec}}(\mathbf{r}, t) = H(t)\mathbf{r} + \mathbf{v}_{\text{pec}}(\mathbf{x}, t), \quad \mathbf{v}_{\text{pec}} = a(t)\dot{\mathbf{x}}
+$$
+
+2. Direct arithmetic combinations of comoving spatial coordinates $\mathbf{x}$ and proper physical coordinates $\mathbf{r} = a(t)\mathbf{x}$ without scale factor $a(t)$ conversion are strictly prohibited.
+
+## 23. Cosmological Growth Factor & Logarithmic Rate Invariants
+1. The linear growth factor $D(a)$ and growth rate $f(a)$ must be computed via exact numerical integration of the linear perturbation ODE:
+
+$$
+\frac{\mathrm{d}^2 D}{\mathrm{d}a^2} + \left( \frac{3}{a} + \frac{1}{H(a)}\frac{\mathrm{d}H}{\mathrm{d}a} \right) \frac{\mathrm{d}D}{\mathrm{d}a} = \frac{3 \Omega_{m,0}}{2 a^5 \left[H(a)/H_0\right]^2} D(a)
+$$
+
+2. In $\Lambda\mathrm{CDM}$ cosmology, evaluate logarithmic growth rates using $f \equiv \frac{\mathrm{d}\ln D}{\mathrm{d}\ln a} \approx \Omega_m(a)^{0.55}$. Approximations must fail loudly outside $z \in [0, 10]$.
+
+## 24. Lagrangian Zel'dovich Displacement Invariants
+1. In Lagrangian perturbation theory, displacement vector fields $\mathbf{\Psi}(\mathbf{q})$ must satisfy:
+
+$$
+\mathbf{x}(\mathbf{q}, t) = \mathbf{q} - D(t)\nabla_{\mathbf{q}} \Phi_0(\mathbf{q}), \quad \mathbf{\Psi}(\mathbf{q}) \equiv -\nabla_{\mathbf{q}}\Phi_0(\mathbf{q})
+$$
+
+where $\nabla_{\mathbf{q}} \cdot \mathbf{\Psi}(\mathbf{q}) = -\delta_0(\mathbf{q})$.
+2. Displacement vectors must maintain strict units of comoving $\text{Mpc}/h$.
+
+## 25. Rate-of-Strain & Vorticity Tensor Orthogonality Invariant
+1. The symmetric rate-of-strain $S_{ij} = \frac{1}{2}(\partial_j v_i + \partial_i v_j)$ and anti-symmetric vorticity tensor $\Omega_{ij} = \frac{1}{2}(\partial_j v_i - \partial_i v_j)$ must satisfy strict Frobenius inner-product orthogonality:
+
+$$
+\mathrm{Tr}(S\Omega) = S_{ij}\Omega_{ij} \equiv 0
+$$
+
+2. Any numerical algorithm computing the Okubo-Weiss invariant $Q \equiv \mathrm{Tr}(S^2) - \mathrm{Tr}(\Omega\Omega^{\top})$ must enforce this contraction identity to machine precision ($< 10^{-14}$).
+
+## 26. Cosmic Web Deformation Eigenvalue Ordering Invariant
+1. All V-web and gravitational deformation tensor analyses must enforce descending eigenvalue sorting:
+
+$$
+\lambda_1 \ge \lambda_2 \ge \lambda_3
+$$
+
+2. Threshold classification functions must never accept unsorted eigenvalues and must validate threshold parameter $\gamma_{\text{th}} > 0$.
+
+## 27. Halo Virial Mass & Concentration Invariants
+1. Dark matter halo virial quantities must be evaluated at spherical overdensity $\Delta = 200$ relative to critical density $\rho_{\text{crit}}(z) = \frac{3 H^2(z)}{8\pi G}$:
+
+$$
+M_{200} = \frac{4\pi}{3} 200 \rho_{\text{crit}}(z) R_{200}^3, \quad c_{200} \equiv \frac{R_{200}}{r_s}
+$$
+
+2. Direct addition of mass $M_{200}$ and radius $R_{200}$ is dimensionally prohibited; mass must be represented in solar masses $M_{\odot}$ or $10^{14}\,h^{-1}M_{\odot}$.
+
+## 28. Wiener Filter Reconstruction Matrix Invariants
+1. The minimum-variance linear Wiener Filter field reconstruction must satisfy:
+
+$$
+\mathbf{s}_{\text{WF}} = \mathbf{S} \mathbf{R}^{\dagger} \left( \mathbf{R} \mathbf{S} \mathbf{R}^{\dagger} + \mathbf{N} \right)^{-1} \mathbf{d}
+$$
+
+where $\mathbf{S} \equiv \langle \mathbf{s}\mathbf{s}^{\dagger} \rangle$ is the signal cosmological covariance matrix, $\mathbf{N} \equiv \langle \mathbf{n}\mathbf{n}^{\dagger} \rangle$ is the noise covariance matrix, and $\mathbf{R}$ is the survey selection operator.
+2. Numerical matrix inversions must employ Cholesky or LDL decomposition with condition number checking.
+
+## 29. Symplectic Integrator Phase-Space Volume Preservation
+1. Hamiltonian Monte Carlo trajectory integrators must use symplectic Störmer-Verlet leapfrog time-stepping.
+2. Trajectory integrators must preserve phase-space volume:
+
+$$
+\det J = \left| \det \frac{\partial (v(t+\epsilon), p(t+\epsilon))}{\partial (v(t), p(t))} \right| \equiv 1
+$$
+
+3. Energy drift $\Delta \mathcal{H} = |\mathcal{H}(t) - \mathcal{H}(0)|$ exceeding $10^{-2}$ per step must trigger adaptive step-size reduction.
+
+## 30. MCMC Convergence Diagnostic Threshold Invariants
+1. Posterior chain convergence must be validated against strict statistical thresholds:
+   - Rank-split potential scale reduction factor: $\hat{R} \le 1.01$
+   - Multivariate potential scale reduction factor: $\text{MPSRF} \le 1.05$
+   - Minimum effective sample size: $\text{ESS}_{\text{bulk}} \ge 400$, $\text{ESS}_{\text{tail}} \ge 200$
+   - Geweke stationarity $Z$-score: $|Z| \le 1.96$ ($p > 0.05$)
+
+## 31. Optimal Covariance Shrinkage Intensity Invariants
+1. Ledoit-Wolf and Oracle Approximating Shrinkage (OAS) estimators must bound the shrinkage intensity $\hat{\lambda}^{\ast} \in [0, 1]$ and preserve positive-definiteness:
+
+$$
+\Sigma^{\ast} = (1 - \lambda^{\ast}) S + \lambda^{\ast} \mu I_p, \quad \lambda_{\min}(\Sigma^{\ast}) > 0
+$$
+
+## 32. Malmquist Bias Sign & Correction Formula Invariants
+1. Homogeneous Malmquist distance modulus corrections must strictly apply a negative shift to observed distance moduli:
+
+$$
+\Delta\mu_{\text{hom}} = -\frac{3\ln 10}{5}\sigma_{\mu}^2 \approx -1.38155\,\sigma_{\mu}^2, \quad d_{\text{corr}} = d_{\text{obs}} \cdot 10^{\frac{\Delta\mu_{\text{hom}}}{5}}
+$$
+
+2. Positive homogeneous Malmquist corrections are unphysical and must fail loudly.
+
+## 33. Minimum-Variance Bulk Flow Weighting Invariants
+1. Galaxy peculiar velocity weights $w_n$ must incorporate both observational error $\sigma_n$ and 1D thermal cosmic velocity dispersion $\sigma_v \approx 187\,\text{km}/\text{s}$:
+
+$$
+w_n = \frac{1}{\sigma_n^2 + \sigma_v^2}
+$$
+
+2. Weights must never be zero or negative ($\sigma_n^2 + \sigma_v^2 > 0$).
+
+## 34. Homology Boundary Operator Nilpotency Invariant
+1. All cubical and simplicial persistent homology engines must satisfy the fundamental chain complex identity:
+
+$$
+\partial_k \circ \partial_{k+1} \equiv 0 \pmod 2 \quad (\partial^2 = 0)
+$$
+
+2. Every cell filtration $K(\delta_{\text{th}})$ must verify nilpotency before computing Betti numbers $\beta_k = \dim(\ker \partial_k) - \dim(\mathrm{im}\,\partial_{k+1})$.
+
+## 35. Morse Critical Point Index Invariant
+1. 3D stationary point classification on smooth velocity fields must map the Hessian/Jacobian eigenvalue signature directly to Morse index $\mu \in \{0, 1, 2, 3\}$:
+   - $\mu = 0$: Local minimum / Repeller Void ($\lambda_1, \lambda_2, \lambda_3 > 0$)
+   - $\mu = 1$: 1-Saddle / Cosmic Wall Hub ($\lambda_1 < 0 < \lambda_2 \le \lambda_3$)
+   - $\mu = 2$: 2-Saddle / Cosmic Filament Hub ($\lambda_1 \le \lambda_2 < 0 < \lambda_3$)
+   - $\mu = 3$: Local maximum / Attractor Node ($\lambda_1, \lambda_2, \lambda_3 < 0$)
+
+## 36. Simplicial Surface Gauss-Bonnet Invariant
+1. All 3D watershed basin boundaries extracted via Marching Tetrahedra must form closed, orientable 2-manifolds satisfying the discrete Gauss-Bonnet angular defect theorem:
+
+$$
+\sum_{v \in V} K_v = \sum_{v \in V} \left( 2\pi - \sum_{f \in F(v)} \theta_f(v) \right) = 2\pi \chi(\mathcal{M}) = 4\pi
+$$
+
+2. Non-zero boundary gaps or self-intersecting non-manifold facets constitute critical geometry generation failures.
+
+## 37. Tomita-Gott Gaussian Random Field Morphometry Invariant
+1. The theoretical Euler characteristic density $V_3(\nu) = N (\nu^2 - 1) e^{-\nu^2/2}$ must evaluate to zero at $\nu = \pm 1$ and exhibit the universal Gaussian peak-to-trough asymmetry constant:
+
+$$
+A_{\text{GRF}} \equiv \frac{|V_3(0)| - V_3(\sqrt{3})}{|V_3(0)| + V_3(\sqrt{3})} = \frac{1 - 2 e^{-3/2}}{1 + 2 e^{-3/2}} \approx 0.38288
+$$
+
+## 38. Inter-Basin Hydrodynamic Flux Facet Orientation Invariant
+1. Inter-basin mass flux integrals across triangulated separatrix surfaces must compute outward unit normals via standard counter-clockwise vertex ordering:
+
+$$
+\hat{\mathbf{n}}_k = \frac{(\mathbf{x}_{k,1} - \mathbf{x}_{k,0}) \times (\mathbf{x}_{k,2} - \mathbf{x}_{k,0})}{\|(\mathbf{x}_{k,1} - \mathbf{x}_{k,0}) \times (\mathbf{x}_{k,2} - \mathbf{x}_{k,0})\|}, \quad \Phi_{AB} = \sum_{k=1}^{N_{\text{tri}}} \rho_k (\mathbf{v}_k \cdot \hat{\mathbf{n}}_k) A_k
+$$
+
+2. Inconsistent normal flips across adjacent facets are strictly forbidden.
+
+## 39. Explicit WebGL Memory Disposal & Zero VRAM Leak Invariant
+1. When destroying scenes, swapping reconstruction datasets, or rebuilding streamlines:
+   - Geometries: `geometry.dispose()`
+   - Materials: `material.dispose()`
+   - Textures: `texture.dispose()`
+   - Render Targets: `renderTarget.dispose()`
+2. Continuous dataset switching must demonstrate zero GPU memory growth.
+
+## 40. Shader Floating-Point Defensive Clamping Invariant
+1. Custom GLSL shaders must specify `precision highp float;` and guard all division, square roots, and logarithms against `NaN` or `Infinity`:
+   - `float safeDiv(float n, float d) { return n / max(abs(d), 1e-7); }`
+   - `float safeLog(float x) { return log(max(x, 1e-7)); }`
+
+## 41. UnrealBloomPass & Tone-Mapping HDR Clamping
+1. Luminance thresholding in post-processing bloom passes must use half-float render targets (`THREE.HalfFloatType`) and enforce Reinhard or ACESFilmic tone-mapping to prevent white clipping artifacts.
+
+## 42. Instanced Double-Buffering for 60 FPS Particle Advection
+1. Particle advection across thousands of streamlines must use instanced buffer attributes with double-buffered vertex buffers to eliminate garbage collection pauses and avoid WebGL buffer reallocation during continuous time scrubbing.
+
+## 43. Raycast Click vs. Drag Disambiguation Invariant
+1. Canvas pointer events must distinguish between discrete selection taps ($\Delta r < 5\,\text{px}, \Delta t < 350\,\text{ms}$) and continuous OrbitControls camera dragging ($\Delta r \ge 5\,\text{px}$).
+2. Drag gestures must never trigger inspection modals or cluster picking.
+
+## 44. WebGL Context Loss Recovery & Fallback Invariant
+1. All 3D WebGL renderers must listen for `webglcontextlost` and `webglcontextrestored` events on canvas elements, cleanly pausing the animation loop on loss and re-initializing shaders/buffers upon context restoration.
+
+## 45. Pure CSS Variable Theming & Dynamic Rem/Calc Scaling
+1. All layout spacing, font sizes, border radii, and accent colors must use CSS variables (`--ui-scale`, `--accent-primary`, `--bg-card`) with dynamic `calc()` expressions.
+2. Hardcoded pixel font sizes in UI components are forbidden.
+
+## 46. Focus-Visible Keyboard Navigation Invariant
+1. Every interactive button, dropdown, slider, and checkbox must display a high-contrast focus ring (`outline: 2px solid var(--accent-primary)`) when navigated via Tab / arrow keys.
+2. All modal dialogues must dismiss cleanly on Escape key press.
+
+## 47. Live Telemetry & Epistemic Uncertainty Badge Synchronization
+1. Physical and epistemological status badges must synchronize in real time across the primary topbar, floating HUD, and drawer inspection panels when astronomical datasets or active engines are toggled.
+
+## 48. Subsystem Global Namespace Encapsulation
+1. All JavaScript classes, mathematical solvers, data loaders, and controllers must reside inside the single top-level namespace `window.cosmicflows` or export clean ES6 modules.
+2. Unscoped global variables on `window` are strictly prohibited.
+
+## 49. Mandatory Dual-Mode KaTeX In-Browser CDP Verification Gate
+1. Every pull request or commit must pass `scripts/check_katex_invariants.py`, asserting 0 parse errors across both `displayMode: true` and `displayMode: false` across all documentation and in-app templates.
+
+## 50. Astronomical Data File Format & Byte-Order Integrity
+1. FITS and CSV data ingestion routines must parse big-endian binary float arrays correctly and assert data shape and non-NaN values upon loading.
+
+## 51. Zero Console Error & Zero Unhandled Exception Production Gate
+1. The master pre-commit gate (`python scripts/pre_commit_gate.py`) must pass 100% across all automated suites (AST TDZ, headless CDP boot exceptions, canvas drag, image variance, splash lifecycle, KaTeX linter) with zero warnings or errors before publishing builds.
