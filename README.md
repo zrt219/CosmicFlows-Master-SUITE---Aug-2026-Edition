@@ -449,17 +449,23 @@ where $k^2 \equiv |\mathbf{k}|^2$.
 In the Hilbert space $L^2(\mathbb{T}^3)$, applying Plancherel's theorem:
 
 $$
-\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}^*(\mathbf{x})\, \mathrm{d}^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}_{\text{sol}}^*(\mathbf{k})
+\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{{L^2}} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}^{*}(\mathbf{x})\, \mathrm{d}^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}_{\text{sol}}^{*}(\mathbf{k})
 $$
 
-For $\mathbf{k} = \mathbf{0}$, $\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0})$ $= \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}$. For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
+For the zero harmonic mode $\mathbf{k} = \mathbf{0}$:
+
+$$
+\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0}) = \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}
+$$
+
+For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
 
 $$
 \mathcal{P}_{im}^{\parallel}(\mathbf{k}) \mathcal{P}_{in}^{\perp}(\mathbf{k}) = \left(\frac{k_i k_m}{k^2}\right) \left(\delta_{in} - \frac{k_i k_n}{k^2}\right) = \frac{(k_i \delta_{in}) k_m}{k^2} - \frac{(k_i k_i) k_m k_n}{k^4} = \frac{k_n k_m}{k^2} - \frac{k^2 k_m k_n}{k^4} = \frac{k_m k_n}{k^2} - \frac{k_m k_n}{k^2} \equiv 0
 $$
 
 $$
-\boxed{\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \frac{1}{V} \sum_{\mathbf{k}} 0 \equiv 0 \quad \blacksquare}
+\boxed{\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{{L^2}} = \frac{1}{V} \sum_{\mathbf{k}} 0 \equiv 0 \quad \blacksquare}
 $$
 
 Total kinetic energy $E_{\text{kin}}$ (total kinetic energy) partitions exactly:
