@@ -98,6 +98,21 @@ Never use one universal hard-coded basin-ID table for every CosmicFlows watershe
    - Force-dismiss any active splash overlay (`pointer-events: none; display: none`).
    - Re-enable OrbitControls camera dragging and maintain active WebGL animation frames.
 3. The diagnostics modal must provide a copyable JSON payload containing error stack traces, active cosmological engine, GPU context, and theme state.
+## 17. Color-Blind Accessibility, High-Legibility Baseline & UI Scaling
+1. **Comfortable Baseline Sizing**: All interactive buttons must maintain a minimum text size of $\ge 11\,\text{px}$ bold with explicit $1.5\,\text{px}$ solid border outlines and distinct icon badges. Never rely on subtle background hue shifts alone for state distinction.
+2. **Dual-Coding Invariant**: Every actionable control must feature dual visual coding (distinct emoji/icon + high-contrast text label).
+3. **Dynamic UI Size Scaling**: The application must support variable UI size scaling (`--ui-scale`: 100%, 125%, 150%). All font sizes, paddings, and header heights must scale via `calc(... * var(--ui-scale))` while automatically triggering `resize` events to preserve dynamic viewport clearance margins (Rule 9).
+4. **Color-Blind Safe Palettes**: Provide accessible theme accent presets (Cyan/Blue, Solar Gold [Protan/Deutan Safe], Nebula Violet [Tritan Safe], Emerald, Monochrome).
 
+## 18. Top Navigation Header Cluster Isolation & Scalable Drawer Grids
+1. **Isolated Flex Containers**: Top navigation headers must segregate action button clusters and right-hand telemetry/model banners into dedicated flex items. Right-hand model banners must enforce `max-width` and `text-overflow: ellipsis` with `white-space: nowrap` to prevent text cut-off on narrower displays.
+2. **Auto-Fit Drawer Grids**: Multi-tab scientific drawer headers must use responsive auto-fit CSS grids (`grid-template-columns: repeat(4, 1fr)` or `repeat(auto-fit, minmax(105px, 1fr))`) rather than rigid $N \times 2$ matrices, guaranteeing that adding new settings or diagnostics tabs never causes visual overflow or clipping.
 
+## 19. Canonical Global State Synchronization Across Multi-Location Settings
+1. When user preferences (e.g. Tooltip Mode, UI Scale, GPU HUD Visibility, Theme) are exposed in multiple UI locations (topbar buttons, drawer panes, modal dialogues):
+   - State mutations MUST pass through one canonical setter function (e.g. `setTooltipMode()`, `setUiScale()`, `applyCustomAccent()`).
+   - All canonical setters MUST be explicitly exported on `window` and sync all associated DOM `<select>` values, `<input>` ranges, text badges, and `localStorage` keys simultaneously.
 
+## 20. Cosmological Epistemic Uncertainty Semantics & Action-Oriented Naming
+1. **Action-Oriented Control Labels**: UI controls in scientific workbenches must prioritize intuitive, action-oriented plain-English names (`Choose Model`, `Show Labels`, `Filter Galaxies`, `Superclusters`, `Distances`, `Gravity Sim`, `Flow Rivers`, `Cosmic Web`, `App Settings`) with clear subtitle summaries under group headings.
+2. **Epistemic Uncertainty Semantics**: In Bayesian cosmological field reconstruction, "Epistemic Code" strictly represents observational measurement uncertainty (Tully-Fisher scatter, Zone of Avoidance dust obscuration, Wiener Filter posterior variances $\sigma_{\delta}$, selection biases), distinct from physical cosmic variance. Every reconstruction product must display its epistemic status code (`● Observed`, `≈ Reconstructed`, `◌ Posterior Sample`, `◇ Simulated`, `★ Sandbox`).
