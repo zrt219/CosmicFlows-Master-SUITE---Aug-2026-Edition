@@ -69,14 +69,18 @@ The development of the **ZRT CosmicFlows-4 Research Workbench** represents an en
 ### Step 1: Scientific Invariants & Axiomatic Foundation
 - Formulated the **9 Cosmological Invariant Principles** documented in [`AGENTS.md`](AGENTS.md) and [`GEMINI.md`](GEMINI.md).
 - Enforced strict 7-base physical dimension tensor checking (`[L, M, T, I, Theta, N, J]`), guaranteeing that incompatible dimensional arithmetic (e.g. combining spatial coordinates in $\text{Mpc}/h$ directly with peculiar velocities in $\text{km}/\text{s}$) fails loudly with an explicit runtime `TypeError`.
-- Locked in the canonical coordinate transformation mapping official CosmicFlows Fortran row-major slice storage $(\text{SGZ}, \text{SGY}, \text{SGX})$ into the canonical ZRT Cartesian representation $(\text{SGX}, \text{SGY}, \text{SGZ})$ with exact 1D stride indexing: $\text{index}(i_x, i_y, i_z) = i_x + N_x \cdot (i_y + N_y \cdot i_z)$.
+- Locked in the canonical coordinate transformation mapping official CosmicFlows Fortran row-major slice storage $(\text{SGZ}, \text{SGY}, \text{SGX})$ into the canonical ZRT Cartesian representation $(\text{SGX}, \text{SGY}, \text{SGZ})$ with exact 1D stride indexing:
+
+$$
+\text{index}(i_x, i_y, i_z) = i_x + N_x \cdot (i_y + N_y \cdot i_z)
+$$
 - Validated the official Cosmicflows project velocity scaling factor of **exactly $\times 52.0$**, ensuring physical peculiar velocity units ($\text{km}/\text{s}$) are decoupled from cosmological growth rate parameters ($H_0 f$) and applied strictly once.
 
 ### Step 2: 87,516 LOC Modular Subsystem Architecture
 - Constructed an industrial-scale codebase across 17 dedicated subsystems in `src/`:
-  1. `src/fields/`: Symmetric rate-of-strain tensors $S_{ij}$, antisymmetric vorticity $\Omega_{ij}$, Okubo-Weiss vortex criteria $Q = s^2 - \omega^2$, trace-free gravitational tidal tensors $T_{ij}$, velocity dispersion tensors $\sigma_{ij}^2$, and 3D spectral Helmholtz-Hodge vector field decompositions.
-  2. `src/topology/`: Multidimensional 3D Newton-Raphson stationary point isolators, Morse-Smale complex topological cells, 3D cubical complexes, $\mathbb{Z}_2$ persistent homology nilpotency $\partial \circ \partial = 0$, Betti curves ($\beta_0, \beta_1, \beta_2$), and Tomita-Gott Euler characteristic density $V_3(\nu)$.
-  3. `src/bulk-flow/`: Maximum-likelihood dipole estimators, spherical harmonic multipole series $u(r, \theta, \phi) = \sum a_{\ell m} Y_{\ell m}$, quadrupole cosmic shear tensors $Q_{jk}$, and top-hat cosmic variance covariance matrices $R_{ij}(R)$.
+  1. `src/fields/`: Symmetric rate-of-strain tensors $S$, antisymmetric vorticity $\Omega$, Okubo-Weiss vortex criteria $Q$, trace-free gravitational tidal tensors $T$, velocity dispersion tensors $\sigma^2$, and 3D spectral Helmholtz-Hodge vector field decompositions.
+  2. `src/topology/`: Multidimensional 3D Newton-Raphson stationary point isolators, Morse-Smale complex topological cells, 3D cubical complexes, $\mathbb{Z}_2$ persistent homology nilpotency $\partial \circ \partial = 0$, Betti curves ($\beta_0$, $\beta_1$, $\beta_2$), and Tomita-Gott Euler characteristic density $V_3(\nu)$.
+  3. `src/bulk-flow/`: Maximum-likelihood dipole estimators, spherical harmonic multipole series, quadrupole cosmic shear tensors, and top-hat cosmic variance covariance matrices.
   4. `src/data/`: Multi-band Tully-Fisher calibrators (WISE $W1/W2$, Spitzer $3.6\,\mu\text{m}$, SDSS $i$, 2MASS $K_s$), 21cm $\text{H}\,\text{I}$ linewidth de-projection algorithms, extinction de-reddening (SFD98), and homogeneous/inhomogeneous Malmquist bias estimators.
   5. `src/uncertainty/`: 10,000-step Bayesian Hamiltonian Monte Carlo (HMC) phase-space samplers, symplectic leapfrog integrators, Ledoit-Wolf and Oracle Approximating Shrinkage (OAS) covariance regularizers, Gelman-Rubin rank-split $\hat{R} \le 1.01$, and Geweke spectral convergence tests.
   6. `src/surfaces/`: Simplicial Marching Tetrahedra (6 Kuhn / 5 alternating tetrahedra) generating guaranteed closed 2-manifold watershed separatrix surfaces with discrete Gauss-Bonnet angular defect sums ($\sum K_v = 4\pi$).
@@ -155,7 +159,7 @@ $$
 \nabla \cdot \mathbf{v}(\mathbf{x}) \approx -a H f \delta(\mathbf{x})
 $$
 
-At present epoch ($a=1, H=H_0$), this diagnostic validates whether smoothed velocity divergence matches density contrast in linear regimes ($L_2$ residual $< 0.25$).
+At present epoch ($a=1$, $H=H_0$), this diagnostic validates whether smoothed velocity divergence matches density contrast in linear regimes ($L_2$ residual $< 0.25$).
 
 ### Rule 5: Official Table A.1 Watershed Basin Taxonomy
 Basin identities follow the verified sequence from **Dupuy & Courtois (2023), Table A.1**:
@@ -175,7 +179,11 @@ Basin identities follow the verified sequence from **Dupuy & Courtois (2023), Ta
 
 ### 3.1 Velocity Gradient, Symmetric Strain Rate, Vorticity & Okubo-Weiss Invariants
 
-Let $\mathbf{x} = (x_1, x_2, x_3)^T \equiv (\text{SGX}, \text{SGY}, \text{SGZ})^T \in \mathbb{R}^3$ denote the comoving Supergalactic Cartesian coordinates, and let $\mathbf{v}(\mathbf{x}) = (v_1, v_2, v_3)^T \equiv (v_x, v_y, v_z)^T \in \mathbb{R}^3$ be the physical peculiar velocity vector field.
+Let $\mathbf{x}$ denote the comoving Supergalactic Cartesian coordinates, and let $\mathbf{v}(\mathbf{x})$ be the peculiar velocity field:
+
+$$
+\mathbf{x} = (x_1, x_2, x_3)^T \equiv (\text{SGX}, \text{SGY}, \text{SGZ})^T \in \mathbb{R}^3, \quad \mathbf{v}(\mathbf{x}) = (v_1, v_2, v_3)^T \equiv (v_x, v_y, v_z)^T \in \mathbb{R}^3
+$$ be the physical peculiar velocity vector field.
 
 The spatial velocity gradient tensor $J \in \mathbb{R}^{3 \times 3}$ is defined in Cartesian index notation as:
 
@@ -206,7 +214,7 @@ $$
 $$
 
 #### The Okubo-Weiss Parameter $Q$:
-Because $\mathrm{Tr}(S\Omega) = 0$ by symmetry contraction ($S_{ij}\Omega_{ij} = -S_{ji}\Omega_{ji} = 0$), expanding $\mathrm{Tr}(J^2)$ yields:
+Because $\mathrm{Tr}(S\Omega) = 0$ by symmetry contraction , expanding $\mathrm{Tr}(J^2)$ yields:
 
 $$
 \mathrm{Tr}(J^2) = \mathrm{Tr}((S+\Omega)^2) = \mathrm{Tr}(S^2) + \mathrm{Tr}(\Omega^2) = s^2 - \omega^2
@@ -221,7 +229,7 @@ $$
 - **Neutral Background ($|Q| \le Q_{\text{th}}$)**: Laminar cosmological expansion.
 
 #### Principle Invariants and $(Q_J, R_J)$ Vieillefosse Diagnostics:
-The characteristic polynomial of $J$ is $\det(\lambda I - J) = \lambda^3 + P \lambda^2 + Q_J \lambda + R_J = 0$, where:
+The characteristic polynomial of $J$ is $\det(\lambda I - J) = 0$, where:
 
 $$
 P = -\mathrm{Tr}(J) = -\nabla \cdot \mathbf{v} = -\theta
@@ -235,7 +243,7 @@ $$
 R_J = -\det(J) = -\frac{1}{3}\mathrm{Tr}(J^3) - \frac{1}{2} P \mathrm{Tr}(J^2) - \frac{1}{6} P^3
 $$
 
-For traceless flow ($P=0$), the Cardan discriminant $\Delta = 27 R_J^2 + 4 Q_J^3 = 0$ defines the **Vieillefosse Zero-Discriminant Boundary**:
+For traceless flow ($P=0$), the Cardan discriminant $\Delta = 0$ defines the **Vieillefosse Zero-Discriminant Boundary**:
 
 $$
 \frac{27}{4} R_J^2 + Q_J^3 = 0 \iff Q_J = -3\left(\frac{R_J}{2}\right)^{2/3}
@@ -264,7 +272,7 @@ $$
 T_{ij}(\mathbf{x}) \equiv \frac{\partial^2 \Phi}{\partial x_i \partial x_j} - \frac{1}{3} \nabla^2 \Phi \delta_{ij}
 $$
 
-Let $\lambda_1 \ge \lambda_2 \ge \lambda_3$ be the real ordered eigenvalues of the normalized deformation tensor $\mathcal{D}_{ij} = \partial_i \partial_j \Phi$. The cosmic web environment is categorized by threshold $\gamma_{\text{th}}$:
+Let $\lambda_1 \ge \lambda_2 \ge \lambda_3$ be the real ordered eigenvalues of the normalized deformation tensor $\mathcal{D}$. The cosmic web environment is categorized by threshold $\gamma_{\text{th}}$:
 
 | Eigenvalue Condition | Web Classification | Physical Morphology |
 | :--- | :--- | :--- |
@@ -274,7 +282,7 @@ Let $\lambda_1 \ge \lambda_2 \ge \lambda_3$ be the real ordered eigenvalues of t
 | $\gamma_{\text{th}} \ge \lambda_1 \ge \lambda_2 \ge \lambda_3$ | **Void** | 3-axis expansion into cosmic bubble |
 
 #### Exact Zel'dovich Collapse Redshift:
-Under the Zel'dovich mapping $\mathbf{x}(\mathbf{q}, t) = \mathbf{q} - D(t) \nabla \Phi_0(\mathbf{q})$, physical collapse occurs when the Jacobian determinant $\mathcal{J} = \det(\delta_{ij} - D(t)\lambda_i) \to 0$. Along the primary axis:
+Under the Zel'dovich mapping $\mathbf{x}(\mathbf{q}, t) = \mathbf{q} - D(t) \nabla \Phi_0(\mathbf{q})$, physical collapse occurs when the Jacobian determinant $\mathcal{J} \to 0$. Along the primary axis:
 
 $$
 1 - D(t_{\text{coll}}) \lambda_1(\mathbf{q}) = 0 \implies D(t_{\text{coll}}) = \frac{1}{\lambda_1(\mathbf{q})}
@@ -309,7 +317,7 @@ $$
 L_i(t) = -a^2(t)\dot{D}(t)\bar{\rho}_0 \epsilon_{ijk} \left.\frac{\partial^2 \Phi_0}{\partial q_k \partial q_l}\right|_{\bar{\mathbf{q}}} \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, \mathrm{d}^3\mathbf{q}
 $$
 
-Defining the protohalo homogeneous inertia tensor $I_{jl}$ and tidal tensor $T_{kl} \equiv \partial_k \partial_l \Phi_0$:
+Defining the protohalo homogeneous inertia tensor $I_{jl}$ and tidal tensor $T_{kl}$:
 
 $$
 I_{jl} \equiv \bar{\rho}_0 \int_{V_L} (q_j - \bar{q}_j)(q_l - \bar{q}_l)\, \mathrm{d}^3\mathbf{q}
@@ -389,13 +397,13 @@ $$
 \rho(r) = \frac{\rho_0}{x(1+x)^2}, \quad M(< r) = 4\pi \rho_0 r_s^3 \left[ \ln(1+x) - \frac{x}{1+x} \right], \quad \Phi(r) = -4\pi G \rho_0 r_s^2 \frac{\ln(1+x)}{x}
 $$
 
-Using the Spence Dilogarithm $\mathrm{Li}_2(z) = -\int_{0}^{z} \frac{\ln(1-t)}{t}\, \mathrm{d}t$:
+Using the Spence Dilogarithm $\mathrm{Li}_2(z)$:
 
 $$
 \sigma_r^2(x) = \frac{1}{2} V_s^2 x(1+x)^2 \left[ \pi^2 - \ln x - \frac{1}{x} - \frac{1}{(1+x)^2} - \frac{6}{1+x} + \left( 1 + \frac{1}{x^2} - \frac{4}{x} - \frac{2}{1+x} \right) \ln(1+x) + 3\ln^2(1+x) + 6\mathrm{Li}_2(-x) \right]
 $$
 
-where $V_s^2 = 4\pi G \rho_0 r_s^2$.
+where $V_s^2 = 4\pi G \rho_0 r_s^{2}$.
 
 #### Section Citations:
 1. Hernquist, L. (1990), *The Astrophysical Journal*, 356, 359. [DOI: 10.1086/168845](https://doi.org/10.1086/168845)
@@ -434,7 +442,7 @@ $$
 \hat{v}_i^{\text{sol}}(\mathbf{k}) = \mathcal{P}_{ij}^{\perp}(\mathbf{k}) \hat{v}_j(\mathbf{k}) = \left(\delta_{ij} - \frac{k_i k_j}{k^2}\right) \hat{v}_j(\mathbf{k})
 $$
 
-where $k^2 \equiv |\mathbf{k}|^2 = k_1^2 + k_2^2 + k_3^2$.
+where $k^2 \equiv |\mathbf{k}|^2$.
 
 #### Rigorous Proof of $L^2$ Parseval Orthogonality:
 **Theorem 3.6.1 (Decoupling of Potential and Solenoidal Kinetic Energy):**
@@ -444,7 +452,7 @@ $$
 \langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \int_{\mathbb{T}^3} \mathbf{v}_{\text{pot}}(\mathbf{x}) \cdot \mathbf{v}_{\text{sol}}^*(\mathbf{x})\, \mathrm{d}^3\mathbf{x} = \frac{1}{V} \sum_{\mathbf{k}} \hat{\mathbf{v}}_{\text{pot}}(\mathbf{k}) \cdot \hat{\mathbf{v}}_{\text{sol}}^*(\mathbf{k})
 $$
 
-For $\mathbf{k} = \mathbf{0}$, $\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0}) = \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}$. For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
+For $\mathbf{k} = \mathbf{0}$, $\hat{\mathbf{v}}_{\text{pot}}(\mathbf{0})$ $= \hat{\mathbf{v}}_{\text{sol}}(\mathbf{0}) = \mathbf{0}$. For all non-zero wavevectors $\mathbf{k} \neq \mathbf{0}$, contracting the spectral projector operators yields:
 
 $$
 \mathcal{P}_{im}^{\parallel}(\mathbf{k}) \mathcal{P}_{in}^{\perp}(\mathbf{k}) = \left(\frac{k_i k_m}{k^2}\right) \left(\delta_{in} - \frac{k_i k_n}{k^2}\right) = \frac{(k_i \delta_{in}) k_m}{k^2} - \frac{(k_i k_i) k_m k_n}{k^4} = \frac{k_n k_m}{k^2} - \frac{k^2 k_m k_n}{k^4} = \frac{k_m k_n}{k^2} - \frac{k_m k_n}{k^2} \equiv 0
@@ -454,7 +462,7 @@ $$
 \boxed{\langle \mathbf{v}_{\text{pot}}, \mathbf{v}_{\text{sol}} \rangle_{L^2} = \frac{1}{V} \sum_{\mathbf{k}} 0 \equiv 0 \quad \blacksquare}
 $$
 
-Total kinetic energy $E_{\text{kin}} = \frac{1}{2} \int_{\mathbb{T}^3} |\mathbf{v}(\mathbf{x})|^2\, \mathrm{d}^3\mathbf{x}$ partitions exactly:
+Total kinetic energy $E_{\text{kin}}$ (total kinetic energy) partitions exactly:
 
 $$
 E_{\text{kin}} = E_0 + E_{\text{pot}} + E_{\text{sol}}
@@ -483,7 +491,7 @@ $$
 \mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \left[ J(\mathbf{x}^{(k)}) \right]^{-1} \mathbf{v}(\mathbf{x}^{(k)})
 $$
 
-where $J_{ij}(\mathbf{x}) = \frac{\partial v_i}{\partial x_j}(\mathbf{x})$ is the local velocity gradient Jacobian tensor. By the Newton-Kantorovich theorem, convergence is $q$-quadratic:
+where $J(\mathbf{x})$ is the local velocity gradient Jacobian tensor. By the Newton-Kantorovich theorem, convergence is $q$-quadratic:
 
 $$
 \|\mathbf{e}^{(k+1)}\| \le \frac{1}{2}\beta\gamma \|\mathbf{e}^{(k)}\|^2
@@ -492,10 +500,10 @@ $$
 where $\beta = \|[J(\mathbf{x}^*)]^{-1}\|$ and $\gamma$ is the Lipschitz constant of $J(\mathbf{x})$.
 
 #### Critical Point Spectrum & Morse Index $\mu$:
-Classified by the eigenvalues $\lambda_1, \lambda_2, \lambda_3$ of the Jacobian $J(\mathbf{x}^*)$, where Morse index $\mu$ equals the number of negative real eigenvalues (contracting directions):
+Classified by the eigenvalues $\lambda_1$, $\lambda_2$, $\lambda_3$ of the Jacobian $J(\mathbf{x}^*)$, where Morse index $\mu$ equals the number of negative real eigenvalues (contracting directions):
 - **Repeller Source ($\mu=0$)**: $\mathrm{Re}(\lambda_i) > 0$ for all $i \in \{1, 2, 3\}$ (0 contracting, 3 expanding directions; Cosmic Void Core).
-- **1-Saddle ($\mu=1$)**: 1 negative, 2 positive eigenvalues ($\mathrm{Re}(\lambda_1) < 0 < \mathrm{Re}(\lambda_2) \le \mathrm{Re}(\lambda_3)$; Cosmic Wall / Sheet Hub).
-- **2-Saddle ($\mu=2$)**: 2 negative, 1 positive eigenvalue ($\mathrm{Re}(\lambda_1) \le \mathrm{Re}(\lambda_2) < 0 < \mathrm{Re}(\lambda_3)$; Cosmic Filament Hub).
+- **1-Saddle ($\mu=1$)**: 1 negative, 2 positive eigenvalues ($\mathrm{Re}(\lambda_1) \lt 0 \lt \mathrm{Re}(\lambda_2)$; Cosmic Wall / Sheet Hub).
+- **2-Saddle ($\mu=2$)**: 2 negative, 1 positive eigenvalue ($\mathrm{Re}(\lambda_2) \lt 0 \lt \mathrm{Re}(\lambda_3)$; Cosmic Filament Hub).
 - **Attractor Sink ($\mu=3$)**: $\mathrm{Re}(\lambda_i) < 0$ for all $i \in \{1, 2, 3\}$ (3 contracting, 0 expanding directions; Galaxy Cluster Halo).
 
 #### Morse-Smale Complex Decomposition:
@@ -524,7 +532,7 @@ for $\mu(p) \le \mu(q)$ under transverse intersection $W^s(p) \pitchfork W^u(q)$
 
 ### 3.8 Persistent Homology, 3D Cubical Complexes & Betti Curves
 
-On a 3D cubical complex filtration $K(\delta_{\text{th}})$, chain groups $C_k(K; \mathbb{Z}_2)$ with boundary operators $\partial_k: C_k \to C_{k-1}$ satisfy the exact nilpotency identity:
+On a 3D cubical complex filtration $K(\delta_{\text{th}})$, chain groups $C_k$ with boundary operators $\partial_k$ satisfy the exact nilpotency identity:
 
 $$
 \partial_k \circ \partial_{k+1} \equiv 0 \pmod{2} \quad (\partial^2 = 0)
@@ -566,7 +574,7 @@ $$
 V_3(\nu) = \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3 (\nu^2 - 1) e^{-\nu^2 / 2} = N (\nu^2 - 1) e^{-\nu^2 / 2}
 $$
 
-where $N \equiv \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3$. The Gott genus density $g_V(\nu)$ is:
+where $N$ is the spectral amplitude normalization constant. The Gott genus density $g_V(\nu)$ is:
 
 $$
 g_V(\nu) = -\frac{1}{2} V_3(\nu) = \frac{N}{2}(1 - \nu^2)e^{-\nu^2/2}
@@ -700,7 +708,7 @@ $$
 M_{\text{band}} = -a_{\text{band}} \left(\log_{10} W_{\text{mx}} - 2.50\right) + b_{\text{band}}
 $$
 
-where $a_{\text{band}}$ is the TFR slope, $b_{\text{band}}$ is the zero-point at pivot width $\log_{10} W_{\text{pivot}} = 2.50$ ($W_{\text{pivot}} \approx 316.23\,\mathrm{km}/\mathrm{s}$), and $W_{\text{mx}}$ is the physical maximum rotational velocity width.
+where $a_{\text{band}}$ is the TFR slope, $b_{\text{band}}$ is the zero-point at pivot width $\log_{10} W_{\text{pivot}}$ $= 2.50$ ($W_{\text{pivot}} \approx 316.23\,\mathrm{km}/\mathrm{s}$), and $W_{\text{mx}}$ is the physical maximum rotational velocity width.
 
 #### 21cm Linewidth De-Projection:
 
@@ -932,7 +940,7 @@ $$
 \bar{\mathbf{x}}_k = \frac{1}{3}(\mathbf{x}_{k,0} + \mathbf{x}_{k,1} + \mathbf{x}_{k,2})
 $$
 
-  with outward facet unit normal $\hat{\mathbf{n}}_k$, and $\rho_k$, $\mathbf{v}_k$ evaluated at $\bar{\mathbf{x}}_k$.
+  with outward facet unit normal $\hat{\mathbf{n}}_k$ and field values evaluated at the facet centroid $\bar{\mathbf{x}}_k$.
 - **Simplicial Minkowski Functionals & Volume Integrals**:
 
 $$
@@ -1197,32 +1205,50 @@ $$
 
 #### 39. Spectroscopic Dossier: Coma Cluster ($A1656 / \sigma_v = 1008\,\text{km}/\text{s}$)
 ![39_spectroscopy_coma_a1656](assets/screenshots/39_spectroscopy_coma_a1656.png)
-- **Spectroscopic Parameters**: $\sigma_v = 1,008\,\text{km}/\text{s}$, $k_B T_X = 8.25\,\text{keV}$, $L_X = 7.3 \times 10^{44}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**:
+  - $\sigma_v = 1,008\,\text{km}/\text{s}$
+  - $k_B T_X = 8.25\,\text{keV}$
+  - $L_X = 7.3 \times 10^{44}\,\text{erg}/\text{s}$
 - **Dynamical Profile**: Gaussian line-of-sight velocity dispersion $N(v)$ fitted across $1,000+$ member galaxies.
 
 #### 40. Spectroscopic Dossier: Virgo Cluster ($M87 / \sigma_v = 750\,\text{km}/\text{s}$)
 ![40_spectroscopy_virgo_m87](assets/screenshots/40_spectroscopy_virgo_m87.png)
-- **Spectroscopic Parameters**: $\sigma_v = 750\,\text{km}/\text{s}$, $k_B T_X = 2.4\,\text{keV}$, $L_X = 1.8 \times 10^{43}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**:
+  - $\sigma_v = 750\,\text{km}/\text{s}$
+  - $k_B T_X = 2.4\,\text{keV}$
+  - $L_X = 1.8 \times 10^{43}\,\text{erg}/\text{s}$
 - **Dynamical Profile**: Multi-subgroup substructure with M87, M86, and M49 infalling clouds.
 
 #### 41. Spectroscopic Dossier: Perseus Cluster ($A426 / \sigma_v = 1280\,\text{km}/\text{s}$)
 ![41_spectroscopy_perseus_a426](assets/screenshots/41_spectroscopy_perseus_a426.png)
-- **Spectroscopic Parameters**: $\sigma_v = 1,280\,\text{km}/\text{s}$, $k_B T_X = 6.8\,\text{keV}$, $L_X = 1.2 \times 10^{45}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**:
+  - $\sigma_v = 1,280\,\text{km}/\text{s}$
+  - $k_B T_X = 6.8\,\text{keV}$
+  - $L_X = 1.2 \times 10^{45}\,\text{erg}/\text{s}$
 - **Dynamical Profile**: Brightest X-ray cluster in the sky; cool-core sound-wave ripple acoustics.
 
 #### 42. Spectroscopic Dossier: Norma Great Attractor ($A3627$)
 ![42_spectroscopy_norma_a3627](assets/screenshots/42_spectroscopy_norma_a3627.png)
-- **Spectroscopic Parameters**: $\sigma_v = 925\,\text{km}/\text{s}$, $k_B T_X = 7.1\,\text{keV}$, $L_X = 5.2 \times 10^{44}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**:
+  - $\sigma_v = 925\,\text{km}/\text{s}$
+  - $k_B T_X = 7.1\,\text{keV}$
+  - $L_X = 5.2 \times 10^{44}\,\text{erg}/\text{s}$
 - **Dynamical Profile**: Central gravitational anchor of the Laniakea supercluster core.
 
 #### 43. Spectroscopic Dossier: Shapley Core ($A3558 / \sigma_v = 1350\,\text{km}/\text{s}$)
 ![43_spectroscopy_shapley_a3558](assets/screenshots/43_spectroscopy_shapley_a3558.png)
-- **Spectroscopic Parameters**: $\sigma_v = 1,350\,\text{km}/\text{s}$, $k_B T_X = 9.4\,\text{keV}$, $L_X = 1.6 \times 10^{45}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**:
+  - $\sigma_v = 1,350\,\text{km}/\text{s}$
+  - $k_B T_X = 9.4\,\text{keV}$
+  - $L_X = 1.6 \times 10^{45}\,\text{erg}/\text{s}$
 - **Dynamical Profile**: Massive merging supercluster complex generating colossal gravitational potential wells.
 
 #### 44. Spectroscopic Dossier: Fornax Cluster ($NGC\,1399 / \sigma_v = 370\,\text{km}/\text{s}$)
 ![44_spectroscopy_fornax_ngc1399](assets/screenshots/44_spectroscopy_fornax_ngc1399.png)
-- **Spectroscopic Parameters**: $\sigma_v = 370\,\text{km}/\text{s}$, $k_B T_X = 1.2\,\text{keV}$, $L_X = 4.5 \times 10^{42}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**:
+  - $\sigma_v = 370\,\text{km}/\text{s}$
+  - $k_B T_X = 1.2\,\text{keV}$
+  - $L_X = 4.5 \times 10^{42}\,\text{erg}/\text{s}$
 - **Dynamical Profile**: Low-mass compact cluster in the southern sky with prominent cD galaxy envelope.
 
 ---
@@ -1277,7 +1303,7 @@ python -m pytest tests/ -v
 ### Verified Test Suite Breakdown:
 - `tests/fields/` (4,257 LOC): Okubo-Weiss, velocity dispersion, Helmholtz decomposition, tidal tensor invariants.
 - `tests/data/` (3,151 LOC): Remote FITS streaming, 38k group catalog, Multi-band TFR calibrator.
-- `tests/topology/` (1,519 LOC): Betti numbers $\beta_0, \beta_1, \beta_2$, $\mathbb{Z}_2$ homology nilpotency $\partial \circ \partial = 0$, Morse-Smale graph simplification, Newton-Raphson roots.
+- `tests/topology/` (1,519 LOC): Betti numbers $\beta_0$, $\beta_1$, $\beta_2$, $\mathbb{Z}_2$ homology nilpotency $\partial \circ \partial = 0$, Morse-Smale graph simplification, Newton-Raphson roots.
 - `tests/coordinates/` (2,197 LOC): Astrometric frame conversions (ICRS, Galactic, Supergalactic, CMB barycentric).
 - `tests/bulk-flow/` (1,326 LOC): Spherical harmonic multipole decompositions and cosmic variance deconvolution.
 - `tests/statistics/` (1,358 LOC): Ledoit-Wolf and OAS shrinkage estimators.
