@@ -74,6 +74,7 @@ The development of the **ZRT CosmicFlows-4 Research Workbench** represents an en
 $$
 \text{index}(i_x, i_y, i_z) = i_x + N_x \cdot (i_y + N_y \cdot i_z)
 $$
+
 - Validated the official Cosmicflows project velocity scaling factor of **exactly $\times 52.0$**, ensuring physical peculiar velocity units ($\text{km}/\text{s}$) are decoupled from cosmological growth rate parameters ($H_0 f$) and applied strictly once.
 
 ### Step 2: 87,516 LOC Modular Subsystem Architecture
@@ -183,7 +184,7 @@ Let $\mathbf{x}$ denote the comoving Supergalactic Cartesian coordinates, and le
 
 $$
 \mathbf{x} = (x_1, x_2, x_3)^T \equiv (\text{SGX}, \text{SGY}, \text{SGZ})^T \in \mathbb{R}^3, \quad \mathbf{v}(\mathbf{x}) = (v_1, v_2, v_3)^T \equiv (v_x, v_y, v_z)^T \in \mathbb{R}^3
-$$ be the physical peculiar velocity vector field.
+$$
 
 The spatial velocity gradient tensor $J \in \mathbb{R}^{3 \times 3}$ is defined in Cartesian index notation as:
 
@@ -491,7 +492,7 @@ $$
 
 ### 3.7 Dynamical Topology, 3D Newton-Raphson Roots & Morse-Smale Complexes
 
-Velocity critical points satisfy $\mathbf{v}(\mathbf{x}^*) = \mathbf{0}$. We isolate these stationary points to machine precision via multidimensional 3D Newton-Raphson root iteration:
+Velocity critical points satisfy $\mathbf{v}(\mathbf{x}^{\ast}) = \mathbf{0}$. We isolate these stationary points to machine precision via multidimensional 3D Newton-Raphson root iteration:
 
 $$
 \mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \left[ J(\mathbf{x}^{(k)}) \right]^{-1} \mathbf{v}(\mathbf{x}^{(k)})
@@ -503,10 +504,10 @@ $$
 \|\mathbf{e}^{(k+1)}\| \le \frac{1}{2}\beta\gamma \|\mathbf{e}^{(k)}\|^2
 $$
 
-where $\beta = \|[J(\mathbf{x}^*)]^{-1}\|$ and $\gamma$ is the Lipschitz constant of $J(\mathbf{x})$.
+where $\beta = \|[J(\mathbf{x}^{\ast})]^{-1}\|$ and $\gamma$ is the Lipschitz constant of $J(\mathbf{x})$.
 
 #### Critical Point Spectrum & Morse Index $\mu$:
-Classified by the eigenvalues $\lambda_1$, $\lambda_2$, $\lambda_3$ of the Jacobian $J(\mathbf{x}^*)$, where Morse index $\mu$ equals the number of negative real eigenvalues (contracting directions):
+Classified by the eigenvalues $\lambda_1$, $\lambda_2$, $\lambda_3$ of the Jacobian $J(\mathbf{x}^{\ast})$, where Morse index $\mu$ equals the number of negative real eigenvalues (contracting directions):
 - **Repeller Source ($\mu=0$)**: $\mathrm{Re}(\lambda_i) > 0$ for all $i \in \{1, 2, 3\}$ (0 contracting, 3 expanding directions; Cosmic Void Core).
 - **1-Saddle ($\mu=1$)**: 1 negative, 2 positive eigenvalues ($\mathrm{Re}(\lambda_1) \lt 0 \lt \mathrm{Re}(\lambda_2)$; Cosmic Wall / Sheet Hub).
 - **2-Saddle ($\mu=2$)**: 2 negative, 1 positive eigenvalue ($\mathrm{Re}(\lambda_2) \lt 0 \lt \mathrm{Re}(\lambda_3)$; Cosmic Filament Hub).
@@ -809,10 +810,10 @@ p(t + \epsilon) &= p\left(t + \frac{\epsilon}{2}\right) - \frac{\epsilon}{2} \na
 \end{aligned}
 $$
 
-Proposals $(v^*, p^*)$ at the end of $L$ integration steps are accepted with Metropolis probability:
+Proposals $(v^{\ast}, p^{\ast})$ at the end of $L$ integration steps are accepted with Metropolis probability:
 
 $$
-\alpha = \min\left(1, \exp(-\Delta \mathcal{H})\right), \quad \Delta \mathcal{H} = \mathcal{H}(v^*, p^*) - \mathcal{H}(v, p)
+\alpha = \min\left(1, \exp(-\Delta \mathcal{H})\right), \quad \Delta \mathcal{H} = \mathcal{H}(v^{\ast}, p^{\ast}) - \mathcal{H}(v, p)
 $$
 
 preserving detailed balance and phase space Liouville volume conservation $\det J = \left|\det \frac{\partial (v(t+\epsilon), p(t+\epsilon))}{\partial (v(t), p(t))}\right| = 1$.
@@ -834,15 +835,15 @@ $$
 S = \frac{1}{n}\sum_{k=1}^n (x_k - \bar{x})(x_k - \bar{x})^{\top} \in \mathbb{R}^{p \times p}
 $$
 
-the conditioned well-posed covariance estimator $\Sigma^*$ is:
+the conditioned well-posed covariance estimator $\Sigma^{\ast}$ is:
 
 $$
-\Sigma^* = (1 - \lambda^*) S + \lambda^* \mu I_p
+\Sigma^{\ast} = (1 - \lambda^{\ast}) S + \lambda^{\ast} \mu I_p
 $$
 
 where the target shrinkage prior scalar is $\mu = \frac{1}{p} \mathrm{Tr}(S)$.
 
-- **Ledoit-Wolf Intensity**: The optimal intensity $\hat{\lambda}^* = \frac{b^2}{d^2} \in [0, 1]$ minimizes the expected quadratic Frobenius risk $\mathbb{E}[\|\Sigma^* - \Sigma\|_F^2]$:
+- **Ledoit-Wolf Intensity**: The optimal intensity $\hat{\lambda}^{\ast} = \frac{b^2}{d^2} \in [0, 1]$ minimizes the expected quadratic Frobenius risk $\mathbb{E}[\|\Sigma^{\ast} - \Sigma\|_F^2]$:
 
 $$
 d^2 = \|S - \mu I_p\|_F^2 = \mathrm{Tr}\left((S - \mu I_p)^2\right) = \mathrm{Tr}(S^2) - \frac{1}{p}\left(\mathrm{Tr}(S)\right)^2
