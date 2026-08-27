@@ -234,10 +234,10 @@ window.onerror = function(msg, url, line, col, error) {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
+    gap: 4px;
     pointer-events: auto;
     flex-shrink: 0;
-    min-width: 140px;
+    max-width: 320px;
   }
 
   /* TOP-RIGHT PAPER HEADER TITLE */
@@ -292,21 +292,21 @@ window.onerror = function(msg, url, line, col, error) {
     display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
   }
 
-  /* TABS BAR: 5x2 Clean Responsive Grid */
+  /* TABS BAR: Clean 4-Column Auto-Fit Grid for 11 Tabs */
   .tabs {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-    padding: 7px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    padding: 8px;
     background: var(--panel-header);
     border-bottom: 1.5px solid var(--panel-border);
     flex-shrink: 0;
   }
   .tab-btn {
-    padding: 7px 2px; font-family: inherit; font-size: 11px; text-transform: uppercase;
-    letter-spacing: 0.03em; background: rgba(0,0,0,0.08); border: 1.5px solid var(--panel-border);
-    border-radius: 5px; color: var(--text-main); cursor: pointer; transition: all 0.15s ease;
-    text-align: center; white-space: nowrap; font-weight: 700;
+    padding: 6px 4px; font-family: inherit; font-size: 10.5px; text-transform: uppercase;
+    letter-spacing: 0.02em; background: rgba(0,0,0,0.08); border: 1.5px solid var(--panel-border);
+    border-radius: 6px; color: var(--text-main); cursor: pointer; transition: all 0.15s ease;
+    text-align: center; white-space: nowrap; font-weight: 800; overflow: hidden; text-overflow: ellipsis;
   }
   .tab-btn:hover { color: var(--text-bright); border-color: var(--accent-cyan); background: rgba(2, 132, 199, 0.16); }
   .tab-btn.active {
@@ -1365,7 +1365,7 @@ window.onerror = function(msg, url, line, col, error) {
     </div>
   </div>
 
-  <!-- TOP CENTER CLUSTER: ACTION BUTTONS & ACTIVE ENGINE BANNER -->
+  <!-- TOP CENTER CLUSTER: ACTION BUTTONS -->
   <div id="top-center-cluster">
     <div id="top-actions">
       <button class="top-btn explore-pill" id="btn-explore-toggle" data-tooltip="Open 11-tab scientific cosmography controls drawer" title="Open Controls Drawer">
@@ -1407,35 +1407,33 @@ window.onerror = function(msg, url, line, col, error) {
       <button class="top-btn" id="btn-pub-export" data-tooltip="Export high-res figure with LaTeX caption [Key: P]" title="Export Publication Figure [Key: P]">
         <span>📜</span> <b>Print (P)</b>
       </button>
-      <div id="dataset-picker-container" data-tooltip="Switch cosmic velocity reconstruction dataset" style="display:inline-flex; align-items:center; background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:14px; padding:2px 6px; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(12px);">
-        <span style="font-size:9px; font-weight:800; margin-right:4px; color:var(--accent-cyan);">📡 DATASET:</span>
-        <select id="dataset-select" style="background:transparent; border:none; font-family:inherit; font-size:9.5px; font-weight:700; color:var(--text-main); cursor:pointer; outline:none;">
-          <option value="cf4_ungrouped_64">CF4 Ungrouped (64³ Base)</option>
-          <option value="cf4_grouped_64">CF4 Grouped (64³ Base)</option>
-          <option value="cf4pp_posterior_mean_128">CF4++ Posterior Mean (128³ High-Res)</option>
-          <option value="cf4pp_posterior_rms_128">CF4++ Posterior RMS (128³)</option>
-          <option value="custom_remote">Custom Remote FITS / URL...</option>
-        </select>
-      </div>
     </div>
 
     <div id="streaming-progress-container" style="display:none; width:100%; max-width:440px; height:4px; background:rgba(0,0,0,0.1); border-radius:2px; overflow:hidden; margin-top:2px;">
       <div id="streaming-progress-bar" style="width:0%; height:100%; background:var(--accent-cyan); transition:width 0.15s ease;"></div>
     </div>
-
-    <div id="engine-banner" title="Click to cycle scientific reconstruction engines [Key: E]">
-      <div class="engine-dot" id="banner-dot"></div>
-      <span id="banner-text"><b>CF4 WF/CR</b>: Observational Reconstruction (Hoffman et al. MNRAS 527)</span>
-    </div>
   </div>
 
-  <!-- TOP RIGHT CLUSTER: TELEMETRY & PAPER TITLE -->
+  <!-- TOP RIGHT CLUSTER: DATASET & ACTIVE MODEL ENGINE BANNER -->
   <div id="top-right-cluster">
+    <div id="engine-banner" title="Click to cycle scientific reconstruction engines [Key: E]">
+      <div class="engine-dot" id="banner-dot"></div>
+      <span id="banner-text"><b>CF4 WF/CR</b>: Wiener Filter Flow</span>
+    </div>
+    <div id="dataset-picker-container" data-tooltip="Switch cosmic velocity reconstruction dataset" style="display:inline-flex; align-items:center; background:var(--panel-bg); border:1.5px solid var(--panel-border); border-radius:14px; padding:2px 8px; box-shadow:0 2px 8px rgba(0,0,0,0.06); backdrop-filter:blur(12px);">
+      <span style="font-size:9.5px; font-weight:800; margin-right:4px; color:var(--accent-cyan);">📡 DATASET:</span>
+      <select id="dataset-select" style="background:transparent; border:none; font-family:inherit; font-size:10px; font-weight:700; color:var(--text-main); cursor:pointer; outline:none;">
+        <option value="cf4_ungrouped_64">CF4 Ungrouped (64³ Base)</option>
+        <option value="cf4_grouped_64">CF4 Grouped (64³ Base)</option>
+        <option value="cf4pp_posterior_mean_128">CF4++ Posterior Mean (128³ High-Res)</option>
+        <option value="cf4pp_posterior_rms_128">CF4++ Posterior RMS (128³)</option>
+        <option value="custom_remote">Custom Remote FITS / URL...</option>
+      </select>
+    </div>
     <div id="dark-telemetry-hud">
       <div class="hud-row"><span>STREAMLINES</span><span class="hud-val" id="hud-stream-count">2,600</span><span>RK4 STEPS</span><span class="hud-val">420</span></div>
       <div class="hud-row"><span>FIELD EVALS</span><span class="hud-val">1,092,000</span><span>FPS</span><span class="hud-val">60</span></div>
     </div>
-    <div id="paper-title-tag">Wiener Filter Large Scale velocity flow</div>
   </div>
 </div>
 
@@ -10464,37 +10462,58 @@ function initCosmicTips() {
 
 
 
-// ============================================================================
-// TOOLTIP HOVER MODE SETTINGS & EXPLAINER CONTROLLER
-// ============================================================================
 let tooltipMode = localStorage.getItem('cf4_tooltip_mode') || 'detailed'; // 'detailed' | 'minimal' | 'off'
+
+function setTooltipMode(mode) {
+  tooltipMode = mode;
+  try { localStorage.setItem('cf4_tooltip_mode', tooltipMode); } catch(e) {}
+  updateTooltipModeUI();
+}
+window.setTooltipMode = setTooltipMode;
 
 function updateTooltipModeUI() {
   const label = document.getElementById('tooltip-mode-label');
   const btn = document.getElementById('btn-tooltip-mode-toggle');
   if (label) {
-    if (tooltipMode === 'detailed') label.textContent = 'Tips: Detailed';
-    else if (tooltipMode === 'minimal') label.textContent = 'Tips: Minimal';
+    if (tooltipMode === 'detailed') label.textContent = 'Tips: ON';
+    else if (tooltipMode === 'minimal') label.textContent = 'Tips: Min';
     else label.textContent = 'Tips: OFF';
   }
   if (btn) {
     btn.style.opacity = tooltipMode === 'off' ? '0.6' : '1';
   }
+  const selSettings = document.getElementById('sel-settings-tooltip-mode');
+  if (selSettings) selSettings.value = tooltipMode;
+
+  const selModal = document.getElementById('sel-modal-tooltip-mode');
+  if (selModal) selModal.value = tooltipMode;
+
+  const valModal = document.getElementById('val-tooltip-mode-modal');
+  if (valModal) {
+    if (tooltipMode === 'detailed') valModal.textContent = 'Detailed (On)';
+    else if (tooltipMode === 'minimal') valModal.textContent = 'Minimal (On)';
+    else valModal.textContent = 'Disabled (Off)';
+  }
 }
 
 function cycleTooltipMode() {
-  if (tooltipMode === 'detailed') tooltipMode = 'minimal';
-  else if (tooltipMode === 'minimal') tooltipMode = 'off';
-  else tooltipMode = 'detailed';
-  
-  localStorage.setItem('cf4_tooltip_mode', tooltipMode);
-  updateTooltipModeUI();
+  if (tooltipMode === 'detailed') setTooltipMode('minimal');
+  else if (tooltipMode === 'minimal') setTooltipMode('off');
+  else setTooltipMode('detailed');
 }
 
 function initTooltipModeToggle() {
   const btn = document.getElementById('btn-tooltip-mode-toggle');
   if (btn) {
     btn.addEventListener('click', cycleTooltipMode);
+  }
+  const selSettings = document.getElementById('sel-settings-tooltip-mode');
+  if (selSettings) {
+    selSettings.addEventListener('change', () => setTooltipMode(selSettings.value));
+  }
+  const selModal = document.getElementById('sel-modal-tooltip-mode');
+  if (selModal) {
+    selModal.addEventListener('change', () => setTooltipMode(selModal.value));
   }
   updateTooltipModeUI();
 }
@@ -11543,6 +11562,19 @@ if (document.readyState === 'loading') {
       <h3 style="font-size:13px; font-weight:800; color:var(--text-bright); margin-top:0; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">
         ♿ Accessibility, UI Scaling & Color-Blind Palettes
       </h3>
+
+      <!-- Hover Tooltip Explainer Mode -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">
+          <span>💬 Hover Tooltip Explainer Mode:</span>
+          <span id="val-tooltip-mode-modal" style="color:var(--accent-cyan); font-weight:800;">Detailed</span>
+        </div>
+        <select id="sel-modal-tooltip-mode" style="width:100%; background:var(--panel-bg); border:1.5px solid var(--panel-border); color:var(--text-main); padding:6px 10px; border-radius:6px; font-family:inherit; font-size:11px; font-weight:700; cursor:pointer;">
+          <option value="detailed">Detailed (University-Grade Concepts & Equations)</option>
+          <option value="minimal">Minimal (Short Action Summary)</option>
+          <option value="off">Off (Zero Tooltips)</option>
+        </select>
+      </div>
 
       <!-- UI Size Scaling Slider -->
       <div style="margin-bottom:16px;">
