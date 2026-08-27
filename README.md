@@ -7,7 +7,7 @@
 [![Tests Passing](https://img.shields.io/badge/Tests-1%2C032%20Automated%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![LOC](https://img.shields.io/badge/LOC-87%2C516%20Meaningful%20Code-orange?style=for-the-badge)](src/)
 [![Provenance: PROV-JSONLD](https://img.shields.io/badge/Provenance-W3C%20PROV--JSONLD-purple?style=for-the-badge)](src/export/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![License: PolyForm Noncommercial 1.0.0 / CC BY-NC 4.0](https://img.shields.io/badge/License-PolyForm%20Noncommercial%20%2F%20CC%20BY--NC%204.0-crimson.svg?style=for-the-badge)](LICENSE)
 [![Datasets: CF4](https://img.shields.io/badge/Dataset-CF4%20(Courtois%202023)-0284c7?style=for-the-badge)](https://doi.org/10.1051/0004-6361/202245331)
 [![Watersheds: CF4](https://img.shields.io/badge/Watersheds-Dupuy%20%26%20Courtois%202023-f59e0b?style=for-the-badge)](https://doi.org/10.1051/0004-6361/202346802)
 
@@ -566,7 +566,11 @@ $$
 V_3(\nu) = \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3 (\nu^2 - 1) e^{-\nu^2 / 2} = N (\nu^2 - 1) e^{-\nu^2 / 2}
 $$
 
-where $N \equiv \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3$. The Gott genus density is $g_V(\nu) = -\frac{1}{2} V_3(\nu) = \frac{N}{2}(1 - \nu^2)e^{-\nu^2/2}$.
+where $N \equiv \frac{1}{(2\pi)^2} \left( \frac{\sigma_1}{\sqrt{3}\sigma_0} \right)^3$. The Gott genus density $g_V(\nu)$ is:
+
+$$
+g_V(\nu) = -\frac{1}{2} V_3(\nu) = \frac{N}{2}(1 - \nu^2)e^{-\nu^2/2}
+$$
 
 #### Universal Theoretical Peak-to-Trough Asymmetry $A_{\text{GRF}}$:
 - **Zero-crossings**: $\nu = \pm 1$ ($V_3(\pm 1) = 0$).
@@ -579,7 +583,13 @@ $$
 \boxed{A_{\text{GRF}} \equiv \frac{T - P}{T + P} = \frac{N - 2 N e^{-3/2}}{N + 2 N e^{-3/2}} = \frac{1 - 2 e^{-3/2}}{1 + 2 e^{-3/2}} = \frac{0.55373968...}{1.44626032...} \approx 0.38288}
 $$
 
-This dimensionless constant serves as an exact topological benchmark; any observed shift $\Delta A = A_{\text{obs}} - A_{\text{GRF}}$ quantitatively constrains primordial non-Gaussianity ($f_{\text{NL}}$) and nonlinear gravitational clustering.
+This dimensionless constant serves as an exact topological benchmark; any observed shift:
+
+$$
+\Delta A = A_{\text{obs}} - A_{\text{GRF}}
+$$
+
+quantitatively constrains primordial non-Gaussianity ($f_{\text{NL}}$) and nonlinear gravitational clustering.
 
 #### Section Citations:
 1. Tomita, H. (1986), *Progress of Theoretical Physics*, 76(4), 952–955. [DOI: 10.1143/PTP.76.952](https://doi.org/10.1143/PTP.76.952)
@@ -592,35 +602,41 @@ This dimensionless constant serves as an exact topological benchmark; any observ
 
 ### 3.10 Multipolar Bulk Flow Estimators & Cosmic Variance Covariance
 
-For galaxies with measured line-of-sight velocities $u_n$ and inverse-variance weights $w_n$:
+For galaxies with measured line-of-sight velocities:
 
 $$
-u_n = \mathbf{v}_n \cdot \hat{\mathbf{r}}_n + \epsilon_n, \quad w_n = \frac{1}{\sigma_n^2 + \sigma_v^2}
+u_n = \mathbf{v}_n \cdot \hat{\mathbf{r}}_n + \epsilon_n
 $$
 
-where $\sigma_v \approx 187\,\mathrm{km}/\mathrm{s}$ is the 1D thermal cosmic velocity dispersion. The maximum-likelihood bulk flow dipole is:
+with statistical weights:
 
 $$
-\mathbf{V}_{\mathrm{bulk}} = \mathbf{A}^{-1} \mathbf{B}, \quad A_{ij} = \sum_{n=1}^N w_n \hat{r}_{n,i} \hat{r}_{n,j}, \quad B_i = \sum_{n=1}^N w_n u_n \hat{r}_{n,i}
+w_n = \frac{1}{\sigma_n^2 + \sigma_v^2}
+$$
+
+(where $\sigma_v \approx 187\,\mathrm{km}/\mathrm{s}$ is the 1D thermal cosmic velocity dispersion), the maximum-likelihood bulk flow dipole is:
+
+$$
+\mathbf{V}_{\text{bulk}} = \mathbf{A}^{-1} \mathbf{B}, \quad A_{ij} = \sum_{n=1}^N w_n \hat{r}_{n,i} \hat{r}_{n,j}, \quad B_i = \sum_{n=1}^N w_n u_n \hat{r}_{n,i}
 $$
 
 with parameter statistical covariance matrix:
 
 $$
-\mathbf{C}_{\mathrm{stat}} = \mathbf{A}^{-1}
+\mathbf{C}_{\text{stat}} = \mathbf{A}^{-1}
 $$
 
-and individual 1D component uncertainties and bulk flow magnitude error:
+and individual 1D component uncertainties and bulk flow magnitude uncertainty:
 
 $$
-\sigma_{V_i} = \sqrt{(\mathbf{A}^{-1})_{ii}}, \quad \sigma_{|\mathbf{V}_{\mathrm{bulk}}|} = \sqrt{\hat{\mathbf{V}}^T \mathbf{A}^{-1} \hat{\mathbf{V}}}
+\sigma_{V_i} = \sqrt{(\mathbf{A}^{-1})_{ii}}, \quad \sigma_{|\mathbf{V}_{\text{bulk}}|} = \sqrt{\hat{\mathbf{V}}^{\top} \mathbf{A}^{-1} \hat{\mathbf{V}}}
 $$
 
 #### Spherical Multipole Expansion:
 The radial velocity field on the sphere is expanded in orthonormal spherical harmonics $Y_{\ell m}(\theta, \phi)$:
 
 $$
-u(r, \theta, \phi) = \sum_{\ell=0}^\infty \sum_{m=-\ell}^\ell a_{\ell m}(r) Y_{\ell m}(\theta, \phi)
+u(r, \theta, \phi) = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} a_{\ell m}(r) Y_{\ell m}(\theta, \phi)
 $$
 
 or equivalently in Cartesian multipole tensors up to quadrupole ($\ell=2$):
@@ -638,7 +654,7 @@ $$
 - **$\ell=1$ Dipole (Bulk Flow Vector)**:
 
 $$
-|\mathbf{V}_{\mathrm{bulk}}|^2 = \frac{3}{4\pi} \sum_{m=-1}^1 |a_{1m}|^2 = V_x^2 + V_y^2 + V_z^2
+|\mathbf{V}_{\text{bulk}}|^2 = \frac{3}{4\pi} \sum_{m=-1}^1 |a_{1m}|^2 = V_x^2 + V_y^2 + V_z^2
 $$
 
 - **$\ell=2$ Quadrupole (Cosmic Shear / Tidal Strain Tensor)**:
@@ -657,13 +673,13 @@ $$
 The theoretical cosmic variance covariance matrix for an idealized spherical volume of radius $R$ is:
 
 $$
-R_{ij}(R) \equiv \langle V_i V_j \rangle_{\mathrm{cosmic}} = \left[ \frac{H_0^2 f^2}{6\pi^2} \int_0^\infty P(k) |W_R(k)|^2 \, \mathrm{d}k \right] \delta_{ij} = \sigma_{1\mathrm{D}}^2(R) \, \delta_{ij}
+R_{ij}(R) \equiv \langle V_i V_j \rangle_{\text{cosmic}} = \left[ \frac{H_0^2 f^2}{6\pi^2} \int_0^{\infty} P(k) |W_R(k)|^2 \, \mathrm{d}k \right] \delta_{ij} = \sigma_{1\text{D}}^2(R) \, \delta_{ij}
 $$
 
 with 3D root-mean-square bulk flow expectation:
 
 $$
-\sigma_{3\mathrm{D}}(R) = \sqrt{\langle |\mathbf{V}|^2 \rangle} = \sqrt{\mathrm{Tr}(\mathbf{R}(R))} = \sqrt{3}\,\sigma_{1\mathrm{D}}(R)
+\sigma_{3\text{D}}(R) = \sqrt{\langle |\mathbf{V}|^2 \rangle} = \sqrt{\mathrm{Tr}(\mathbf{R}(R))} = \sqrt{3}\,\sigma_{1\text{D}}(R)
 $$
 
 #### Section Citations:
@@ -681,65 +697,70 @@ $$
 The multi-band absolute magnitude calibration relation is:
 
 $$
-M_{\mathrm{band}} = -a_{\mathrm{band}} \left(\log_{10} W_{\mathrm{mx}} - 2.50\right) + b_{\mathrm{band}}
+M_{\text{band}} = -a_{\text{band}} \left(\log_{10} W_{\text{mx}} - 2.50\right) + b_{\text{band}}
 $$
 
-where $a_{\mathrm{band}}$ is the TFR slope, $b_{\mathrm{band}}$ is the zero-point at pivot width $\log_{10} W_{\mathrm{pivot}} = 2.50$ ($W_{\mathrm{pivot}} \approx 316.23\,\mathrm{km}/\mathrm{s}$), and $W_{\mathrm{mx}}$ is the physical maximum rotational velocity width.
+where $a_{\text{band}}$ is the TFR slope, $b_{\text{band}}$ is the zero-point at pivot width $\log_{10} W_{\text{pivot}} = 2.50$ ($W_{\text{pivot}} \approx 316.23\,\mathrm{km}/\mathrm{s}$), and $W_{\text{mx}}$ is the physical maximum rotational velocity width.
 
 #### 21cm Linewidth De-Projection:
 
 $$
-W_{\mathrm{mx}} = \frac{\frac{W_{50}}{1+z} - 2\Delta v_{\mathrm{inst}} - W_t}{\sin(i)}, \quad \cos^2(i) = \frac{q^2 - q_0^2}{1 - q_0^2}
+W_{\text{mx}} = \frac{\frac{W_{50}}{1+z} - 2\Delta v_{\text{inst}} - W_t}{\sin(i)}, \quad \cos^2(i) = \frac{q^2 - q_0^2}{1 - q_0^2}
 $$
 
 where:
 - $q \equiv b/a$ is the observed photometric minor-to-major axial ratio ($q \le 1.0$).
 - $q_0 \approx 0.20$ (ranging from $0.20$ for early-type S0/Sa to $0.13$ for late-type Sc/Sd spirals) is the intrinsic disc flattening parameter.
 - $(1+z)^{-1}$ corrects for cosmological rest-frame time dilation.
-- $\Delta v_{\mathrm{inst}} = 2 \Delta v_{\mathrm{chan}} \eta$ corrects for instrumental spectrometer channel broadening.
+- Instrumental spectrometer channel broadening correction:
+
+$$
+\Delta v_{\text{inst}} = 2 \Delta v_{\text{chan}} \eta
+$$
+
 - $W_t$ is the turbulent velocity dispersion correction (Tully-Fouqué 1985).
 
 #### Apparent Magnitude, Dust Extinction & Distance Modulus:
 
 $$
-m_{\mathrm{corr}} = m_{\mathrm{obs}} - A_{\mathrm{gal}} - A_{\mathrm{int}} - K(z)
+m_{\text{corr}} = m_{\text{obs}} - A_{\text{gal}} - A_{\text{int}} - K(z)
 $$
 
 $$
-m_{\mathrm{corr}} = m_{\mathrm{obs}} - R_{\mathrm{band}} E(B-V)_{\mathrm{SFD}} - \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) - K(z)
+m_{\text{corr}} = m_{\text{obs}} - R_{\text{band}} E(B-V)_{\text{SFD}} - \gamma_{\text{band}}(W_{\text{mx}}) \log_{10}(a/b) - K(z)
 $$
 
 where the individual extinction and correction terms are:
 
 $$
 \begin{aligned}
-A_{\mathrm{gal}} &= R_{\mathrm{band}} E(B-V)_{\mathrm{SFD}} \quad &\text{(Galactic foreground dust extinction)} \\
-A_{\mathrm{int}} &= \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(a/b) = \gamma_{\mathrm{band}}(W_{\mathrm{mx}}) \log_{10}(1/\cos i) \quad &\text{(Internal galaxy dust extinction)} \\
+A_{\text{gal}} &= R_{\text{band}} E(B-V)_{\text{SFD}} \quad &\text{(Galactic foreground dust extinction)} \\
+A_{\text{int}} &= \gamma_{\text{band}}(W_{\text{mx}}) \log_{10}(a/b) = \gamma_{\text{band}}(W_{\text{mx}}) \log_{10}(1/\cos i) \quad &\text{(Internal galaxy dust extinction)} \\
 K(z) &\approx k_1 z \quad &\text{(Cosmological } K\text{-correction)}
 \end{aligned}
 $$
 
-The calibrated distance modulus $\mu_0$, metric distance $d$, reduced Hubble distance $d_h$, and radial peculiar velocity $v_{\mathrm{pec}}$ are:
+The calibrated distance modulus $\mu_0$, metric distance $d$, reduced Hubble distance $d_h$, and radial peculiar velocity $v_{\text{pec}}$ are:
 
 $$
-\mu_0 = m_{\mathrm{corr}} - M_{\mathrm{band}}
+\mu_0 = m_{\text{corr}} - M_{\text{band}}
 $$
 
 $$
-d = 10^{\frac{\mu_0 - 25}{5}}\,\mathrm{Mpc}, \quad d_h = d \cdot h = 10^{\frac{\mu_0 - 25}{5}} \left(\frac{H_0}{100}\right)\,\mathrm{Mpc}/h, \quad v_{\mathrm{pec}} = cz_{\mathrm{CMB}} - H_0 d
+d = 10^{\frac{\mu_0 - 25}{5}}\,\mathrm{Mpc}, \quad d_h = d \cdot h = 10^{\frac{\mu_0 - 25}{5}} \left(\frac{H_0}{100}\right)\,\mathrm{Mpc}/h, \quad v_{\text{pec}} = cz_{\text{CMB}} - H_0 d
 $$
 
 #### Malmquist Bias Compensations:
 - **Homogeneous Malmquist Bias** (volume-element selection bias in uniform density):
 
 $$
-\Delta\mu_{\mathrm{hom}} = -\frac{3\ln 10}{5}\sigma_{\mu}^2 \approx -1.38155\,\sigma_{\mu}^2 \implies d_{\mathrm{corr}} = d_{\mathrm{obs}} \cdot 10^{\frac{\Delta\mu_{\mathrm{hom}}}{5}}
+\Delta\mu_{\text{hom}} = -\frac{3\ln 10}{5}\sigma_{\mu}^2 \approx -1.38155\,\sigma_{\mu}^2 \implies d_{\text{corr}} = d_{\text{obs}} \cdot 10^{\frac{\Delta\mu_{\text{hom}}}{5}}
 $$
 
 - **Inhomogeneous Malmquist Bias (IMB)** (coupling with local spatial galaxy density gradient $\nabla \ln n(\mathbf{r})$):
 
 $$
-\Delta d_{\mathrm{IMB}} = -\sigma_d^2 \frac{\mathrm{d}\ln n(\mathbf{r})}{\mathrm{d}r}, \quad \Delta\mu_{\mathrm{IMB}} = -\sigma_{\mu}^2 \left( \frac{\mathrm{d}\ln n(r)}{\mathrm{d}\mu} + \frac{3}{\ln 10} \right)
+\Delta d_{\text{IMB}} = -\sigma_d^2 \frac{\mathrm{d}\ln n(\mathbf{r})}{\mathrm{d}r}, \quad \Delta\mu_{\text{IMB}} = -\sigma_{\mu}^2 \left( \frac{\mathrm{d}\ln n(r)}{\mathrm{d}\mu} + \frac{3}{\ln 10} \right)
 $$
 
 #### Section Citations:
@@ -758,7 +779,7 @@ $$
 Phase space dynamics on $(v, p)$ are governed by the Hamiltonian:
 
 $$
-\mathcal{H}(v, p) = U(v) + \frac{1}{2} p^\top M^{-1} p, \quad U(v) = -\ln \pi(v \mid \mathcal{D})
+\mathcal{H}(v, p) = U(v) + \frac{1}{2} p^{\top} M^{-1} p, \quad U(v) = -\ln \pi(v \mid \mathcal{D})
 $$
 
 where $v \in \mathbb{R}^D$ represents the spatial field parameters, $p \in \mathbb{R}^D$ is the conjugate momentum vector, $M$ is the symmetric positive-definite mass metric, and $\pi(v \mid \mathcal{D})$ is the posterior target density conditioned on observational dataset $\mathcal{D}$.
@@ -793,7 +814,13 @@ preserving detailed balance and phase space Liouville volume conservation $\det 
 
 ### 3.13 Ledoit-Wolf & OAS Optimal Linear Covariance Shrinkage Estimators
 
-For an empirical sample covariance matrix $S = \frac{1}{n}\sum_{k=1}^n (x_k - \bar{x})(x_k - \bar{x})^\top \in \mathbb{R}^{p \times p}$, the conditioned well-posed covariance estimator $\Sigma^*$ is:
+For an empirical sample covariance matrix:
+
+$$
+S = \frac{1}{n}\sum_{k=1}^n (x_k - \bar{x})(x_k - \bar{x})^{\top} \in \mathbb{R}^{p \times p}
+$$
+
+the conditioned well-posed covariance estimator $\Sigma^*$ is:
 
 $$
 \Sigma^* = (1 - \lambda^*) S + \lambda^* \mu I_p
@@ -808,7 +835,7 @@ d^2 = \|S - \mu I_p\|_F^2 = \mathrm{Tr}\left((S - \mu I_p)^2\right) = \mathrm{Tr
 $$
 
 $$
-\bar{b}^2 = \frac{1}{n^2} \sum_{k=1}^n \|(x_k - \bar{x})(x_k - \bar{x})^\top - S\|_F^2, \quad b^2 = \min(\bar{b}^2, d^2)
+\bar{b}^2 = \frac{1}{n^2} \sum_{k=1}^n \|(x_k - \bar{x})(x_k - \bar{x})^{\top} - S\|_F^2, \quad b^2 = \min(\bar{b}^2, d^2)
 $$
 
 - **Oracle Approximating Shrinkage (OAS)**: Under Gaussianity assumptions, OAS yields higher accuracy for small sample ratios $n/p$:
@@ -840,7 +867,13 @@ $$
 \widehat{V}^+ = \frac{N-1}{N} W + \frac{M+1}{MN} B, \quad \hat{R} = \sqrt{\frac{\widehat{V}^+}{W} \cdot \frac{df}{df-2}} \le 1.01
 $$
 
-  where $W = \frac{1}{M}\sum_{m=1}^M s_m^2$ is the mean within-chain variance, $B/N = \frac{1}{M-1}\sum_{m=1}^M (\bar{\theta}_m - \bar{\theta}_{\bullet})^2$ is the between-chain variance, and $df$ is the estimated degrees of freedom.
+  where the mean within-chain variance $W$ and between-chain variance $B/N$ are:
+
+$$
+W = \frac{1}{M}\sum_{m=1}^M s_m^2, \quad \frac{B}{N} = \frac{1}{M-1}\sum_{m=1}^M (\bar{\theta}_m - \bar{\theta}_{\bullet})^2
+$$
+
+  and $df$ is the estimated degrees of freedom.
 - **Multivariate MPSRF**: For parameter vectors $\boldsymbol{\theta} \in \mathbb{R}^p$ with pooled within-chain covariance matrix $\mathbf{W}$ and between-chain covariance matrix $\mathbf{B}/N$:
 
 $$
@@ -889,7 +922,17 @@ $$
 \Phi_{AB} = \iint_{\partial\mathcal{B}_{AB}} \rho(\mathbf{x}) (\mathbf{v}(\mathbf{x}) \cdot \hat{\mathbf{n}}) \, dA = \sum_{k=1}^{N_{\text{tri}}} \rho_k (\mathbf{v}_k \cdot \hat{\mathbf{n}}_k) A_k
 $$
 
-  where facet area is $A_k = \frac{1}{2} \|(\mathbf{x}_{k,1} - \mathbf{x}_{k,0}) \times (\mathbf{x}_{k,2} - \mathbf{x}_{k,0})\|$, $\hat{\mathbf{n}}_k$ is the outward facet unit normal, and $\rho_k, \mathbf{v}_k$ are evaluated at the facet centroid $\bar{\mathbf{x}}_k = \frac{1}{3}(\mathbf{x}_{k,0} + \mathbf{x}_{k,1} + \mathbf{x}_{k,2})$.
+  where facet area $A_k$ and facet centroid $\bar{\mathbf{x}}_k$ are:
+
+$$
+A_k = \frac{1}{2} \|(\mathbf{x}_{k,1} - \mathbf{x}_{k,0}) \times (\mathbf{x}_{k,2} - \mathbf{x}_{k,0})\|
+$$
+
+$$
+\bar{\mathbf{x}}_k = \frac{1}{3}(\mathbf{x}_{k,0} + \mathbf{x}_{k,1} + \mathbf{x}_{k,2})
+$$
+
+  with outward facet unit normal $\hat{\mathbf{n}}_k$, and $\rho_k$, $\mathbf{v}_k$ evaluated at $\bar{\mathbf{x}}_k$.
 - **Simplicial Minkowski Functionals & Volume Integrals**:
 
 $$
@@ -1106,7 +1149,11 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 
 #### 30. Engine 4: CF4++ZOA V-Web (37 Voids / 42 Knots / Shear Tensor)
 ![30_engine_vweb_shear_tensor](assets/screenshots/30_engine_vweb_shear_tensor.png)
-- **Mathematical Specification**: Kinematic shear deformation tensor $\Sigma_{ij} = -\frac{1}{2H_0}(\partial_j v_i + \partial_i v_j)$ eigenvalue partitioning.
+- **Mathematical Specification**: Kinematic shear deformation tensor eigenvalue partitioning:
+
+$$
+\Sigma_{ij} = -\frac{1}{2H_0}(\partial_j v_i + \partial_i v_j)
+$$
 
 #### 31. Engine 5: 2MRS x CF4 Non-Parametric Bayesian Field
 ![31_engine_2mrs_bayesian_field](assets/screenshots/31_engine_2mrs_bayesian_field.png)
@@ -1150,32 +1197,32 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 
 #### 39. Spectroscopic Dossier: Coma Cluster ($A1656 / \sigma_v = 1008\,\text{km}/\text{s}$)
 ![39_spectroscopy_coma_a1656](assets/screenshots/39_spectroscopy_coma_a1656.png)
-- **Spectroscopic Parameters**: $\sigma_v = 1,008\,\text{km}/\text{s}, k_B T_X = 8.25\,\text{keV}, L_X = 7.3 \times 10^{44}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**: $\sigma_v = 1,008\,\text{km}/\text{s}$, $k_B T_X = 8.25\,\text{keV}$, $L_X = 7.3 \times 10^{44}\,\text{erg}/\text{s}$.
 - **Dynamical Profile**: Gaussian line-of-sight velocity dispersion $N(v)$ fitted across $1,000+$ member galaxies.
 
 #### 40. Spectroscopic Dossier: Virgo Cluster ($M87 / \sigma_v = 750\,\text{km}/\text{s}$)
 ![40_spectroscopy_virgo_m87](assets/screenshots/40_spectroscopy_virgo_m87.png)
-- **Spectroscopic Parameters**: $\sigma_v = 750\,\text{km}/\text{s}, k_B T_X = 2.4\,\text{keV}, L_X = 1.8 \times 10^{43}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**: $\sigma_v = 750\,\text{km}/\text{s}$, $k_B T_X = 2.4\,\text{keV}$, $L_X = 1.8 \times 10^{43}\,\text{erg}/\text{s}$.
 - **Dynamical Profile**: Multi-subgroup substructure with M87, M86, and M49 infalling clouds.
 
 #### 41. Spectroscopic Dossier: Perseus Cluster ($A426 / \sigma_v = 1280\,\text{km}/\text{s}$)
 ![41_spectroscopy_perseus_a426](assets/screenshots/41_spectroscopy_perseus_a426.png)
-- **Spectroscopic Parameters**: $\sigma_v = 1,280\,\text{km}/\text{s}, k_B T_X = 6.8\,\text{keV}, L_X = 1.2 \times 10^{45}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**: $\sigma_v = 1,280\,\text{km}/\text{s}$, $k_B T_X = 6.8\,\text{keV}$, $L_X = 1.2 \times 10^{45}\,\text{erg}/\text{s}$.
 - **Dynamical Profile**: Brightest X-ray cluster in the sky; cool-core sound-wave ripple acoustics.
 
 #### 42. Spectroscopic Dossier: Norma Great Attractor ($A3627$)
 ![42_spectroscopy_norma_a3627](assets/screenshots/42_spectroscopy_norma_a3627.png)
-- **Spectroscopic Parameters**: $\sigma_v = 925\,\text{km}/\text{s}, k_B T_X = 7.1\,\text{keV}, L_X = 5.2 \times 10^{44}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**: $\sigma_v = 925\,\text{km}/\text{s}$, $k_B T_X = 7.1\,\text{keV}$, $L_X = 5.2 \times 10^{44}\,\text{erg}/\text{s}$.
 - **Dynamical Profile**: Central gravitational anchor of the Laniakea supercluster core.
 
 #### 43. Spectroscopic Dossier: Shapley Core ($A3558 / \sigma_v = 1350\,\text{km}/\text{s}$)
 ![43_spectroscopy_shapley_a3558](assets/screenshots/43_spectroscopy_shapley_a3558.png)
-- **Spectroscopic Parameters**: $\sigma_v = 1,350\,\text{km}/\text{s}, k_B T_X = 9.4\,\text{keV}, L_X = 1.6 \times 10^{45}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**: $\sigma_v = 1,350\,\text{km}/\text{s}$, $k_B T_X = 9.4\,\text{keV}$, $L_X = 1.6 \times 10^{45}\,\text{erg}/\text{s}$.
 - **Dynamical Profile**: Massive merging supercluster complex generating colossal gravitational potential wells.
 
 #### 44. Spectroscopic Dossier: Fornax Cluster ($NGC\,1399 / \sigma_v = 370\,\text{km}/\text{s}$)
 ![44_spectroscopy_fornax_ngc1399](assets/screenshots/44_spectroscopy_fornax_ngc1399.png)
-- **Spectroscopic Parameters**: $\sigma_v = 370\,\text{km}/\text{s}, k_B T_X = 1.2\,\text{keV}, L_X = 4.5 \times 10^{42}\,\text{erg}/\text{s}$.
+- **Spectroscopic Parameters**: $\sigma_v = 370\,\text{km}/\text{s}$, $k_B T_X = 1.2\,\text{keV}$, $L_X = 4.5 \times 10^{42}\,\text{erg}/\text{s}$.
 - **Dynamical Profile**: Low-mass compact cluster in the southern sky with prominent cD galaxy envelope.
 
 ---
@@ -1200,7 +1247,11 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 
 #### 49. Multipolar Bulk Flow: Dipole Arrow & Cosmic Shear Vector ($R = 150\,h^{-1}\text{Mpc}$)
 ![49_multipolar_bulk_flow_dipole](assets/screenshots/49_multipolar_bulk_flow_dipole.png)
-- **Kinematics**: Maximum-likelihood bulk flow vector $\mathbf{V}_{\text{bulk}} = [v_x, v_y, v_z]$ and quadrupole shear tensor.
+- **Kinematics**: Maximum-likelihood bulk flow vector and quadrupole shear tensor:
+
+$$
+\mathbf{V}_{\text{bulk}} = [v_x, v_y, v_z]
+$$
 
 #### 50. eROSITA All-Sky X-Ray Gas Filaments & WHIM Warm-Hot Medium
 ![50_erosita_xray_gas_filaments](assets/screenshots/50_erosita_xray_gas_filaments.png)
@@ -1316,54 +1367,81 @@ Every numerical run and visual export produces a verified **W3C PROV-JSONLD** ex
    *Cosmicflows-4: The catalog of 56,000 galaxy distances and peculiar velocities*
    - **Journal**: *Astronomy & Astrophysics*, Vol. 670, L15
    - **DOI**: [`10.1051/0004-6361/202245331`](https://doi.org/10.1051/0004-6361/202245331) | **ADS**: [`2023A&A...670L..15C`](https://ui.adsabs.harvard.edu/abs/2023A%26A...670L..15C) | **arXiv**: [`arXiv:2302.04639`](https://arxiv.org/abs/2302.04639)
-   - **Detailed Annotation**: The authoritative observational catalogue establishing 55,877 galaxy distances and peculiar velocities in the nearby universe ($z \le 0.08$). Serves as the primary observational benchmark for the CF4 calibration suite.
+   - **Detailed Annotation**: The authoritative observational master catalog providing 55,877 galaxy distance measurements and peculiar velocities across the local volume out to redshift 0.08. Synthesizes multi-wavelength optical (I-band), infrared (Spitzer 3.6-micron, WISE W1), radio (21-centimeter neutral hydrogen line widths), and Type Ia supernovae into the deepest, densest velocity field compilation in history. Serves as the primary observational data bedrock for this workbench.
+   
+   ![Cosmicflows-4 Master Distance Modulus and Peculiar Velocity](assets/equations/eq_cf4_catalog.svg)
 
 2. **Dupuy, A., & Courtois, H. M. (2023)**
    *Cosmicflows-4: Cosmography and Watershed Basins of Attraction*
    - **Journal**: *Astronomy & Astrophysics*, Vol. 678, A176
    - **DOI**: [`10.1051/0004-6361/202346802`](https://doi.org/10.1051/0004-6361/202346802) | **ADS**: [`2023A&A...678A.176D`](https://ui.adsabs.harvard.edu/abs/2023A%26A...678A.176D) | **arXiv**: [`arXiv:2308.08316`](https://arxiv.org/abs/2308.08316)
-   - **Detailed Annotation**: Establishes the watershed morphological segmentation of the local universe into dynamical basins of attraction and repulsion; establishes Table A.1 canonical basin taxonomy (Laniakea, Apus, Hercules, Lepus, Perseus-Pisces, Shapley, SDSS).
+   - **Detailed Annotation**: Applies topological watershed segmentation algorithms to peculiar velocity vector fields, partitioning the local cosmos into 8 discrete gravitational basins of attraction and repulsion (Table A.1: Laniakea, Apus, Hercules, Lepus, Perseus-Pisces, Shapley, and Sloan concentrations). Formulates the mathematical separatrix surfaces and assigns canonical watershed basin IDs directly utilized in our 3D interactive clustering engine.
+   
+   ![Watershed Divergence and Basin Separatrix Condition](assets/equations/eq_watershed_separatrix.svg)
 
 3. **Hoffman, Y., Courtois, H. M., Tully, R. B., Libeskind, N. I., Pomarède, D., Graziani, R., & Steinmetz, M. (2024)**
    *The Cosmicflows-4 Wiener Filter Reconstruction of the Local Universe*
    - **Journal**: *Monthly Notices of the Royal Astronomical Society*, Vol. 527, Issue 4, pp. 10327–10340
    - **DOI**: [`10.1093/mnras/stad3782`](https://doi.org/10.1093/mnras/stad3782) | **ADS**: [`2024MNRAS.52710327H`](https://ui.adsabs.harvard.edu/abs/2024MNRAS.52710327H) | **arXiv**: [`arXiv:2305.13253`](https://arxiv.org/abs/2305.13253)
-   - **Detailed Annotation**: Bayesian Wiener Filter / Constrained Realization reconstruction of the 3D density contrast $\delta(\mathbf{x})$ and velocity vector field $\mathbf{v}(\mathbf{x})$ on $64^3, 128^3, 256^3$ Supergalactic Cartesian grids within a $500\,h^{-1}\text{Mpc}$ box.
+   - **Detailed Annotation**: Applies Bayesian Wiener Filter (WF) and Constrained Realization (CR) statistical estimation to reconstruct continuous 3D density contrast fields and peculiar velocity fields from discrete, error-prone galaxy distance indicators. Evaluated on 64-cubed, 128-cubed, and 256-cubed Supergalactic grids inside a 500 Mpc/h box, supplying the exact Cartesian binary grids and linear theory continuity diagnostics visualized in this application.
+   
+   ![Bayesian Wiener Filter and Linear Theory Continuity Equation](assets/equations/eq_wiener_filter.svg)
 
 4. **Tully, R. B., Kourkchi, E., Courtois, H. M., et al. (2023)**
    *Cosmicflows-4*
    - **Journal**: *The Astrophysical Journal*, Vol. 944, Issue 1, 94
    - **DOI**: [`10.3847/1538-4357/ac94d8`](https://doi.org/10.3847/1538-4357/ac94d8) | **ADS**: [`2023ApJ...944...94T`](https://ui.adsabs.harvard.edu/abs/2023ApJ...944...94T) | **arXiv**: [`arXiv:2210.01112`](https://arxiv.org/abs/2210.01112)
+   - **Detailed Annotation**: Details the comprehensive astronomical calibration and zero-point alignment methodology for Cosmicflows-4. Calibrates galaxy luminosity-linewidth relations (Tully-Fisher), fundamental plane parameters, and primary distance ladders (Cepheid variables, TRGB stars) to measure cosmological expansion H0 and isolate non-Hubble peculiar velocities. Underpins the Tully-Fisher inversion solvers and multi-band photometric estimators in this engine.
+   
+   ![Calibrated Tully-Fisher Luminosity-Linewidth Relation](assets/equations/eq_tully_fisher.svg)
 
 5. **Tully, R. B., Courtois, H., Hoffman, Y., & Pomarède, D. (2014)**
    *The Laniakea supercluster of galaxies*
    - **Journal**: *Nature*, Vol. 513, Issue 7516, pp. 71–73
    - **DOI**: [`10.1038/nature13674`](https://doi.org/10.1038/nature13674) | **ADS**: [`2014Natur.513...71T`](https://ui.adsabs.harvard.edu/abs/2014Natur.513...71T) | **arXiv**: [`arXiv:1409.0880`](https://arxiv.org/abs/1409.0880)
+   - **Detailed Annotation**: The landmark Nature discovery defining Laniakea (Hawaiian for "Immeasurable Heaven") as our home supercluster and cosmic watershed. Demonstrates that over 100,000 galaxies spanning 500 million light-years (including the Milky Way and Virgo Cluster) are dynamically bound along inward peculiar velocity streamlines terminating at the Great Attractor in the Norma and Centaurus core. Directly powers our Laniakea 3D flow visualizer and streamline integrators.
+   
+   ![Peculiar Velocity Streamline Integration and Basin Convergence](assets/equations/eq_laniakea_streamlines.svg)
 
 6. **Pomarède, D., Tully, R. B., Courtois, H. M., & Hoffman, Y. (2020)**
    *Cosmicflows-3: The South Pole Wall*
    - **Journal**: *The Astrophysical Journal*, Vol. 897, Issue 2, 133
    - **DOI**: [`10.3847/1538-4357/ab9eb0`](https://doi.org/10.3847/1538-4357/ab9eb0) | **ADS**: [`2020ApJ...897..133P`](https://ui.adsabs.harvard.edu/abs/2020ApJ...897..133P) | **arXiv**: [`arXiv:2007.04414`](https://arxiv.org/abs/2007.04414)
+   - **Detailed Annotation**: Announces the discovery of the South Pole Wall—one of the largest contiguous cosmological structures ever identified, stretching across 1.4 billion light-years behind the southern sky obscuration zone in the Chamaeleon and Apus constellations. Forms a gigantic gravitational curtain opposing the Perseus-Pisces and Laniakea basins, incorporated into our landmark coordinate framework.
+   
+   ![South Pole Wall Cosmic Curtain Boundary Equation](assets/equations/eq_south_pole_wall.svg)
 
 7. **Hoffman, Y., Pomarède, D., Tully, R. B., & Courtois, H. M. (2017)**
    *The dipole repeller*
    - **Journal**: *Nature Astronomy*, Vol. 1, Issue 2, 0036
    - **DOI**: [`10.1038/s41550-016-0036`](https://doi.org/10.1038/s41550-016-0036) | **ADS**: [`2017NatAs...1E..36H`](https://ui.adsabs.harvard.edu/abs/2017NatAs...1E..36H) | **arXiv**: [`arXiv:1702.00831`](https://arxiv.org/abs/1702.00831)
+   - **Detailed Annotation**: Solves the decades-old mystery of why the Milky Way travels at 630 km/s relative to the Cosmic Microwave Background (CMB). Shows that our peculiar motion is not solely pulled by mass concentrations like the Shapley Supercluster, but is pushed in equal measure by a massive cosmic underdensity—the Dipole Repeller—acting as an effective gravitational fountain. Visualized in our potential field and divergence inspection modes.
+   
+   ![Dipole Repeller Push-Pull Cosmic Microwave Background Resolution](assets/equations/eq_dipole_repeller.svg)
 
 8. **Pomarède, D., Hoffman, Y., Courtois, H. M., & Tully, R. B. (2017)**
    *The Cosmic V-Web*
    - **Journal**: *The Astrophysical Journal*, Vol. 845, Issue 1, 55
    - **DOI**: [`10.3847/1538-4357/aa7f29`](https://doi.org/10.3847/1538-4357/aa7f29) | **ADS**: [`2017ApJ...845...55P`](https://ui.adsabs.harvard.edu/abs/2017ApJ...845...55P) | **arXiv**: [`arXiv:1706.03413`](https://arxiv.org/abs/1706.03413)
+   - **Detailed Annotation**: Introduces the Velocity-Web (V-web) framework, classifying the cosmic web into four topological phases (knots, filaments, sheets, and voids) using the eigenvalues of the symmetric velocity shear tensor. Provides an invariant kinematic structure classification that is unbiased by galaxy luminosity or selection effects, implemented in our real-time tensor eigenvalue analysis routines.
+   
+   ![Velocity Shear Tensor and V-Web Eigenvalue Cosmic Classification](assets/equations/eq_v_web_tensor.svg)
 
 9. **Graziani, R., Courtois, H. M., Lavaux, G., et al. (2019)**
    *Cosmicflows-3: Peculiar velocities in the local Universe with the Wiener filter*
    - **Journal**: *MNRAS*, Vol. 488, Issue 4, pp. 5438–5451
    - **DOI**: [`10.1093/mnras/stz2065`](https://doi.org/10.1093/mnras/stz2065) | **ADS**: [`2019MNRAS.488.5438G`](https://ui.adsabs.harvard.edu/abs/2019MNRAS.488.5438G) | **arXiv**: [`arXiv:1904.09995`](https://arxiv.org/abs/1904.09995)
+   - **Detailed Annotation**: Precursor Bayesian Wiener filter mapping from Cosmicflows-3, establishing optimal linear estimation algorithms, mock catalog error validations, and cosmological bulk flow estimations across concentric radial shells. Establishes the statistical covariance frameworks and bootstrap resampling methods implemented in our bulk-flow estimators.
+   
+   ![Radial Shell Bulk Flow Estimator and Minimum Variance Weighting](assets/equations/eq_cf3_bulk_flow.svg)
 
 10. **Sorce, J. G., Courtois, H. M., Gottlöber, S., et al. (2014)**
     *Cosmicflows-2: Constrained Local UniversE Simulations (CLUES)*
     - **Journal**: *MNRAS*, Vol. 437, Issue 4, pp. 3586–3595
     - **DOI**: [`10.1093/mnras/stt2153`](https://doi.org/10.1093/mnras/stt2153) | **ADS**: [`2014MNRAS.437.3586S`](https://ui.adsabs.harvard.edu/abs/2014MNRAS.437.3586S) | **arXiv**: [`arXiv:1311.3919`](https://arxiv.org/abs/1311.3919)
+    - **Detailed Annotation**: Pioneer work in Constrained Realization N-body simulations, reversing modern Cosmicflows peculiar velocity fields back to their primordial linear initial conditions (redshift ~100) and evolving them forward to reproduce our exact observed universe (the local cosmic web, Virgo, Coma, and Local Void) in high-resolution hydrodynamical simulations.
+    
+    ![Constrained Realization Primordial Displacement Field](assets/equations/eq_clues_simulations.svg)
 
 ---
 
@@ -1501,4 +1579,8 @@ archivePrefix = {arXiv},
 - **Live Vercel Production Workbench**: [https://cf4-five.vercel.app](https://cf4-five.vercel.app)
 
 ### ⚖️ License
-Distributed under the **MIT License**. Permitted for commercial, academic, and research applications with mandatory scientific attribution. See `LICENSE` for details.
+Distributed under a **Dual Non-Commercial Research License**:
+- **Source Code & Simulator**: [PolyForm Noncommercial License 1.0.0](LICENSE#1-software--code-license-polyform-noncommercial-license-100) (Free for non-commercial research, academic, and educational use; commercial exploitation or closed-source redistribution strictly prohibited without permission).
+- **Documentation, Models & Visual Assets**: [Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+
+See [`LICENSE`](file:///c:/Users/Zhane/Documents/antigravity/gallant-newton/LICENSE) for full legal text and commercial inquiries.

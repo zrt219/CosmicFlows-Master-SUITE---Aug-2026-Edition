@@ -3,5 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "description": "ZRT Cosmicflows Workbench - Cosmological Export, Validation Gates, and Reproducibility Architecture",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "private": true
 }

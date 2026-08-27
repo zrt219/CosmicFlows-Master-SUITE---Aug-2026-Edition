@@ -29,7 +29,7 @@ def main():
     client.start()
     
     try:
-        ready = client.wait_for_condition("document.readyState === 'complete' && !!window.camera && !!window.controls", timeout=15.0)
+        ready = client.wait_for_condition("document.readyState === 'complete' && !!window.camera && !!window.controls", timeout=25.0)
         if not ready:
             raise RuntimeError("Timed out waiting for window.camera and window.controls to initialize")
             

@@ -7787,7 +7787,7 @@ v_{\\text{pec}} = cz - H_0 d = ${res.params.cz}\\,\\mathrm{km\\,s^{-1}} - (${res
 \\end{equation}
 \\begin{equation}
 \\label{eq:btfr}
-M_b = A \\cdot V_{\\text{rot}}^4 = 47.0 \\times (${res.vRot.toFixed(1)})^4 = ${(res.mBaryonic / 1e10).toFixed(2)} \\times 10^{10}\\,M_\\odot
+M_b = A \\cdot V_{\\text{rot}}^4 = 47.0 \\times (${res.vRot.toFixed(1)})^4 = ${(res.mBaryonic / 1e10).toFixed(2)} \\times 10^{10}\\,M_{\\odot}
 \\end{equation}
 % Calibration source: ${res.cal.citation}
 % Galaxy: ${galaxyName}`;
@@ -10548,7 +10548,7 @@ function initCosmicTooltips() {
     }
 
     // Parse [Key: X] into keyboard shortcut badges
-    let formattedTip = rawTip.replace(/\[Key:\s*([^ \]]+)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
+    let formattedTip = tipToDisplay.replace(/\[Key:\s*([^ \]]+)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
     formattedTip = formattedTip.replace(/\[(Space|\/|Ctrl\+K|0|C|A|I|P|T|\?)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
 
     tooltip.innerHTML = formattedTip;
@@ -11447,7 +11447,7 @@ if (document.readyState === 'loading') {
         <ul style="margin:6px 0 0 18px; display:flex; flex-direction:column; gap:4px;">
           <li><b>Tully-Fisher & SNe Distance Scatter:</b> Galaxy rotation velocities give metric distances with ~15% statistical error.</li>
           <li><b>Zone of Avoidance (ZoA):</b> The Milky Way's dense dust plane hides ~20% of the extragalactic sky.</li>
-          <li><b>Wiener Filter Posterior Variance ($\sigma_\delta$):</b> In dense data regions, the reconstruction is ~95% certain; in sparse deep space, it smoothly reverts to the mean cosmic density.</li>
+          <li><b>Wiener Filter Posterior Variance (&sigma;<sub>&delta;</sub>):</b> In dense data regions, the reconstruction is ~95% certain; in sparse deep space, it smoothly reverts to the mean cosmic density.</li>
         </ul>
       </div>
       <div>
