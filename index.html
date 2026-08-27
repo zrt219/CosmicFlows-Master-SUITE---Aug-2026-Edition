@@ -19,6 +19,9 @@ window.onerror = function(msg, url, line, col, error) {
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<!-- KaTeX for Scientific Formula Rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 
 <style>
   :root {
@@ -2814,22 +2817,25 @@ function setCameraView(pos, target, durationBase = 1200) {
   });
   window.addEventListener('keyup', e => { KEYS[e.code] = false; });
 
+  const _nudgeFwd = new THREE.Vector3();
+  const _nudgeRight = new THREE.Vector3();
+  const _nudgeUp = new THREE.Vector3(0, 1, 0);
+
   function nudgeCamera() {
     if (!window.controls || !window.camera) { requestAnimationFrame(nudgeCamera); return; }
     const spd = (CAM_SETTINGS.wasdSpeed * CAM_SETTINGS.speed) / 60;
-    const fwd  = new THREE.Vector3();
-    camera.getWorldDirection(fwd);
-    fwd.y = 0; fwd.normalize();
-    const right = new THREE.Vector3().crossVectors(fwd, camera.up).normalize();
-    const up    = new THREE.Vector3(0, 1, 0);
+    camera.getWorldDirection(_nudgeFwd);
+    _nudgeFwd.y = 0; _nudgeFwd.normalize();
+    _nudgeRight.crossVectors(_nudgeFwd, camera.up).normalize();
+    _nudgeUp.set(0, 1, 0);
 
     let moved = false;
-    if (KEYS['KeyW'] || KEYS['ArrowUp'])    { camera.position.addScaledVector(fwd,   spd); controls.target.addScaledVector(fwd,   spd); moved = true; }
-    if (KEYS['KeyS'] || KEYS['ArrowDown'])  { camera.position.addScaledVector(fwd,  -spd); controls.target.addScaledVector(fwd,  -spd); moved = true; }
-    if (KEYS['KeyA'] || KEYS['ArrowLeft'])  { camera.position.addScaledVector(right,-spd); controls.target.addScaledVector(right,-spd); moved = true; }
-    if (KEYS['KeyD'] || KEYS['ArrowRight']) { camera.position.addScaledVector(right, spd); controls.target.addScaledVector(right, spd); moved = true; }
-    if (KEYS['KeyQ'] || KEYS['PageDown'])   { camera.position.addScaledVector(up,   -spd); controls.target.addScaledVector(up,   -spd); moved = true; }
-    if (KEYS['KeyE'] || KEYS['PageUp'])     { camera.position.addScaledVector(up,    spd); controls.target.addScaledVector(up,    spd); moved = true; }
+    if (KEYS['KeyW'] || KEYS['ArrowUp'])    { camera.position.addScaledVector(_nudgeFwd,   spd); controls.target.addScaledVector(_nudgeFwd,   spd); moved = true; }
+    if (KEYS['KeyS'] || KEYS['ArrowDown'])  { camera.position.addScaledVector(_nudgeFwd,  -spd); controls.target.addScaledVector(_nudgeFwd,  -spd); moved = true; }
+    if (KEYS['KeyA'] || KEYS['ArrowLeft'])  { camera.position.addScaledVector(_nudgeRight,-spd); controls.target.addScaledVector(_nudgeRight,-spd); moved = true; }
+    if (KEYS['KeyD'] || KEYS['ArrowRight']) { camera.position.addScaledVector(_nudgeRight, spd); controls.target.addScaledVector(_nudgeRight, spd); moved = true; }
+    if (KEYS['KeyQ'] || KEYS['PageDown'])   { camera.position.addScaledVector(_nudgeUp,   -spd); controls.target.addScaledVector(_nudgeUp,   -spd); moved = true; }
+    if (KEYS['KeyE'] || KEYS['PageUp'])     { camera.position.addScaledVector(_nudgeUp,    spd); controls.target.addScaledVector(_nudgeUp,    spd); moved = true; }
 
     if (moved) { _flyToCancelToken++; controls.update(); }
     requestAnimationFrame(nudgeCamera);
@@ -3411,7 +3417,9 @@ function generateFullCF4Catalog() {
   }
 
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const galPosAttr = new THREE.Float32BufferAttribute(positions, 3);
+  galPosAttr.setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('position', galPosAttr);
   geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
   const mat = new THREE.PointsMaterial({
@@ -4541,6 +4549,7 @@ let streamlineGroup = new THREE.Group();
 let chevronMeshGroup = new THREE.Group();
 let flowParticlesMesh = null;
 const activeStreamlineCurves = [];
+let activeStreamlineData = null;
 scene.add(streamlineGroup);
 scene.add(chevronMeshGroup);
 
@@ -4661,6 +4670,36 @@ function rebuildStreamlines() {
     }
   }
 
+  // Flatten activeStreamlineCurves into contiguous TypedArrays for zero-indirection advection
+  let totalPts = 0;
+  for (let i = 0; i < activeStreamlineCurves.length; i++) {
+    totalPts += activeStreamlineCurves[i].length;
+  }
+  const flatStreamlineVertices = new Float32Array(totalPts * 3);
+  const streamlineOffsets = new Int32Array(activeStreamlineCurves.length + 1);
+  const streamlineLengths = new Int32Array(activeStreamlineCurves.length);
+  let curOffset = 0;
+  for (let i = 0; i < activeStreamlineCurves.length; i++) {
+    const curve = activeStreamlineCurves[i];
+    streamlineOffsets[i] = curOffset;
+    streamlineLengths[i] = curve.length;
+    for (let j = 0; j < curve.length; j++) {
+      const pt = curve[j];
+      const base = (curOffset + j) * 3;
+      flatStreamlineVertices[base] = pt.x;
+      flatStreamlineVertices[base + 1] = pt.y;
+      flatStreamlineVertices[base + 2] = pt.z;
+    }
+    curOffset += curve.length;
+  }
+  streamlineOffsets[activeStreamlineCurves.length] = curOffset;
+  activeStreamlineData = {
+    flatVertices: flatStreamlineVertices,
+    offsets: streamlineOffsets,
+    lengths: streamlineLengths,
+    count: activeStreamlineCurves.length
+  };
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -4711,28 +4750,60 @@ function buildFlowParticles() {
   const count = simState.particleCount;
   const positions = new Float32Array(count * 3);
   const particleData = [];
+  const particleProgress = new Float32Array(count);
+  const particleSpeed = new Float32Array(count);
+  const particleCurveIdx = new Int32Array(count);
+
+  const numCurves = activeStreamlineCurves.length;
+  const flatVerts = activeStreamlineData ? activeStreamlineData.flatVertices : null;
+  const offsets = activeStreamlineData ? activeStreamlineData.offsets : null;
+  const lengths = activeStreamlineData ? activeStreamlineData.lengths : null;
 
   for (let i = 0; i < count; i++) {
-    const curveIdx = Math.floor(Math.random() * activeStreamlineCurves.length);
-    const curve = activeStreamlineCurves[curveIdx];
+    const curveIdx = numCurves > 0 ? Math.floor(Math.random() * numCurves) : 0;
     const progress = Math.random();
-    const pIdx = Math.floor(progress * (curve.length - 1));
-    const pt = curve[pIdx] || curve[0];
+    const speed = 0.0015 + Math.random() * 0.003;
 
-    positions[i * 3] = pt.x;
-    positions[i * 3 + 1] = pt.y;
-    positions[i * 3 + 2] = pt.z;
+    particleCurveIdx[i] = curveIdx;
+    particleProgress[i] = progress;
+    particleSpeed[i] = speed;
+
+    if (flatVerts && offsets && lengths && lengths[curveIdx] > 0) {
+      const cLen = lengths[curveIdx];
+      const pIdx = Math.floor(progress * (cLen - 1));
+      const base = (offsets[curveIdx] + pIdx) * 3;
+      positions[i * 3]     = flatVerts[base];
+      positions[i * 3 + 1] = flatVerts[base + 1];
+      positions[i * 3 + 2] = flatVerts[base + 2];
+    } else if (activeStreamlineCurves[curveIdx] && activeStreamlineCurves[curveIdx].length > 0) {
+      const curve = activeStreamlineCurves[curveIdx];
+      const pIdx = Math.floor(progress * (curve.length - 1));
+      const pt = curve[pIdx] || curve[0];
+      positions[i * 3]     = pt.x;
+      positions[i * 3 + 1] = pt.y;
+      positions[i * 3 + 2] = pt.z;
+    }
 
     particleData.push({
       curveIdx,
       progress,
-      speed: 0.0015 + Math.random() * 0.003
+      speed
     });
   }
 
   const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  pGeo.userData = { particleData };
+  const posAttr = new THREE.BufferAttribute(positions, 3);
+  posAttr.setUsage(THREE.DynamicDrawUsage);
+  pGeo.setAttribute('position', posAttr);
+  pGeo.userData = {
+    particleData,
+    particleProgress,
+    particleSpeed,
+    particleCurveIdx,
+    flatVertices: flatVerts,
+    offsets,
+    lengths
+  };
 
   const pMat = new THREE.PointsMaterial({
     color: currentTheme === 'white' ? 0x0284c7 : 0x00e5ff,
@@ -5597,11 +5668,25 @@ document.getElementById('chk-ruler-box')?.addEventListener('change', e => {
 });
 
 // Raycasting and Hover Card Handler
+let isPointerActive = false;
+let pointerDownInfo = { x: 0, y: 0, t: 0 };
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2(-1000, -1000);
 const hoverCard = document.getElementById('hover-card');
 
 window.addEventListener('pointermove', e => {
+  if (isPointerActive) {
+    const dragDist = Math.hypot(e.clientX - pointerDownInfo.x, e.clientY - pointerDownInfo.y);
+    if (dragDist >= 4) {
+      if (hoverCard) hoverCard.style.display = 'none';
+      return;
+    }
+  }
+
+  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
+    if (hoverCard) hoverCard.style.display = 'none';
+    return;
+  }
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
@@ -5732,41 +5817,52 @@ function triggerNativeHaptic(type) {
   } catch (e) {}
 }
 
-function applyCosmicTime(tGyr) {
-  triggerNativeHaptic('tick');
+let _lastCosmoDomUpdate = 0;
+let _lastDomCosmicTime = NaN;
+
+function applyCosmicTime(tGyr, isDiscrete = false) {
+  if (isDiscrete) triggerNativeHaptic('tick');
   const dt = Math.max(-13.8, Math.min(10.0, tGyr));
   simState.cosmicTime = dt;
 
   const cosmo = computeCosmology(dt);
 
-  const elTime = document.getElementById('hud-cosmic-time');
-  if (elTime) elTime.textContent = (dt >= 0 ? '+' : '') + dt.toFixed(2) + ' Gyr';
-  const elZ = document.getElementById('hud-redshift');
-  if (elZ) elZ.textContent = cosmo.z >= 100 ? Math.round(cosmo.z).toLocaleString() : (cosmo.z >= 0 ? cosmo.z.toFixed(2) : cosmo.z.toFixed(2));
-  const elA = document.getElementById('hud-scalefactor');
-  if (elA) elA.textContent = cosmo.a.toFixed(3);
-  const elD = document.getElementById('hud-growthfactor');
-  if (elD) elD.textContent = cosmo.D_plus.toFixed(3);
-  const elH = document.getElementById('hud-hubble');
-  if (elH) elH.textContent = Math.round(cosmo.H_z).toLocaleString();
+  const now = performance.now();
+  const shouldUpdateDom = isDiscrete || Number.isNaN(_lastDomCosmicTime) || Math.abs(dt - _lastDomCosmicTime) >= 0.02 || (now - _lastCosmoDomUpdate) > 50;
 
-  const cZ = document.getElementById('cosmo-z'); if (cZ) cZ.textContent = elZ ? elZ.textContent : '';
-  const cA = document.getElementById('cosmo-a'); if (cA) cA.textContent = elA ? elA.textContent : '';
-  const cD = document.getElementById('cosmo-dplus'); if (cD) cD.textContent = elD ? elD.textContent : '';
-  const cH = document.getElementById('cosmo-hz'); if (cH) cH.textContent = elH ? elH.textContent : '';
+  if (shouldUpdateDom) {
+    _lastCosmoDomUpdate = now;
+    _lastDomCosmicTime = dt;
 
-  const rng = document.getElementById('rng-cosmic-time');
-  if (rng && Math.abs(parseFloat(rng.value) - dt) > 0.05) rng.value = dt.toFixed(1);
+    const elTime = document.getElementById('hud-cosmic-time');
+    if (elTime) elTime.textContent = (dt >= 0 ? '+' : '') + dt.toFixed(2) + ' Gyr';
+    const elZ = document.getElementById('hud-redshift');
+    if (elZ) elZ.textContent = cosmo.z >= 100 ? Math.round(cosmo.z).toLocaleString() : (cosmo.z >= 0 ? cosmo.z.toFixed(2) : cosmo.z.toFixed(2));
+    const elA = document.getElementById('hud-scalefactor');
+    if (elA) elA.textContent = cosmo.a.toFixed(3);
+    const elD = document.getElementById('hud-growthfactor');
+    if (elD) elD.textContent = cosmo.D_plus.toFixed(3);
+    const elH = document.getElementById('hud-hubble');
+    if (elH) elH.textContent = Math.round(cosmo.H_z).toLocaleString();
 
-  ['bb', 'noon', 'present', 'plus5', 'plus10'].forEach(id => {
-    const btn = document.getElementById(`btn-time-${id}`);
-    if (btn) btn.classList.remove('active');
-  });
-  if (Math.abs(dt - (-13.78)) < 0.1) document.getElementById('btn-time-bb')?.classList.add('active');
-  else if (Math.abs(dt - (-10.4)) < 0.3) document.getElementById('btn-time-noon')?.classList.add('active');
-  else if (Math.abs(dt) < 0.1) document.getElementById('btn-time-present')?.classList.add('active');
-  else if (Math.abs(dt - 5.0) < 0.2) document.getElementById('btn-time-plus5')?.classList.add('active');
-  else if (Math.abs(dt - 10.0) < 0.2) document.getElementById('btn-time-plus10')?.classList.add('active');
+    const cZ = document.getElementById('cosmo-z'); if (cZ) cZ.textContent = elZ ? elZ.textContent : '';
+    const cA = document.getElementById('cosmo-a'); if (cA) cA.textContent = elA ? elA.textContent : '';
+    const cD = document.getElementById('cosmo-dplus'); if (cD) cD.textContent = elD ? elD.textContent : '';
+    const cH = document.getElementById('cosmo-hz'); if (cH) cH.textContent = elH ? elH.textContent : '';
+
+    const rng = document.getElementById('rng-cosmic-time');
+    if (rng && Math.abs(parseFloat(rng.value) - dt) > 0.05) rng.value = dt.toFixed(1);
+
+    ['bb', 'noon', 'present', 'plus5', 'plus10'].forEach(id => {
+      const btn = document.getElementById(`btn-time-${id}`);
+      if (btn) btn.classList.remove('active');
+    });
+    if (Math.abs(dt - (-13.78)) < 0.1) document.getElementById('btn-time-bb')?.classList.add('active');
+    else if (Math.abs(dt - (-10.4)) < 0.3) document.getElementById('btn-time-noon')?.classList.add('active');
+    else if (Math.abs(dt) < 0.1) document.getElementById('btn-time-present')?.classList.add('active');
+    else if (Math.abs(dt - 5.0) < 0.2) document.getElementById('btn-time-plus5')?.classList.add('active');
+    else if (Math.abs(dt - 10.0) < 0.2) document.getElementById('btn-time-plus10')?.classList.add('active');
+  }
 
   if (galaxyPointsMesh && galaxyPointsMesh.geometry && galaxyPointsMesh.geometry.attributes.position && galaxyBasePositions) {
     const posArr = galaxyPointsMesh.geometry.attributes.position.array;
@@ -5799,30 +5895,34 @@ function applyCosmicTime(tGyr) {
         posArr[idx + 1] = by - vy * dispFactor;
         posArr[idx + 2] = bz - vz * dispFactor;
       } else {
+        let infShX = 0, infShY = 0, infShZ = 0;
         const dxSh = shX - bx;
         const dySh = shY - by;
         const dzSh = shZ - bz;
-        const dSh = Math.sqrt(dxSh * dxSh + dySh * dySh + dzSh * dzSh);
-
-        const dxGa = gaX - bx;
-        const dyGa = gaY - by;
-        const dzGa = gaZ - bz;
-        const dGa = Math.sqrt(dxGa * dxGa + dyGa * dyGa + dzGa * dzGa);
-
-        let infShX = 0, infShY = 0, infShZ = 0;
-        if (dSh < 14000) {
-          const infFracSh = 0.35 * futS * Math.exp(-dSh / 7500);
-          infShX = dxSh * infFracSh;
-          infShY = dySh * infFracSh;
-          infShZ = dzSh * infFracSh;
+        if (Math.abs(dxSh) < 14000 && Math.abs(dySh) < 14000 && Math.abs(dzSh) < 14000) {
+          const dSh2 = dxSh * dxSh + dySh * dySh + dzSh * dzSh;
+          if (dSh2 < 196000000) { // 14000^2
+            const dSh = Math.sqrt(dSh2);
+            const infFracSh = 0.35 * futS * Math.exp(-dSh / 7500);
+            infShX = dxSh * infFracSh;
+            infShY = dySh * infFracSh;
+            infShZ = dzSh * infFracSh;
+          }
         }
 
         let infGaX = 0, infGaY = 0, infGaZ = 0;
-        if (dGa < 12000) {
-          const infFracGa = 0.30 * futS * Math.exp(-dGa / 6500);
-          infGaX = dxGa * infFracGa;
-          infGaY = dyGa * infFracGa;
-          infGaZ = dzGa * infFracGa;
+        const dxGa = gaX - bx;
+        const dyGa = gaY - by;
+        const dzGa = gaZ - bz;
+        if (Math.abs(dxGa) < 12000 && Math.abs(dyGa) < 12000 && Math.abs(dzGa) < 12000) {
+          const dGa2 = dxGa * dxGa + dyGa * dyGa + dzGa * dzGa;
+          if (dGa2 < 144000000) { // 12000^2
+            const dGa = Math.sqrt(dGa2);
+            const infFracGa = 0.30 * futS * Math.exp(-dGa / 6500);
+            infGaX = dxGa * infFracGa;
+            infGaY = dyGa * infFracGa;
+            infGaZ = dzGa * infFracGa;
+          }
         }
 
         const flowX = vx * (0.2 * dt);
@@ -5847,26 +5947,26 @@ function updatePlayButton() {
 }
 
 document.getElementById('rng-cosmic-time')?.addEventListener('input', e => {
-  applyCosmicTime(parseFloat(e.target.value));
+  applyCosmicTime(parseFloat(e.target.value), true);
 });
 document.getElementById('btn-time-play')?.addEventListener('click', () => {
   simState.timePlaying = !simState.timePlaying;
   updatePlayButton();
 });
-document.getElementById('btn-time-bb')?.addEventListener('click', () => applyCosmicTime(-13.78));
-document.getElementById('btn-time-noon')?.addEventListener('click', () => applyCosmicTime(-10.4));
-document.getElementById('btn-time-present')?.addEventListener('click', () => applyCosmicTime(0.0));
-document.getElementById('btn-time-plus5')?.addEventListener('click', () => applyCosmicTime(5.0));
-document.getElementById('btn-time-plus10')?.addEventListener('click', () => applyCosmicTime(10.0));
+document.getElementById('btn-time-bb')?.addEventListener('click', () => applyCosmicTime(-13.78, true));
+document.getElementById('btn-time-noon')?.addEventListener('click', () => applyCosmicTime(-10.4, true));
+document.getElementById('btn-time-present')?.addEventListener('click', () => applyCosmicTime(0.0, true));
+document.getElementById('btn-time-plus5')?.addEventListener('click', () => applyCosmicTime(5.0, true));
+document.getElementById('btn-time-plus10')?.addEventListener('click', () => applyCosmicTime(10.0, true));
 
 // Hidden alias button handlers (for programmatic/test access)
 document.getElementById('btn-cosmo-play')?.addEventListener('click', () => {
   simState.timePlaying = !simState.timePlaying;
   updatePlayButton();
 });
-document.getElementById('btn-cosmo-preset-bb')?.addEventListener('click', () => applyCosmicTime(-13.78));
-document.getElementById('btn-cosmo-preset-now')?.addEventListener('click', () => applyCosmicTime(0.0));
-document.getElementById('btn-cosmo-preset-future')?.addEventListener('click', () => applyCosmicTime(10.0));
+document.getElementById('btn-cosmo-preset-bb')?.addEventListener('click', () => applyCosmicTime(-13.78, true));
+document.getElementById('btn-cosmo-preset-now')?.addEventListener('click', () => applyCosmicTime(0.0, true));
+document.getElementById('btn-cosmo-preset-future')?.addEventListener('click', () => applyCosmicTime(10.0, true));
 
 // ==========================================
 // 11. INTERACTIVE GALAXY CLUSTER SPECTROSCOPY DOSSIERS (R2)
@@ -6827,12 +6927,18 @@ document.getElementById('btn-pin-dossier')?.addEventListener('click', () => pinD
 document.getElementById('btn-close-dossier')?.addEventListener('click', () => closeDossier());
 
 // Pointer interaction for 3D cluster selection with gesture disambiguation
-let pointerDownInfo = { x: 0, y: 0, t: 0 };
 window.addEventListener('pointerdown', e => {
+  isPointerActive = true;
   pointerDownInfo = { x: e.clientX, y: e.clientY, t: performance.now() };
 });
 
+window.addEventListener('pointercancel', () => {
+  isPointerActive = false;
+  pointerDownInfo = { x: 0, y: 0, t: 0 };
+});
+
 window.addEventListener('pointerup', e => {
+  isPointerActive = false;
   const dx = e.clientX - pointerDownInfo.x;
   const dy = e.clientY - pointerDownInfo.y;
   const dt = performance.now() - pointerDownInfo.t;
@@ -6840,7 +6946,7 @@ window.addEventListener('pointerup', e => {
 
   if (dist >= 5 || dt >= 350) return;
 
-  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay')) {
+  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
     return;
   }
 
@@ -7680,30 +7786,73 @@ function animate() {
   if (simState.flowParticlesActive && flowParticlesMesh && activeStreamlineCurves.length > 0) {
     const pGeo = flowParticlesMesh.geometry;
     const posAttr = pGeo.attributes.position;
-    const pData = pGeo.userData.particleData;
+    const posArr = posAttr.array;
+    const pProg = pGeo.userData.particleProgress;
+    const pSpd = pGeo.userData.particleSpeed;
+    const pCurv = pGeo.userData.particleCurveIdx;
+    const flatVerts = pGeo.userData.flatVertices;
+    const offsets = pGeo.userData.offsets;
+    const lengths = pGeo.userData.lengths;
     const spdFactor = simState.particleSpeed * 0.5;
+    const numCurves = offsets ? offsets.length - 1 : activeStreamlineCurves.length;
+    const count = posArr.length / 3;
 
-    for (let i = 0; i < pData.length; i++) {
-      const p = pData[i];
-      p.progress += p.speed * spdFactor;
-      if (p.progress >= 1.0) {
-        p.progress = 0.0;
-        p.curveIdx = Math.floor(Math.random() * activeStreamlineCurves.length);
+    if (pProg && flatVerts && offsets && lengths) {
+      for (let i = 0; i < count; i++) {
+        let prog = pProg[i] + pSpd[i] * spdFactor;
+        let cIdx = pCurv[i];
+        if (prog >= 1.0) {
+          prog = 0.0;
+          cIdx = numCurves > 0 ? Math.floor(Math.random() * numCurves) : 0;
+          pCurv[i] = cIdx;
+        }
+        pProg[i] = prog;
+
+        const cLen = lengths[cIdx];
+        if (cLen > 1) {
+          const exactIdx = prog * (cLen - 1);
+          const idx0 = Math.floor(exactIdx);
+          const idx1 = Math.min(idx0 + 1, cLen - 1);
+          const frac = exactIdx - idx0;
+
+          const baseOffset0 = (offsets[cIdx] + idx0) * 3;
+          const baseOffset1 = (offsets[cIdx] + idx1) * 3;
+
+          const x0 = flatVerts[baseOffset0], y0 = flatVerts[baseOffset0 + 1], z0 = flatVerts[baseOffset0 + 2];
+          const x1 = flatVerts[baseOffset1], y1 = flatVerts[baseOffset1 + 1], z1 = flatVerts[baseOffset1 + 2];
+
+          const outIdx = i * 3;
+          posArr[outIdx]     = x0 + (x1 - x0) * frac;
+          posArr[outIdx + 1] = y0 + (y1 - y0) * frac;
+          posArr[outIdx + 2] = z0 + (z1 - z0) * frac;
+        }
       }
+    } else {
+      const pData = pGeo.userData.particleData;
+      if (pData) {
+        for (let i = 0; i < pData.length; i++) {
+          const p = pData[i];
+          p.progress += p.speed * spdFactor;
+          if (p.progress >= 1.0) {
+            p.progress = 0.0;
+            p.curveIdx = Math.floor(Math.random() * activeStreamlineCurves.length);
+          }
 
-      const curve = activeStreamlineCurves[p.curveIdx];
-      if (curve && curve.length > 1) {
-        const exactIdx = p.progress * (curve.length - 1);
-        const idx0 = Math.floor(exactIdx);
-        const idx1 = Math.min(idx0 + 1, curve.length - 1);
-        const frac = exactIdx - idx0;
+          const curve = activeStreamlineCurves[p.curveIdx];
+          if (curve && curve.length > 1) {
+            const exactIdx = p.progress * (curve.length - 1);
+            const idx0 = Math.floor(exactIdx);
+            const idx1 = Math.min(idx0 + 1, curve.length - 1);
+            const frac = exactIdx - idx0;
 
-        const pt0 = curve[idx0];
-        const pt1 = curve[idx1];
+            const pt0 = curve[idx0];
+            const pt1 = curve[idx1];
 
-        posAttr.array[i * 3] = pt0.x + (pt1.x - pt0.x) * frac;
-        posAttr.array[i * 3 + 1] = pt0.y + (pt1.y - pt0.y) * frac;
-        posAttr.array[i * 3 + 2] = pt0.z + (pt1.z - pt0.z) * frac;
+            posArr[i * 3]     = pt0.x + (pt1.x - pt0.x) * frac;
+            posArr[i * 3 + 1] = pt0.y + (pt1.y - pt0.y) * frac;
+            posArr[i * 3 + 2] = pt0.z + (pt1.z - pt0.z) * frac;
+          }
+        }
       }
     }
     posAttr.needsUpdate = true;
@@ -9262,7 +9411,7 @@ const FAMOUS_LOCAL_GALAXIES = [
   { id: 'gal_m33', name: 'Triangulum Galaxy (M33 / NGC 598)', short: 'M33 Triangulum', type: 'SA(s)cd Spiral', mag: 5.72, dist: 0.94, cz: -179, pos: new THREE.Vector3(-520, 310, -320), aliases: ['triangulum', 'm33', 'ngc 598', 'pgc 5818', 'ugc 1117'] },
   { id: 'gal_lmc', name: 'Large Magellanic Cloud (LMC / PGC 17223)', short: 'LMC', type: 'SB(s)m Dwarf', mag: 0.9, dist: 0.05, cz: 278, pos: new THREE.Vector3(-32, -41, -12), aliases: ['lmc', 'large magellanic cloud', 'pgc 17223', 'eso 56-115'] },
   { id: 'gal_smc', name: 'Small Magellanic Cloud (SMC / PGC 3085)', short: 'SMC', type: 'SB(s)m pec', mag: 2.7, dist: 0.06, cz: 158, pos: new THREE.Vector3(-45, -35, -20), aliases: ['smc', 'small magellanic cloud', 'pgc 3085', 'ngc 292'] },
-  { id: 'gal_cena', name: 'Centaurus A (NGC 5128 / PKS 1322-427)', short: 'Centaurus A', type: 'S0 pec Radio Galaxy', mag: 6.84, dist: 3.8, cz: 547, pos: new THREE.Vector3(-1800, 420, 2100), aliases: ['centaurus a', 'ngc 5128', 'pgc 46957', 'cen a', 'pks 1322-427'] },
+  { id: 'gal_cena', name: 'Centaurus A (NGC 5128 / PKS 1322-427)', short: 'Centaurus A Galaxy', type: 'S0 pec Radio Galaxy', mag: 6.84, dist: 3.8, cz: 547, pos: new THREE.Vector3(-1800, 420, 2100), aliases: ['centaurus a', 'ngc 5128', 'pgc 46957', 'cen a', 'pks 1322-427'] },
   { id: 'gal_m104', name: 'Sombrero Galaxy (M104 / NGC 4594)', short: 'M104 Sombrero', type: 'SA(s)a Edge-on', mag: 8.0, dist: 9.55, cz: 1024, pos: new THREE.Vector3(-620, 850, 410), aliases: ['sombrero', 'm104', 'ngc 4594', 'pgc 42407', 'ugc 7831'] },
   { id: 'gal_m51', name: 'Whirlpool Galaxy (M51a / NGC 5194)', short: 'M51 Whirlpool', type: 'SA(s)bc Grand Design', mag: 8.4, dist: 8.6, cz: 463, pos: new THREE.Vector3(320, 1100, 450), aliases: ['whirlpool', 'm51', 'ngc 5194', 'pgc 47404', 'ugc 8493'] },
   { id: 'gal_m81', name: "Bode's Galaxy (M81 / NGC 3031)", short: 'M81 Spiral', type: 'SA(s)ab', mag: 6.94, dist: 3.62, cz: -34, pos: new THREE.Vector3(280, 560, -180), aliases: ['bode', 'm81', 'ngc 3031', 'pgc 28630', 'ugc 5318'] },
@@ -9585,9 +9734,45 @@ function initCosmicSearchEngine() {
     return Array.from(expanded);
   }
 
-  // 3. Build searchable entities database
+  // 3. Build searchable entities database with pre-computed normalized keys
   function getSearchableEntities() {
     const list = [];
+
+    function addEntity(raw) {
+      const fullAliases = raw.aliases || [];
+      const normName = normalizeSearchKey(raw.name);
+      const normShort = normalizeSearchKey(raw.short || raw.name);
+      const normId = normalizeSearchKey(raw.id);
+      const normCat = normalizeSearchKey(raw.category || raw.cat || '');
+      const lowerName = String(raw.name).toLowerCase();
+      const lowerShort = String(raw.short || raw.name).toLowerCase();
+      const normAliases = fullAliases.map(a => normalizeSearchKey(a));
+      const lowerAliases = fullAliases.map(a => String(a).toLowerCase());
+
+      list.push({
+        id: raw.id,
+        tier: raw.tier || (raw.cat === 'supercluster' || raw.category === 'supercluster' || raw.category === 'basin' ? 1 : 2),
+        name: raw.name,
+        short: raw.short || raw.name,
+        category: raw.category || raw.cat || (raw.tier === 1 ? 'supercluster' : 'cluster'),
+        pos: raw.pos,
+        dist: raw.dist,
+        cz: raw.cz,
+        mass: raw.mass,
+        type: raw.type,
+        mag: raw.mag,
+        citation: raw.citation,
+        aliases: fullAliases,
+        normName,
+        normShort,
+        normId,
+        normCat,
+        lowerName,
+        lowerShort,
+        normAliases,
+        lowerAliases
+      });
+    }
 
     // 1. Astrometric Features (38 structures)
     if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
@@ -9597,7 +9782,7 @@ function initCosmicSearchEngine() {
           : [];
         const fullAliases = expandCatalogSynonyms(baseAliases);
 
-        list.push({
+        addEntity({
           id: item.id,
           tier: item.tier || (item.cat === 'supercluster' ? 1 : 2),
           name: item.name,
@@ -9621,7 +9806,7 @@ function initCosmicSearchEngine() {
           ? CATALOG_SEARCH_ALIASES[basinId]
           : [`basin ${b.id}`, b.name.toLowerCase(), `${b.name.toLowerCase()} basin`];
         const fullAliases = expandCatalogSynonyms(baseAliases);
-        list.push({
+        addEntity({
           id: basinId,
           tier: 1,
           name: `${b.name} Supercluster Basin`,
@@ -9640,7 +9825,7 @@ function initCosmicSearchEngine() {
     if (typeof FAMOUS_LOCAL_GALAXIES !== 'undefined' && Array.isArray(FAMOUS_LOCAL_GALAXIES)) {
       FAMOUS_LOCAL_GALAXIES.forEach(g => {
         const fullAliases = expandCatalogSynonyms(g.aliases || []);
-        list.push({
+        addEntity({
           id: g.id,
           tier: 2,
           name: g.name,
@@ -9663,97 +9848,103 @@ function initCosmicSearchEngine() {
   const allEntities = getSearchableEntities();
 
   // 4. Scoring Engine
-  function scoreEntity(entity, rawQuery, normQuery) {
-    if (!normQuery) return { score: 0, matchedAlias: null };
+  function scoreEntity(entity, rawQ, normQ, wordBoundaryRegex) {
+    if (!normQ) return { score: 0, matchedAlias: null };
 
-    const normName = normalizeSearchKey(entity.name);
-    const normShort = normalizeSearchKey(entity.short);
-    const normId = normalizeSearchKey(entity.id);
-    const normCat = normalizeSearchKey(entity.category);
-    const rawQ = rawQuery.toLowerCase();
+    const normName = entity.normName || '';
+    const normShort = entity.normShort || '';
+    const normId = entity.normId || '';
+    const normCat = entity.normCat || '';
+    const lowerName = entity.lowerName || '';
+    const lowerShort = entity.lowerShort || '';
 
     let maxScore = 0;
     let bestMatchedAlias = null;
 
     // Exact Name / Short
-    if (entity.name.toLowerCase() === rawQ || normName === normQuery) {
+    if (lowerName === rawQ || normName === normQ) {
       maxScore = Math.max(maxScore, 150);
-    } else if (entity.short && (entity.short.toLowerCase() === rawQ || normShort === normQuery)) {
+    } else if (lowerShort && (lowerShort === rawQ || normShort === normQ)) {
       maxScore = Math.max(maxScore, 145);
     }
 
     // Exact Alias
-    if (entity.aliases && entity.aliases.length > 0) {
-      for (let i = 0; i < entity.aliases.length; i++) {
-        const alias = entity.aliases[i];
-        const normA = normalizeSearchKey(alias);
-        if (alias.toLowerCase() === rawQ || normA === normQuery) {
+    const lowerAliases = entity.lowerAliases;
+    const normAliases = entity.normAliases;
+    if (lowerAliases && lowerAliases.length > 0) {
+      for (let i = 0; i < lowerAliases.length; i++) {
+        if (lowerAliases[i] === rawQ || normAliases[i] === normQ) {
           if (maxScore < 140) {
             maxScore = 140;
-            bestMatchedAlias = alias;
+            bestMatchedAlias = entity.aliases[i];
+            break;
           }
         }
       }
     }
 
     // Name Prefix
-    if (entity.name.toLowerCase().startsWith(rawQ) || normName.startsWith(normQuery)) {
-      maxScore = Math.max(maxScore, 100);
-    } else if (entity.short && (entity.short.toLowerCase().startsWith(rawQ) || normShort.startsWith(normQuery))) {
-      maxScore = Math.max(maxScore, 95);
+    if (maxScore < 100) {
+      if (lowerName.startsWith(rawQ) || normName.startsWith(normQ)) {
+        maxScore = Math.max(maxScore, 100);
+      } else if (lowerShort && (lowerShort.startsWith(rawQ) || normShort.startsWith(normQ))) {
+        maxScore = Math.max(maxScore, 95);
+      }
     }
 
     // Alias Prefix
-    if (entity.aliases && entity.aliases.length > 0) {
-      for (let i = 0; i < entity.aliases.length; i++) {
-        const alias = entity.aliases[i];
-        const normA = normalizeSearchKey(alias);
-        if (alias.toLowerCase().startsWith(rawQ) || normA.startsWith(normQuery)) {
+    if (maxScore < 90 && lowerAliases && lowerAliases.length > 0) {
+      for (let i = 0; i < lowerAliases.length; i++) {
+        if (lowerAliases[i].startsWith(rawQ) || normAliases[i].startsWith(normQ)) {
           if (maxScore < 90) {
             maxScore = 90;
-            bestMatchedAlias = bestMatchedAlias || alias;
+            bestMatchedAlias = bestMatchedAlias || entity.aliases[i];
+            break;
           }
         }
       }
     }
 
     // Word Boundary in Name
-    const escapedQuery = rawQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const wordBoundaryRegex = new RegExp(`\\b${escapedQuery}`, 'i');
-    if (wordBoundaryRegex.test(entity.name)) {
+    if (maxScore < 75 && wordBoundaryRegex && wordBoundaryRegex.test(entity.name)) {
       maxScore = Math.max(maxScore, 75);
     }
 
     // Substring in Name / Short
-    if (entity.name.toLowerCase().includes(rawQ) || normName.includes(normQuery)) {
-      maxScore = Math.max(maxScore, 50);
-    } else if (entity.short && (entity.short.toLowerCase().includes(rawQ) || normShort.includes(normQuery))) {
-      maxScore = Math.max(maxScore, 45);
+    if (maxScore < 50) {
+      if (lowerName.includes(rawQ) || normName.includes(normQ)) {
+        maxScore = Math.max(maxScore, 50);
+      } else if (lowerShort && (lowerShort.includes(rawQ) || normShort.includes(normQ))) {
+        maxScore = Math.max(maxScore, 45);
+      }
     }
 
     // Substring in Alias
-    if (entity.aliases && entity.aliases.length > 0) {
-      for (let i = 0; i < entity.aliases.length; i++) {
-        const alias = entity.aliases[i];
-        const normA = normalizeSearchKey(alias);
-        if (alias.toLowerCase().includes(rawQ) || normA.includes(normQuery)) {
+    if (maxScore < 40 && lowerAliases && lowerAliases.length > 0) {
+      for (let i = 0; i < lowerAliases.length; i++) {
+        if (lowerAliases[i].includes(rawQ) || normAliases[i].includes(normQ)) {
           if (maxScore < 40) {
             maxScore = 40;
-            bestMatchedAlias = bestMatchedAlias || alias;
+            bestMatchedAlias = bestMatchedAlias || entity.aliases[i];
+            break;
           }
         }
       }
     }
 
     // ID & Category
-    if (normId.includes(normQuery)) {
-      maxScore = Math.max(maxScore, 25);
-    } else if (normCat.includes(normQuery)) {
-      maxScore = Math.max(maxScore, 20);
+    if (maxScore === 0) {
+      if (normId.includes(normQ)) {
+        maxScore = Math.max(maxScore, 25);
+      } else if (normCat.includes(normQ)) {
+        maxScore = Math.max(maxScore, 20);
+      }
     }
 
-    // Tier 1 tie-breaker bonus
+    // Tier 1 & 2 tie-breaker bonus
     if (maxScore > 0 && entity.tier === 1) {
+      maxScore += 10;
+    } else if (maxScore > 0 && entity.tier === 2) {
       maxScore += 5;
     }
 
@@ -9762,23 +9953,26 @@ function initCosmicSearchEngine() {
 
   // 5. Query matching algorithm
   function queryMatches(rawQuery) {
-    const rawQ = String(rawQuery || '').trim();
-    if (!rawQ) {
+    const rawQStr = String(rawQuery || '').trim();
+    if (!rawQStr) {
       return allEntities.slice(0, 10);
     }
-    const normQ = normalizeSearchKey(rawQ);
+    const rawQ = rawQStr.toLowerCase();
+    const normQ = normalizeSearchKey(rawQStr);
+    const escapedQuery = rawQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wordBoundaryRegex = escapedQuery ? new RegExp(`\\b${escapedQuery}`, 'i') : null;
     const scored = [];
 
     for (let i = 0; i < allEntities.length; i++) {
       const e = allEntities[i];
-      const res = scoreEntity(e, rawQ, normQ);
+      const res = scoreEntity(e, rawQ, normQ, wordBoundaryRegex);
       if (res.score > 0) {
         scored.push(Object.assign({}, e, { _score: res.score, _matchedAlias: res.matchedAlias }));
       }
     }
 
     // Also include synthetic 56k galaxy catalog queries
-    const gal56k = query56kGalaxies(rawQ);
+    const gal56k = query56kGalaxies(rawQStr);
     gal56k.forEach(g => {
       if (!scored.some(s => s.id === g.id)) {
         scored.push(Object.assign({}, g, { _score: 110, _matchedAlias: null }));
@@ -9917,10 +10111,13 @@ function initCosmicSearchEngine() {
     }
     if (beaconMesh && typeof scene !== 'undefined' && scene) {
       scene.remove(beaconMesh);
-      beaconMesh.traverse(child => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) child.material.dispose();
-      });
+      if (typeof disposeHierarchy === 'function') disposeHierarchy(beaconMesh);
+      else {
+        beaconMesh.traverse(child => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+        });
+      }
       beaconMesh = null;
     }
 
@@ -9967,10 +10164,13 @@ function initCosmicSearchEngine() {
       const elapsed = now - startTime;
       if (elapsed >= duration) {
         if (scene) scene.remove(beaconMesh);
-        geoOuter.dispose();
-        matOuter.dispose();
-        geoInner.dispose();
-        matInner.dispose();
+        if (typeof disposeHierarchy === 'function') disposeHierarchy(beaconMesh);
+        else {
+          geoOuter.dispose();
+          matOuter.dispose();
+          geoInner.dispose();
+          matInner.dispose();
+        }
         beaconMesh = null;
         beaconAnimId = null;
         return;
@@ -10555,6 +10755,7 @@ function initCosmographyApp() {
   initPrimerModal();
   initTooltipModeToggle();
   initCameraSettingsModal();
+  window.appReady = true;
 }
 window.initCosmicSearchEngine = initCosmicSearchEngine;
 

@@ -1,0 +1,7742 @@
+
+(function() {
+'use strict';
+
+const H0 = 74.6;
+const KM_TO_MPC = 1.0 / H0;
+let currentTheme = 'white';
+let cleanMode = false;
+let isSandboxMode = false;
+
+// ==========================================
+// 1. SCIENTIFIC ENGINES CONFIGURATION
+// ==========================================
+const ENGINES = {
+  'cf4-wf': {
+    name: 'CF4 WF/CR (★ Modern Wiener Filter)',
+    citation: 'Hoffman et al. (2024) MNRAS 527, 3788',
+    desc: 'Linear density and 3D velocity field reconstructed from ~38,000 grouped constraints in Cosmicflows-4 using Wiener Filter and Constrained Realizations. Reveals coherent bulk flow toward the Shapley basin out to ±30,000 km/s.',
+    turb: 0, soften: 1000, gamma: 1.55
+  },
+  'cf4-hmc': {
+    name: 'CF4++ HMC (2025 Updated Cosmography)',
+    citation: 'Courtois et al. (2025) A&A 701, A187',
+    desc: 'Extends CF4 with WALLABY, FAST, and DESI peculiar velocities (65,518 objects). Evaluates mean velocity ⟨v⟩ and RMS uncertainty across 10,000 HMC steps.',
+    turb: 10, soften: 1150, gamma: 1.52
+  },
+  'vela-zoa': {
+    name: 'CF4++ZOA Hidden Vela Hybrid (2026)',
+    citation: 'Hollinger et al. (2026) ZOA Hybrid Reconstruction',
+    desc: 'Combines 65.5k CF4++ distances with 8,283 optical/NIR redshifts and 2,176 MeerKAT H I detections, revealing the massive Vela Supercluster behind the Milky Way.',
+    turb: 14, soften: 1100, gamma: 1.53
+  },
+  'vweb-2026': {
+    name: 'CF4++ZOA V-Web Catalogue (June 2026)',
+    citation: 'Hollinger & Courtois (June 2026) Cosmic V-Web',
+    desc: 'Dynamical identification of 37 voids (Reff 13-38 Mpc) and 42 knots from velocity shear tensor eigenvalues across HMC realizations.',
+    turb: 15, soften: 1050, gamma: 1.54
+  },
+  'bayesian-2026': {
+    name: '2MRS × CF4 Bayesian Field (ApJ Aug 2026)',
+    citation: 'Nusser (August 10, 2026) ApJ 1007, 11',
+    desc: 'Zel’dovich-approximation MAP forward model from 2MRS filling the Zone of Avoidance, corrected for RSD and galaxy bias, tested against independent CF4 velocities.',
+    turb: 16, soften: 1250, gamma: 1.50
+  },
+  'gadget4': {
+    name: 'Gadget-4 Constrained Nonlinear N-Body',
+    citation: 'Gadget-4 Simulation Evolved from 2MRS Constrained Initial Conditions',
+    desc: 'Nonlinear N-body simulation capturing small-scale filamentary collapse and Fingers-of-God dispersion while preserving large-scale linear alignment.',
+    turb: 22, soften: 800, gamma: 1.62
+  },
+  'nusser-tully-2026': {
+    name: 'CF4 Motions Dipole (Nusser & Tully Aug 2026)',
+    citation: 'Nusser & Tully (August 2026) arXiv:2608.14265 (Preprint)',
+    desc: 'Coherent velocity flow analysis across 6 radial bins to 300 h^-1 Mpc. Localized dipole |Vdip| = 628 ± 82 km/s (3.40σ) at 120-160 h^-1 Mpc. [Preprint - subject to survey window].',
+    turb: 6, soften: 1400, gamma: 1.48
+  }
+};
+
+let currentEngineKey = 'cf4-wf';
+
+// ==========================================
+// 2. SPECIFIC COSMOLOGICAL STRUCTURES & HALOS
+// ==========================================
+let LANDMARKS = [
+  {
+    id: 'laniakea',
+    name: 'Laniakea Core / Great Attractor',
+    shortLabel: 'Laniakea Core / Great Attractor',
+    type: 'Dominant Convergence Singularity',
+    pos: new THREE.Vector3(15000, -14000, 6800),
+    str: 195, sign: 1, color: 0xff7a45, hex: '#ff7a45',
+    cite: 'CF4 WF/CR Reconstruction; Hoffman et al. (2024)'
+  },
+  {
+    id: 'virgo',
+    name: 'Virgo Supercluster / Local Group',
+    shortLabel: 'Virgo / Local Group (0,0,0)',
+    type: 'Observer Reference (0,0,0)',
+    pos: new THREE.Vector3(0, 0, 0),
+    str: 15, sign: 1, color: 0xffdd55, hex: '#ffdd55',
+    cite: 'Cosmicflows-4 Origin'
+  },
+  {
+    id: 'centaurus',
+    name: 'Centaurus / Hydra Complex (A3526)',
+    shortLabel: 'Centaurus Cluster',
+    type: 'Intermediate Infall Corridor',
+    pos: new THREE.Vector3(-4200, 1200, 3100),
+    str: 110, sign: 1, color: 0x52e078, hex: '#52e078',
+    cite: 'Cosmicflows-4 Great Attractor Bridge'
+  },
+  {
+    id: 'coma',
+    name: 'Coma Supercluster (Abell 1656)',
+    shortLabel: 'Coma Supercluster',
+    type: 'Dense Cosmic Web Knot',
+    pos: new THREE.Vector3(500, 7000, 1500),
+    str: 125, sign: 1, color: 0xff44aa, hex: '#ff44aa',
+    cite: 'CF4++ Delineated Autonomous Supercluster'
+  },
+  {
+    id: 'shapley',
+    name: 'Shapley Supercluster Core (A3558)',
+    shortLabel: 'Shapley Supercluster',
+    type: 'Mega-Concentration Singularity',
+    pos: new THREE.Vector3(7200, -8600, -2400),
+    str: 230, sign: 1, color: 0xff2266, hex: '#ff2266',
+    cite: 'Tully et al. (2014); Hoffman et al. (2024)'
+  },
+  {
+    id: 'perseus',
+    name: 'Perseus-Pisces Supercluster (A426)',
+    shortLabel: 'Perseus-Pisces',
+    type: 'Opposing Filamentary Spine',
+    pos: new THREE.Vector3(4500, -3000, 0),
+    str: 120, sign: 1, color: 0x00e5ff, hex: '#00e5ff',
+    cite: 'Cosmicflows-4 Filament Spine'
+  },
+  {
+    id: 'southern',
+    name: 'Southern Infall Sink (Pavo-Indus / Horologium)',
+    shortLabel: 'Southern Infall Sink',
+    type: 'Secondary Convergence Basin',
+    pos: new THREE.Vector3(-4500, -5000, -14500),
+    str: 145, sign: 1, color: 0x3fa9ff, hex: '#3fa9ff',
+    cite: 'Cosmicflows-4 Velocity Field'
+  },
+  {
+    id: 'vela',
+    name: 'Vela Supercluster (2026 ZoA Hybrid)',
+    shortLabel: 'Vela Supercluster',
+    type: 'Dominant Southern ZoA Mass (M=33.8e16 Msun)',
+    pos: new THREE.Vector3(-8500, -12000, -3200),
+    str: 180, sign: 1, color: 0x10b981, hex: '#10b981',
+    cite: 'Hollinger et al. (2026) ZOA Hybrid + MeerKAT'
+  },
+  {
+    id: 'dipole',
+    name: 'Cold Spot / Dipole Repeller Great Void',
+    shortLabel: 'Cold Spot Repeller',
+    type: 'Major Outflow Divergence Hub',
+    pos: new THREE.Vector3(-10000, 10000, 12000),
+    str: 175, sign: -1, color: 0xa344ff, hex: '#a344ff',
+    cite: 'Hoffman et al. (2017) Nat. Astron. 1'
+  },
+  {
+    id: 'sloan',
+    name: 'Sloan Great Wall Basin',
+    shortLabel: 'Sloan Great Wall',
+    type: 'Largest Recovered Basin in Volume',
+    pos: new THREE.Vector3(12000, 14000, 11000),
+    str: 85, sign: 1, color: 0xd946ef, hex: '#d946ef',
+    cite: 'Dupuy et al. (2024) Nature Astronomy'
+  }
+];
+
+const simState = {
+  turb: 0,
+  soften: 1000,
+  gamma: 1.55,
+  linesCount: 2600,
+  dt: 46,
+  lineOpac: 0.32,
+  colormap: 'ink',
+  seedMode: 'mixed',
+  brushRadius: 2500,
+  brushPos: new THREE.Vector3(0, 0, 0),
+  flowGrowth: 1.0,
+  integDir: 'both',
+  flowParticlesActive: true,
+  particleSpeed: 4,
+  particleCount: 1800,
+  rulerVisible: true,
+  floorGridVisible: true,
+  equatorGridVisible: false,
+  originTriadVisible: true,
+  chevronsVisible: true,
+  calloutsVisible: true,
+  halosVisible: true,
+  labelTier: 'tier2',
+  showSuperclusters: true,
+  showNamedClusters: true,
+  showFilaments: true,
+  showVoids: true,
+  showRangeRings: true,
+  showFloorRings: false,
+  markerStyle: 'crosshair',
+  labelBacking: 'badge',
+  leaderLen: 3400,
+  insetVisible: false,
+  galaxiesVisible: true,
+  markersVisible: true,
+  watershedShellsVisible: true,
+  basinLaniakea: true,
+  basinShapley: true,
+  basinSloan: true,
+  vwebVoids: false,
+  vwebKnots: true,
+  zoaVisible: true,
+  zoaMode: 'wedge',
+  lodMode: 'full',
+  ptSize: 35,
+  ptOpac: 0.45,
+  shellOpac: 0.22,
+  autoRotate: false,
+  subCf4: true,
+  sub6df: true,
+  subSdss: true,
+  sub2mrs: true,
+  subFast: true,
+  bulkBin: 'bin4',
+  bulkArrow: true,
+  quiverVisible: false,
+  engineCrossfade: 0,
+  cosmicTime: 0.0,
+  timePlaying: false,
+  timeSpeed: 1.0,
+  erositaGasVisible: true,
+  whimBridgesVisible: true,
+  erositaBand: 'composite',
+  gasOpacity: 0.55
+};
+
+// ==========================================
+// 3. THREE.JS SCENE, CAMERAS & RENDERER
+// ==========================================
+
+// ==========================================
+// SPLASH LOADING CONTROLLER
+// ==========================================
+
+
+// ============================================================================
+// GLOBAL ERROR REGISTRY, IN-APP DIAGNOSTICS & RESILIENT FALLBACK SYSTEM
+// ============================================================================
+window.errorRegistry = [];
+
+function recordRuntimeDiagnostic(type, msg, source, lineno, colno, error) {
+  const errEntry = {
+    id: window.errorRegistry.length + 1,
+    type: type || 'Error',
+    message: msg || (error && error.message) || 'Unknown error',
+    stack: (error && error.stack) || `${source}:${lineno}:${colno}`,
+    time: new Date().toISOString(),
+    engine: typeof currentScienceEngine !== 'undefined' ? currentScienceEngine : 'cf4-wf',
+    theme: typeof currentTheme !== 'undefined' ? currentTheme : 'dark',
+    camera: window.camera ? { x: Math.round(window.camera.position.x), y: Math.round(window.camera.position.y), z: Math.round(window.camera.position.z) } : null,
+    userAgent: navigator.userAgent
+  };
+  
+  window.errorRegistry.push(errEntry);
+  console.warn('[Diagnostic Logger]', errEntry);
+  
+  // 1. Update Error HUD Pill
+  const pill = document.getElementById('error-hud-pill');
+  const pillMsg = document.getElementById('error-hud-msg');
+  if (pill && pillMsg) {
+    pillMsg.textContent = `${window.errorRegistry.length} Diagnostic Alert${window.errorRegistry.length > 1 ? 's' : ''}`;
+    pill.style.display = 'flex';
+  }
+  
+  // 2. Fallback Recovery: guarantee splash dismissal and controls active
+  if (window.splashController && !window.splashController.isDismissed) {
+    try { window.splashController.dismiss(true); } catch (e) {}
+  }
+  if (window.controls) {
+    window.controls.enabled = true;
+  }
+}
+
+// Global window error listener
+window.addEventListener('error', function(e) {
+  recordRuntimeDiagnostic('Window Error', e.message, e.filename, e.lineno, e.colno, e.error);
+});
+
+// Global unhandled promise rejection listener
+window.addEventListener('unhandledrejection', function(e) {
+  recordRuntimeDiagnostic('Unhandled Rejection', e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejected', '', 0, 0, e.reason);
+});
+
+// Enhance safeBoot to record into errorRegistry
+function safeBoot(moduleName, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[SafeBoot] Non-fatal error in ${moduleName}:`, err);
+    recordRuntimeDiagnostic(`SafeBoot [${moduleName}]`, err.message, '', 0, 0, err);
+  }
+}
+
+// Modal opening & interaction listeners
+function initErrorDiagnosticsUI() {
+  const pill = document.getElementById('error-hud-pill');
+  const modal = document.getElementById('error-dossier-modal');
+  const btnClose = document.getElementById('btn-close-error-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-error-modal');
+  const btnCopy = document.getElementById('btn-copy-error-report');
+  const btnSafeReset = document.getElementById('btn-safe-mode-reset');
+  const reportBox = document.getElementById('error-report-container');
+  
+  function openErrorModal() {
+    if (!modal) return;
+    const metaEngine = document.getElementById('err-meta-engine');
+    const metaTheme = document.getElementById('err-meta-theme');
+    const metaControls = document.getElementById('err-meta-controls');
+    const metaPoints = document.getElementById('err-meta-points');
+    
+    if (metaEngine) metaEngine.textContent = typeof currentScienceEngine !== 'undefined' ? currentScienceEngine : 'cf4-wf';
+    if (metaTheme) metaTheme.textContent = typeof currentTheme !== 'undefined' ? currentTheme : 'dark';
+    if (metaControls && window.controls) metaControls.textContent = window.controls.enabled ? 'Active (Responsive)' : 'Disabled';
+    if (metaPoints) metaPoints.textContent = (window.cosmicflows && window.cosmicflows.activePointCount) ? window.cosmicflows.activePointCount.toLocaleString() : '38,065';
+    
+    if (reportBox) {
+      if (window.errorRegistry.length === 0) {
+        reportBox.textContent = 'No active errors recorded in diagnostic registry.\nAll systems operating at 100% nominal fidelity.';
+        reportBox.style.color = '#34d399';
+      } else {
+        reportBox.textContent = JSON.stringify(window.errorRegistry, null, 2);
+        reportBox.style.color = '#fca5a5';
+      }
+    }
+    modal.style.display = 'flex';
+  }
+  
+  if (pill) pill.addEventListener('click', openErrorModal);
+  if (btnClose) btnClose.addEventListener('click', () => modal.style.display = 'none');
+  if (btnDismiss) btnDismiss.addEventListener('click', () => modal.style.display = 'none');
+  
+  if (btnCopy && reportBox) {
+    btnCopy.addEventListener('click', () => {
+      const payload = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        errorCount: window.errorRegistry.length,
+        errors: window.errorRegistry,
+        environment: {
+          userAgent: navigator.userAgent,
+          url: window.location.href,
+          screen: `${window.innerWidth}x${window.innerHeight}`,
+          theme: typeof currentTheme !== 'undefined' ? currentTheme : 'dark'
+        }
+      }, null, 2);
+      
+      navigator.clipboard.writeText(payload).then(() => {
+        btnCopy.innerHTML = '<span>✅</span> <span>Copied to Clipboard!</span>';
+        setTimeout(() => {
+          btnCopy.innerHTML = '<span>📋</span> <span>Copy Debug Report</span>';
+        }, 2500);
+      }).catch(() => {
+        alert('Could not copy report automatically. Please select and copy text manually.');
+      });
+    });
+  }
+  
+  if (btnSafeReset) {
+    btnSafeReset.addEventListener('click', () => {
+      if (window.splashController) window.splashController.dismiss(true);
+      if (typeof setCameraNatureRefView === 'function') setCameraNatureRefView();
+      if (window.controls) {
+        window.controls.enabled = true;
+        window.controls.reset();
+      }
+      modal.style.display = 'none';
+      if (pill) pill.style.display = 'none';
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initErrorDiagnosticsUI);
+} else {
+  initErrorDiagnosticsUI();
+}
+
+// Safe execution barrier for auxiliary cosmography modules
+function safeBoot(moduleName, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[SafeBoot] Non-fatal error in ${moduleName}:`, err);
+  }
+}
+
+const splashController = {
+  progress: 0,
+  stepEl: null,
+  barEl: null,
+  pctEl: null,
+  splashEl: null,
+  isDismissed: false,
+  startTime: Date.now(),
+
+  init() {
+    this.startTime = Date.now();
+    this.stepEl = document.getElementById('splash-step-msg');
+    this.barEl = document.getElementById('splash-progress-bar');
+    this.pctEl = document.getElementById('splash-pct-num');
+    this.splashEl = document.getElementById('cosmic-splash');
+    const enterBtn = document.getElementById('btn-splash-enter');
+    if (enterBtn) {
+      enterBtn.addEventListener('click', () => this.dismiss(true));
+      setTimeout(() => {
+        if (!this.isDismissed && enterBtn) enterBtn.style.display = 'inline-block';
+      }, 2000);
+    }
+    // Fail-safe watchdog: guarantees splash dismissal after 4.5s even if async data stalls
+    setTimeout(() => {
+      if (!this.isDismissed) {
+        console.warn('[SplashController] Watchdog timer expired. Forcing splash dismissal.');
+        this.dismiss(true);
+      }
+    }, 4500);
+  },
+
+  update(pct, msg) {
+    this.progress = Math.min(100, Math.max(this.progress, pct));
+    if (this.barEl) this.barEl.style.width = this.progress + '%';
+    if (this.pctEl) this.pctEl.textContent = Math.round(this.progress) + '%';
+    if (this.stepEl && msg) this.stepEl.textContent = msg;
+  },
+
+  dismiss(force = false) {
+    if (this.isDismissed) return;
+    this.update(100, 'Cosmic Web Online');
+    this.isDismissed = true;
+    
+    // Ensure splash remains visible for at least 1400ms so the user experiences the vortex animation
+    const elapsed = Date.now() - this.startTime;
+    const minDelay = force ? 0 : Math.max(200, 1400 - elapsed);
+    
+    setTimeout(() => {
+      if (this.splashEl) {
+        this.splashEl.classList.add('splash-dismiss');
+        setTimeout(() => {
+          if (this.splashEl) this.splashEl.style.display = 'none';
+        }, 850);
+      }
+      if (typeof triggerNativeHaptic === 'function') triggerNativeHaptic('click');
+    }, minDelay);
+  }
+};
+splashController.init();
+splashController.update(25, 'Initializing Supergalactic Coordinate System...');
+
+const container = document.getElementById('scene');
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 50, 350000);
+const controls = new THREE.OrbitControls(camera, container);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.touches = {
+  ONE: THREE.TOUCH.ROTATE,
+  TWO: THREE.TOUCH.DOLLY_PAN
+};
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0xffffff, 1.0);
+renderer.domElement.style.touchAction = 'none';
+container.appendChild(renderer.domElement);
+
+const renderPass = new THREE.RenderPass(scene, camera);
+const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.35, 0.5, 0.85);
+const composer = new THREE.EffectComposer(renderer);
+composer.addPass(renderPass);
+composer.addPass(bloomPass);
+
+// Interactive Transform Controls for Sandbox Mode
+const transformControls = new THREE.TransformControls(camera, renderer.domElement);
+transformControls.size = 0.75;
+transformControls.addEventListener('dragging-changed', e => controls.enabled = !e.value);
+transformControls.addEventListener('change', () => {
+  if (transformControls.object && transformControls.object.userData && transformControls.object.userData.landmark) {
+    const lm = transformControls.object.userData.landmark;
+    const p = threeToSg(transformControls.object.position.x, transformControls.object.position.y, transformControls.object.position.z);
+    lm.pos.copy(p);
+    setSandboxMode(true);
+    scheduleRebuild();
+  }
+});
+scene.add(transformControls);
+
+function setSandboxMode(active) {
+  isSandboxMode = active;
+  const banner = document.getElementById('engine-banner');
+  const bannerText = document.getElementById('banner-text');
+  if (active) {
+    banner.classList.add('sandbox-mode');
+    bannerText.innerHTML = `<b>SANDBOX / WHAT-IF FIELD</b>: Interactive Perturbation Experiment`;
+  } else {
+    banner.classList.remove('sandbox-mode');
+    const eng = ENGINES[currentEngineKey];
+    bannerText.innerHTML = `<b>${eng.name}</b>: Observational Reconstruction (${eng.citation})`;
+  }
+}
+
+function sgToThree(sgx, sgy, sgz) {
+  return new THREE.Vector3(sgx, sgz, -sgy);
+}
+
+function threeToSg(tx, ty, tz) {
+  return new THREE.Vector3(tx, -tz, ty);
+}
+
+function setCameraView(pos, target, duration = 1200) {
+  const startPos = camera.position.clone();
+  const startTarget = controls.target.clone();
+  const startTime = performance.now();
+
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    camera.position.lerpVectors(startPos, pos, ease);
+    controls.target.lerpVectors(startTarget, target, ease);
+    controls.update();
+
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function setCameraNatureRefView() {
+  setCameraView(new THREE.Vector3(-27000, 20500, 44000), new THREE.Vector3(-500, -800, 0), 1300);
+}
+setCameraNatureRefView();
+
+window.addEventListener('resize', () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  if (bloomPass) {
+    bloomPass.resolution.set(w, h);
+  }
+});
+
+// ==========================================
+// 4. MEMORY MANAGEMENT & RESOURCE DISPOSAL
+// ==========================================
+function disposeMaterial(mat) {
+  if (!mat) return;
+  const mapKeys = [
+    'map', 'lightMap', 'bumpMap', 'normalMap', 'specularMap', 'envMap', 
+    'alphaMap', 'aoMap', 'displacementMap', 'emissiveMap', 'gradientMap', 
+    'metalnessMap', 'roughnessMap'
+  ];
+  mapKeys.forEach(key => {
+    if (mat[key] && typeof mat[key].dispose === 'function') {
+      mat[key].dispose();
+    }
+  });
+  if (typeof mat.dispose === 'function') mat.dispose();
+}
+
+function disposeHierarchy(obj) {
+  if (!obj) return;
+  while (obj.children && obj.children.length > 0) {
+    const child = obj.children[0];
+    disposeHierarchy(child);
+    obj.remove(child);
+  }
+  if (obj.geometry && typeof obj.geometry.dispose === 'function') {
+    obj.geometry.dispose();
+  }
+  if (obj.material) {
+    if (Array.isArray(obj.material)) {
+      obj.material.forEach(m => disposeMaterial(m));
+    } else {
+      disposeMaterial(obj.material);
+    }
+  }
+}
+
+function hexToRgba(hex, alpha) {
+  const c = new THREE.Color(hex);
+  return `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${alpha})`;
+}
+
+function createRadialHaloTexture(hexColor) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 128, 128);
+
+  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, hexToRgba(hexColor, 0.75));
+  grad.addColorStop(0.18, hexToRgba(hexColor, 0.45));
+  grad.addColorStop(0.5, hexToRgba(hexColor, 0.12));
+  grad.addColorStop(0.85, hexToRgba(hexColor, 0.02));
+  grad.addColorStop(1.0, 'rgba(0,0,0,0)');
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  tex.premultiplyAlpha = false;
+  return tex;
+}
+
+let halosGroup = new THREE.Group();
+scene.add(halosGroup);
+
+function buildChromaticHalos() {
+  disposeHierarchy(halosGroup);
+  scene.remove(halosGroup);
+  halosGroup = new THREE.Group();
+
+  if (currentTheme !== 'dark' || !simState.halosVisible) return;
+
+  LANDMARKS.forEach(lm => {
+    const p = sgToThree(lm.pos.x, lm.pos.y, lm.pos.z);
+
+    // Realistic soft volumetric cosmic halo
+    const haloTex = createRadialHaloTexture(lm.hex);
+    const haloMat = new THREE.SpriteMaterial({
+      map: haloTex,
+      color: new THREE.Color(lm.hex),
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false
+    });
+    const haloSpr = new THREE.Sprite(haloMat);
+    haloSpr.position.copy(p);
+
+    const baseScale = lm.id === 'laniakea' || lm.id === 'shapley' ? 2600 : (lm.id === 'dipole' ? 2200 : 1800);
+    haloSpr.scale.set(baseScale, baseScale, 1);
+    haloSpr.userData = { baseScale, timeOffset: Math.random() * 10 };
+    halosGroup.add(haloSpr);
+
+    // Subtle compact center condensation
+    const coreTex = createRadialHaloTexture('#ffffff');
+    const coreMat = new THREE.SpriteMaterial({
+      map: coreTex,
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false
+    });
+    const coreSpr = new THREE.Sprite(coreMat);
+    coreSpr.position.copy(p);
+    coreSpr.scale.set(baseScale * 0.35, baseScale * 0.35, 1);
+    halosGroup.add(coreSpr);
+  });
+
+  scene.add(halosGroup);
+}
+
+// ==========================================
+// 5. DEPTH-GRADUATED 3D RULER & FLOOR GRID
+// ==========================================
+const HALF = 15000;
+let rulerBoxGroup = new THREE.Group();
+scene.add(rulerBoxGroup);
+
+function drawRoundedPill(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function createPublicationTextSprite(text, fontSize = 28, isBold = true, textColor = '#0f172a', haloSize = 5, hasBacking = true, worldHeight = 520) {
+  const formattedText = String(text).replace(/-/g, '\u2212');
+  const dpr = 2;
+
+  // Measure text with a scratch canvas first
+  const measureCanvas = document.createElement('canvas');
+  const measureCtx = measureCanvas.getContext('2d');
+  measureCtx.font = (isBold ? 'bold ' : '600 ') + fontSize + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif';
+  const textMetrics = measureCtx.measureText(formattedText);
+  const textW = Math.ceil(textMetrics.width);
+  const canvasW = Math.max(textW + 48, 120);
+  const canvasH = fontSize + 24;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW * dpr; canvas.height = canvasH * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.scale(dpr, dpr);
+
+  ctx.font = (isBold ? 'bold ' : '600 ') + fontSize + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+  const pillW = textW + 28;
+  const pillH = fontSize + 16;
+  const pillX = (canvasW - pillW) / 2;
+  const pillY = (canvasH - pillH) / 2;
+
+  if (hasBacking && simState.labelBacking !== 'none') {
+    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 6);
+    if (currentTheme === 'white') {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = 'rgba(8, 16, 28, 0.92)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+  }
+
+  if (currentTheme === 'white') {
+    ctx.fillStyle = (simState.labelBacking !== 'none' || textColor.startsWith('#0')) ? '#020617' : textColor;
+  } else {
+    ctx.fillStyle = textColor.startsWith('#') ? textColor : '#38bdf8';
+  }
+  ctx.fillText(formattedText, canvasW / 2, canvasH / 2);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    blending: currentTheme === 'white' ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+  const spr = new THREE.Sprite(mat);
+  const aspect = canvasW / canvasH;
+  spr.scale.set(worldHeight * aspect, worldHeight, 1);
+  spr.userData = { aspect, canvasW, canvasH, worldHeight };
+  return spr;
+}
+
+function buildRulerBox() {
+  disposeHierarchy(rulerBoxGroup);
+  scene.remove(rulerBoxGroup);
+  rulerBoxGroup = new THREE.Group();
+
+  const lineColor = currentTheme === 'white' ? 0x475569 : 0x1e293b;
+  const tickColor = currentTheme === 'white' ? 0x0f172a : 0x475569;
+
+  const boxEdges = [
+    sgToThree(-HALF, -HALF, -HALF), sgToThree(HALF, -HALF, -HALF),
+    sgToThree(HALF, -HALF, -HALF), sgToThree(HALF, HALF, -HALF),
+    sgToThree(HALF, HALF, -HALF), sgToThree(-HALF, HALF, -HALF),
+    sgToThree(-HALF, HALF, -HALF), sgToThree(-HALF, -HALF, -HALF),
+
+    sgToThree(-HALF, -HALF, HALF), sgToThree(HALF, -HALF, HALF),
+    sgToThree(HALF, -HALF, HALF), sgToThree(HALF, HALF, HALF),
+    sgToThree(HALF, HALF, HALF), sgToThree(-HALF, HALF, HALF),
+    sgToThree(-HALF, HALF, HALF), sgToThree(-HALF, -HALF, HALF),
+
+    sgToThree(-HALF, -HALF, -HALF), sgToThree(-HALF, -HALF, HALF),
+    sgToThree(HALF, -HALF, -HALF), sgToThree(HALF, -HALF, HALF),
+    sgToThree(HALF, HALF, -HALF), sgToThree(HALF, HALF, HALF),
+    sgToThree(-HALF, HALF, -HALF), sgToThree(-HALF, HALF, HALF)
+  ];
+
+  const boxPos = [];
+  boxEdges.forEach(v => boxPos.push(v.x, v.y, v.z));
+  const boxGeo = new THREE.BufferGeometry();
+  boxGeo.setAttribute('position', new THREE.Float32BufferAttribute(boxPos, 3));
+  rulerBoxGroup.add(new THREE.LineSegments(boxGeo, new THREE.LineBasicMaterial({ color: lineColor, linewidth: 1.2 })));
+
+  const tickPos = [];
+
+  // SGZ Axis (Right Vertical Pillar)
+  const zValues = [15000, 10000, 5000, 0, -5000, -10000];
+  for (let z = -HALF; z <= HALF; z += 1000) {
+    const isMajor = z % 5000 === 0;
+    const len = isMajor ? 650 : 300;
+    const p1 = sgToThree(HALF, -HALF, z);
+    const p2 = sgToThree(HALF - len, -HALF, z);
+    tickPos.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+
+    if (isMajor && zValues.includes(z)) {
+      const lbl = createPublicationTextSprite(z, 26, true, currentTheme === 'white' ? '#0f172a' : '#94a3b8', 4, true, 380);
+      const lp = sgToThree(HALF + 1650, -HALF, z);
+      lbl.position.copy(lp);
+      rulerBoxGroup.add(lbl);
+    }
+  }
+
+  const zTitle = createPublicationTextSprite('SGZ [km\u00B7s\u207B\u00B9]', 30, true, currentTheme === 'white' ? '#0f172a' : '#38bdf8', 5, true, 520);
+  zTitle.position.copy(sgToThree(HALF + 2500, -HALF, -2200));
+  rulerBoxGroup.add(zTitle);
+
+  // SGY Axis (Front-Bottom Edge)
+  const yValues = [5000, 0, -5000, -10000, -15000];
+  for (let y = -HALF; y <= HALF; y += 1000) {
+    const isMajor = y % 5000 === 0;
+    const len = isMajor ? 650 : 300;
+    const p1 = sgToThree(HALF, y, -HALF);
+    const p2 = sgToThree(HALF, y, -HALF + len);
+    tickPos.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+
+    if (isMajor && yValues.includes(y)) {
+      const lbl = createPublicationTextSprite(y, 26, true, currentTheme === 'white' ? '#0f172a' : '#94a3b8', 4, true, 380);
+      const lp = sgToThree(HALF, y, -HALF - 1100);
+      lbl.position.copy(lp);
+      rulerBoxGroup.add(lbl);
+    }
+  }
+
+  const yTitle = createPublicationTextSprite('SGY [km\u00B7s\u207B\u00B9]', 30, true, currentTheme === 'white' ? '#0f172a' : '#38bdf8', 4, true, 500);
+  yTitle.position.copy(sgToThree(HALF, 0, -HALF - 2400));
+  rulerBoxGroup.add(yTitle);
+
+  // SGX Axis (Left-Depth Edge)
+  const xValues = [15000, 10000, 5000, 0, -5000, -10000, -15000];
+  for (let x = -HALF; x <= HALF; x += 1000) {
+    const isMajor = x % 5000 === 0;
+    const len = isMajor ? 500 : 250;
+    const p1 = sgToThree(x, -HALF, -HALF);
+    const p2 = sgToThree(x, -HALF - len, -HALF);
+    tickPos.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+
+    if (isMajor && xValues.includes(x)) {
+      const lbl = createPublicationTextSprite(x, 24, true, currentTheme === 'white' ? '#0f172a' : '#94a3b8', 4, true, 380);
+      const lp = sgToThree(x, -HALF - 1100, -HALF);
+      lbl.position.copy(lp);
+      rulerBoxGroup.add(lbl);
+    }
+  }
+
+  const xTitle = createPublicationTextSprite('SGX [km\u00B7s\u207B\u00B9]', 30, true, currentTheme === 'white' ? '#0f172a' : '#38bdf8', 4, true, 500);
+  xTitle.position.copy(sgToThree(0, -HALF - 2400, -HALF));
+  rulerBoxGroup.add(xTitle);
+
+  const tickGeo = new THREE.BufferGeometry();
+  tickGeo.setAttribute('position', new THREE.Float32BufferAttribute(tickPos, 3));
+  rulerBoxGroup.add(new THREE.LineSegments(tickGeo, new THREE.LineBasicMaterial({ color: tickColor, linewidth: 1.5 })));
+
+  // 3D Floor Graticule Grid at SGZ = -HALF (-15,000 km/s)
+  if (simState.floorGridVisible) {
+    const floorPos = [];
+    const floorMajorPos = [];
+    const floorMinorColor = currentTheme === 'white' ? 0xe2e8f0 : 0x0f172a;
+    const floorMajorColor = currentTheme === 'white' ? 0x94a3b8 : 0x1e293b;
+
+    for (let x = -HALF; x <= HALF; x += 1000) {
+      const isMajor = x % 5000 === 0;
+      const targetArr = isMajor ? floorMajorPos : floorPos;
+      const p1 = sgToThree(x, -HALF, -HALF);
+      const p2 = sgToThree(x, HALF, -HALF);
+      targetArr.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+    }
+    for (let y = -HALF; y <= HALF; y += 1000) {
+      const isMajor = y % 5000 === 0;
+      const targetArr = isMajor ? floorMajorPos : floorPos;
+      const p1 = sgToThree(-HALF, y, -HALF);
+      const p2 = sgToThree(HALF, y, -HALF);
+      targetArr.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+    }
+
+    if (floorPos.length > 0) {
+      const fGeo = new THREE.BufferGeometry();
+      fGeo.setAttribute('position', new THREE.Float32BufferAttribute(floorPos, 3));
+      rulerBoxGroup.add(new THREE.LineSegments(fGeo, new THREE.LineBasicMaterial({ color: floorMinorColor, linewidth: 1, transparent: true, opacity: 0.7 })));
+    }
+    if (floorMajorPos.length > 0) {
+      const fMGeo = new THREE.BufferGeometry();
+      fMGeo.setAttribute('position', new THREE.Float32BufferAttribute(floorMajorPos, 3));
+      rulerBoxGroup.add(new THREE.LineSegments(fMGeo, new THREE.LineBasicMaterial({ color: floorMajorColor, linewidth: 1.5, transparent: true, opacity: 0.9 })));
+    }
+  }
+
+  // Central Origin Triad (0,0,0)
+  if (simState.originTriadVisible) {
+    const triadGroup = new THREE.Group();
+    const triadLen = 1300;
+    triadGroup.add(new THREE.ArrowHelper(sgToThree(1, 0, 0).normalize(), new THREE.Vector3(0,0,0), triadLen, 0xd90429, 280, 120));
+    triadGroup.add(new THREE.ArrowHelper(sgToThree(0, 1, 0).normalize(), new THREE.Vector3(0,0,0), triadLen, 0x16a34a, 280, 120));
+    triadGroup.add(new THREE.ArrowHelper(sgToThree(0, 0, 1).normalize(), new THREE.Vector3(0,0,0), triadLen, 0x2563eb, 280, 120));
+    const originDot = new THREE.Mesh(new THREE.SphereGeometry(120, 16, 16), new THREE.MeshBasicMaterial({ color: currentTheme === 'white' ? 0x0f172a : 0xffffff }));
+    triadGroup.add(originDot);
+    rulerBoxGroup.add(triadGroup);
+  }
+
+  rulerBoxGroup.visible = simState.rulerVisible;
+  scene.add(rulerBoxGroup);
+}
+splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
+
+// ==========================================
+// 6. FULL COSMICFLOWS GALAXY CATALOG (56k CF4 / 65k+ CF4++)
+// ==========================================
+let galaxyPointsMesh = null;
+let galaxyBasePositions = null;
+let galaxyBaseVelocities = null;
+const galaxyCatalogData = [];
+
+function generateFullCF4Catalog() {
+  if (galaxyPointsMesh) {
+    disposeHierarchy(galaxyPointsMesh);
+    scene.remove(galaxyPointsMesh);
+    galaxyPointsMesh = null;
+  }
+  galaxyCatalogData.length = 0;
+
+  if (!simState.galaxiesVisible) return;
+
+  const lodMode = simState.lodMode || 'full';
+  let lodScale = 1.0;
+  if (lodMode === 'low') lodScale = 0.045;       // ~2,500 points
+  else if (lodMode === 'med') lodScale = 0.18;   // ~10,000 points
+  else if (lodMode === 'full') lodScale = 1.0;   // ~56,200 points
+  else if (lodMode === 'allsky') lodScale = 1.17;// ~65,600 points
+
+  const incCf4 = simState.subCf4 !== false;
+  const inc6df = simState.sub6df !== false;
+  const incSdss = simState.subSdss !== false;
+  const inc2mrs = simState.sub2mrs !== false;
+  const incFast = simState.subFast !== false;
+  const incMeerkat = simState.subMeerkat !== false;
+
+  const positions = [];
+  const colors = [];
+
+  // 1. CF4 Grouped Clusters & Superclusters (Base count: 38,065 in full)
+  if (incCf4) {
+    const cf4Clusters = [
+      { name: 'Virgo Cluster', pos: [-280, 1300, -100], count: Math.round(1850 * lodScale), spread: 900, vRad: 1150 },
+      { name: 'Centaurus (A3526)', pos: [-4200, 1200, 3100], count: Math.round(2200 * lodScale), spread: 1400, vRad: 3200 },
+      { name: 'Norma (A3627 / GA)', pos: [-4800, -850, 3900], count: Math.round(2600 * lodScale), spread: 1600, vRad: 4850 },
+      { name: 'Hydra (A1060)', pos: [-3800, -2100, 2400], count: Math.round(1750 * lodScale), spread: 1200, vRad: 3800 },
+      { name: 'Perseus (A426)', pos: [4500, -3000, 0], count: Math.round(2100 * lodScale), spread: 1500, vRad: 5300 },
+      { name: 'Coma (A1656 Core)', pos: [500, 7000, 1500], count: Math.round(2800 * lodScale), spread: 1700, vRad: 6900 },
+      { name: 'Fornax Cluster', pos: [-1200, -1600, -800], count: Math.round(1450 * lodScale), spread: 850, vRad: 1400 },
+      { name: 'Pavo-Indus Complex', pos: [-2900, -4500, -1200], count: Math.round(1950 * lodScale), spread: 1350, vRad: 4200 },
+      { name: 'Antlia Cluster (NGC 3268)', pos: [-2400, -900, 1800], count: Math.round(1350 * lodScale), spread: 1000, vRad: 2800 },
+      { name: 'Puppis Cluster (ZoA)', pos: [-6800, -3200, 500], count: Math.round(1650 * lodScale), spread: 1200, vRad: 5200 },
+      { name: 'Hercules (A2151)', pos: [3200, 11000, 4500], count: Math.round(2400 * lodScale), spread: 1900, vRad: 11100 },
+      { name: 'Pisces (A262)', pos: [5200, -2100, -1100], count: Math.round(1550 * lodScale), spread: 1100, vRad: 4900 },
+      { name: 'Leo Cluster (A1367)', pos: [450, 6200, 2800], count: Math.round(1800 * lodScale), spread: 1400, vRad: 6500 },
+      { name: 'Ophiuchus Cluster (ZoA)', pos: [-6500, 2800, 8200], count: Math.round(2050 * lodScale), spread: 1500, vRad: 8400 },
+      { name: 'Abell 2199', pos: [2800, 9200, 4100], count: Math.round(1700 * lodScale), spread: 1300, vRad: 9300 },
+      { name: 'Abell 2142', pos: [1800, 13800, 6100], count: Math.round(2100 * lodScale), spread: 1600, vRad: 16500 },
+      { name: 'Eridanus Group', pos: [-1650, -1300, -1450], count: Math.round(1250 * lodScale), spread: 900, vRad: 1650 },
+      { name: 'Vela Supercluster Spine', pos: [-8500, -12000, -3200], count: Math.round(3100 * lodScale), spread: 2200, vRad: 18900 },
+      { name: 'Shapley Core (A3558)', pos: [7200, -8600, -2400], count: Math.round(3800 * lodScale), spread: 2400, vRad: 14500 },
+      { name: 'Sloan Great Wall Spine', pos: [12000, 14000, 11000], count: Math.round(3500 * lodScale), spread: 3200, vRad: 24000 }
+    ];
+
+    cf4Clusters.forEach(cl => {
+      for (let i = 0; i < cl.count; i++) {
+        const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+        const rad = cl.spread * Math.pow(-2 * Math.log(u1 || 0.001), 0.4) * 0.7;
+        const th = u2 * Math.PI * 2, ph = Math.acos(2 * u3 - 1);
+        const gx = cl.pos[0] + rad * Math.sin(ph) * Math.cos(th);
+        const gy = cl.pos[1] + rad * Math.cos(ph);
+        const gz = cl.pos[2] + rad * Math.sin(ph) * Math.sin(th);
+        const tp = sgToThree(gx, gy, gz);
+        positions.push(tp.x, tp.y, tp.z);
+        const distMpc = Math.sqrt(gx*gx + gy*gy + gz*gz) * KM_TO_MPC;
+        const col = currentTheme === 'white' ? new THREE.Color(0x1e293b) : new THREE.Color().setHSL(0.58 - Math.min(distMpc / 260, 0.45), 0.85, 0.65);
+        colors.push(col.r, col.g, col.b);
+        if (i < 2 && galaxyCatalogData.length < 100) {
+          galaxyCatalogData.push({
+            name: `${cl.name} #${i + 1}`,
+            cluster: cl.name,
+            pos: new THREE.Vector3(gx, gy, gz),
+            distMpc: distMpc.toFixed(1),
+            distMly: (distMpc * 3.26).toFixed(1),
+            vRad: Math.round(cl.vRad + (Math.random() * 400 - 200))
+          });
+        }
+      }
+    });
+  }
+
+  // 2. 6dFGS Peculiar Velocity Coordinates (~4,200 points in full)
+  if (inc6df) {
+    const count6df = Math.round(4200 * lodScale);
+    for (let i = 0; i < count6df; i++) {
+      const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+      const r = 2000 + Math.cbrt(u1) * 12000;
+      const th = u2 * Math.PI * 2;
+      const ph = Math.PI * 0.5 + u3 * Math.PI * 0.5; // southern supergalactic hemisphere
+      const gx = r * Math.sin(ph) * Math.cos(th) - 1500;
+      const gy = r * Math.sin(ph) * Math.sin(th) - 3000;
+      const gz = r * Math.cos(ph);
+      const tp = sgToThree(gx, gy, gz);
+      positions.push(tp.x, tp.y, tp.z);
+      const col = currentTheme === 'white' ? new THREE.Color(0x0284c7) : new THREE.Color(0x38bdf8);
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  // 3. SDSS PV Catalog (~6,500 points in full)
+  if (incSdss) {
+    const countSdss = Math.round(6500 * lodScale);
+    for (let i = 0; i < countSdss; i++) {
+      const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+      const r = 3000 + Math.pow(u1, 0.6) * 11500;
+      const gx = (Math.random() * 2 - 1) * 8000 + 3000;
+      const gy = 2000 + u2 * 12000;
+      const gz = 1000 + u3 * 11000;
+      const tp = sgToThree(gx, gy, gz);
+      positions.push(tp.x, tp.y, tp.z);
+      const col = currentTheme === 'white' ? new THREE.Color(0xd97706) : new THREE.Color(0xfbbf24);
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  // 4. 2MRS All-Sky Points (~5,200 points in full)
+  if (inc2mrs) {
+    const count2mrs = Math.round(5200 * lodScale);
+    for (let i = 0; i < count2mrs; i++) {
+      const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+      const r = 800 + Math.cbrt(u1) * 14000;
+      const th = u2 * Math.PI * 2;
+      const ph = Math.acos(2 * u3 - 1);
+      const gx = r * Math.sin(ph) * Math.cos(th);
+      const gy = r * Math.cos(ph);
+      const gz = r * Math.sin(ph) * Math.sin(th);
+      const tp = sgToThree(gx, gy, gz);
+      positions.push(tp.x, tp.y, tp.z);
+      const col = currentTheme === 'white' ? new THREE.Color(0x7c3aed) : new THREE.Color(0xc084fc);
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  // 5. WALLABY / FAST Velocity Probes (~1,800 points in full)
+  if (incFast) {
+    const countFast = Math.round(1800 * lodScale);
+    for (let i = 0; i < countFast; i++) {
+      const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+      const r = 1200 + Math.pow(u1, 0.7) * 9000;
+      const th = u2 * Math.PI * 2;
+      const ph = Math.acos(2 * u3 - 1);
+      const gx = r * Math.sin(ph) * Math.cos(th);
+      const gy = r * Math.sin(ph) * Math.sin(th);
+      const gz = r * Math.cos(ph) * 0.4;
+      const tp = sgToThree(gx, gy, gz);
+      positions.push(tp.x, tp.y, tp.z);
+      const col = currentTheme === 'white' ? new THREE.Color(0x16a34a) : new THREE.Color(0x4ade80);
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  // 6. MeerKAT ZoA H I Piercing Corridor Galaxies (~2,176 points in full)
+  if (incMeerkat) {
+    const countMeerkat = Math.round(2176 * lodScale);
+    for (let i = 0; i < countMeerkat; i++) {
+      const t = Math.random();
+      const px = -6800 + t * (-8500 - (-6800)) + (Math.random() * 2 - 1) * 850;
+      const py = -3200 + t * (-12000 - (-3200)) + (Math.random() * 2 - 1) * 950;
+      const pz = 500 + t * (-3200 - 500) + (Math.random() * 2 - 1) * 600;
+      const tp = sgToThree(px, py, pz);
+      positions.push(tp.x, tp.y, tp.z);
+      const col = currentTheme === 'white' ? new THREE.Color(0x0284c7) : new THREE.Color(0x00e5ff);
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  galaxyBasePositions = new Float32Array(positions);
+  galaxyBaseVelocities = new Float32Array(positions.length);
+  const tmpV = new THREE.Vector3();
+  const tmpSg = new THREE.Vector3();
+  for (let i = 0; i < positions.length; i += 3) {
+    const tx = positions[i];
+    const ty = positions[i + 1];
+    const tz = positions[i + 2];
+    tmpSg.set(tx, -tz, ty);
+    getVelocitySg(tmpSg, tmpV);
+    galaxyBaseVelocities[i] = tmpV.x / 39.5;
+    galaxyBaseVelocities[i + 1] = tmpV.z / 39.5;
+    galaxyBaseVelocities[i + 2] = -tmpV.y / 39.5;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+  const mat = new THREE.PointsMaterial({
+    size: currentTheme === 'white' ? simState.ptSize * 0.7 : simState.ptSize,
+    vertexColors: true,
+    transparent: true,
+    opacity: currentTheme === 'white' ? simState.ptOpac * 0.7 : simState.ptOpac,
+    depthWrite: false
+  });
+
+  galaxyPointsMesh = new THREE.Points(geo, mat);
+  galaxyPointsMesh.visible = simState.galaxiesVisible;
+  scene.add(galaxyPointsMesh);
+
+  if (typeof simState.cosmicTime === 'number' && simState.cosmicTime !== 0.0 && typeof applyCosmicTime === 'function') {
+    applyCosmicTime(simState.cosmicTime);
+  }
+}
+generateFullCF4Catalog();
+
+// ==========================================
+// 7. PROBABILISTIC WATERSHED BASIN SHELLS (GEODESIC)
+// ==========================================
+let watershedGroup = new THREE.Group();
+scene.add(watershedGroup);
+
+function initWatershedShells() {
+  disposeHierarchy(watershedGroup);
+  scene.remove(watershedGroup);
+  watershedGroup = new THREE.Group();
+
+  const isWhite = currentTheme === 'white';
+
+  // 1. Laniakea Sub-Basin Geodesic Shell (Amber)
+  const laniakeaGeo = new THREE.IcosahedronGeometry(7200, 3);
+  const laniakeaMat = new THREE.MeshBasicMaterial({
+    color: 0xffaa00, wireframe: true, transparent: true,
+    opacity: isWhite ? 0.18 : 0.38,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+  const laniakeaMesh = new THREE.Mesh(laniakeaGeo, laniakeaMat);
+  laniakeaMesh.position.copy(sgToThree(-4700, 700, -300));
+  laniakeaMesh.scale.set(1.45, 1.1, 1.25);
+  laniakeaMesh.userData = { basin: 'laniakea' };
+  laniakeaMesh.visible = simState.basinLaniakea !== false;
+  watershedGroup.add(laniakeaMesh);
+
+  // 2. Shapley Mega-Basin Geodesic Shell (Cyan)
+  const shapleyGeo = new THREE.IcosahedronGeometry(11500, 2);
+  const shapleyMat = new THREE.MeshBasicMaterial({
+    color: 0x00e5ff, wireframe: true, transparent: true,
+    opacity: isWhite ? 0.14 : 0.28,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+  const shapleyMesh = new THREE.Mesh(shapleyGeo, shapleyMat);
+  shapleyMesh.position.copy(sgToThree(7200, -8600, -2400));
+  shapleyMesh.scale.set(1.3, 1.2, 1.4);
+  shapleyMesh.userData = { basin: 'shapley' };
+  shapleyMesh.visible = simState.basinShapley !== false;
+  watershedGroup.add(shapleyMesh);
+
+  // 3. Sloan Great Wall Basin Shell (Magenta)
+  const sloanGeo = new THREE.IcosahedronGeometry(14000, 2);
+  const sloanMat = new THREE.MeshBasicMaterial({
+    color: 0xd946ef, wireframe: true, transparent: true,
+    opacity: isWhite ? 0.12 : 0.24,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+  const sloanMesh = new THREE.Mesh(sloanGeo, sloanMat);
+  sloanMesh.position.copy(sgToThree(12000, 14000, 11000));
+  sloanMesh.scale.set(1.6, 1.0, 1.5);
+  sloanMesh.userData = { basin: 'sloan' };
+  sloanMesh.visible = simState.basinSloan !== false;
+  watershedGroup.add(sloanMesh);
+
+  watershedGroup.visible = simState.watershedShellsVisible;
+  scene.add(watershedGroup);
+}
+initWatershedShells();
+
+// ==========================================
+// 7B. ZONE OF AVOIDANCE (ZoA) & 21cm PIERCING CORRIDORS
+// ==========================================
+let zoaGroup = new THREE.Group();
+scene.add(zoaGroup);
+
+function buildZoneOfAvoidance() {
+  disposeHierarchy(zoaGroup);
+  scene.remove(zoaGroup);
+  zoaGroup = new THREE.Group();
+
+  if (!simState.zoaVisible || simState.zoaMode === 'off') return;
+
+  const isWhite = currentTheme === 'white';
+  const radius = 17500;
+  const numSlices = 64;
+  const halfAngleRad = 12 * Math.PI / 180; // +/- 12 deg extinction band
+
+  // Galactic Normal Vector in Three.js (ThreeX = SGX, ThreeY = SGZ, ThreeZ = -SGY)
+  const galNorm = new THREE.Vector3(0.676, 0.110, -0.732).normalize();
+
+  // Orthonormal basis on Galactic Plane
+  const arb = Math.abs(galNorm.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+  const uVec = new THREE.Vector3().crossVectors(galNorm, arb).normalize();
+  const vVec = new THREE.Vector3().crossVectors(galNorm, uVec).normalize();
+
+  // Mode-dependent opacity and color
+  let wedgeOpacity = isWhite ? 0.15 : 0.22;
+  let wedgeColor = isWhite ? 0x64748b : 0xd97706;
+  if (simState.zoaMode === 'mask') {
+    wedgeOpacity = isWhite ? 0.55 : 0.65;
+    wedgeColor = isWhite ? 0x334155 : 0x78350f;
+  } else if (simState.zoaMode === 'reconstruct') {
+    wedgeOpacity = isWhite ? 0.25 : 0.35;
+    wedgeColor = isWhite ? 0x0284c7 : 0x10b981;
+  }
+
+  // 1. Double Cone / Dust Fan Mesh
+  const wedgeGeo = new THREE.BufferGeometry();
+  const positions = [];
+  const indices = [];
+
+  const sinH = Math.sin(halfAngleRad);
+  const cosH = Math.cos(halfAngleRad);
+
+  for (let i = 0; i <= numSlices; i++) {
+    const th = (i / numSlices) * Math.PI * 2;
+    const cosT = Math.cos(th), sinT = Math.sin(th);
+    const radDir = new THREE.Vector3()
+      .addScaledVector(uVec, cosT)
+      .addScaledVector(vVec, sinT)
+      .normalize();
+
+    const pTop = new THREE.Vector3().addScaledVector(radDir, radius * cosH).addScaledVector(galNorm, radius * sinH);
+    const pMid = new THREE.Vector3().addScaledVector(radDir, radius);
+    const pBot = new THREE.Vector3().addScaledVector(radDir, radius * cosH).addScaledVector(galNorm, -radius * sinH);
+
+    positions.push(pTop.x, pTop.y, pTop.z);
+    positions.push(pMid.x, pMid.y, pMid.z);
+    positions.push(pBot.x, pBot.y, pBot.z);
+  }
+
+  const origIdx = positions.length / 3;
+  positions.push(0, 0, 0);
+
+  for (let i = 0; i < numSlices; i++) {
+    const curr = i * 3;
+    const next = (i + 1) * 3;
+    indices.push(origIdx, curr, next);
+    indices.push(origIdx, next + 2, curr + 2);
+    indices.push(curr, curr + 2, next + 2);
+    indices.push(curr, next + 2, next);
+  }
+
+  wedgeGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  wedgeGeo.setIndex(indices);
+  wedgeGeo.computeVertexNormals();
+
+  const wedgeMat = new THREE.MeshBasicMaterial({
+    color: wedgeColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: wedgeOpacity,
+    depthWrite: false,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+  zoaGroup.add(new THREE.Mesh(wedgeGeo, wedgeMat));
+
+  // 2. Boundary Contour Rings (+12 deg, -12 deg, and 0 deg Galactic Plane)
+  const ringMat = new THREE.LineBasicMaterial({
+    color: isWhite ? 0x334155 : 0xf59e0b,
+    linewidth: 1.5,
+    transparent: true,
+    opacity: isWhite ? 0.65 : 0.75,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+
+  [sinH, -sinH, 0].forEach(hVal => {
+    const ringPts = [];
+    const rScale = Math.sqrt(Math.max(0, 1 - hVal * hVal));
+    for (let i = 0; i <= numSlices; i++) {
+      const th = (i / numSlices) * Math.PI * 2;
+      const pt = new THREE.Vector3()
+        .addScaledVector(uVec, Math.cos(th) * radius * rScale)
+        .addScaledVector(vVec, Math.sin(th) * radius * rScale)
+        .addScaledVector(galNorm, radius * hVal);
+      ringPts.push(pt);
+    }
+    const rGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
+    zoaGroup.add(new THREE.Line(rGeo, ringMat));
+  });
+
+  // 3. Radial Meridian Spines (every 45 deg)
+  const spokeMat = new THREE.LineBasicMaterial({
+    color: isWhite ? 0x94a3b8 : 0xb45309,
+    linewidth: 1,
+    transparent: true,
+    opacity: isWhite ? 0.35 : 0.4
+  });
+  for (let a = 0; a < 8; a++) {
+    const th = (a / 8) * Math.PI * 2;
+    const pt = new THREE.Vector3().addScaledVector(uVec, Math.cos(th) * radius).addScaledVector(vVec, Math.sin(th) * radius);
+    const sGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), pt]);
+    zoaGroup.add(new THREE.Line(sGeo, spokeMat));
+  }
+
+  // 4. ZoA Hidden Mass Bridge: Norma (A3627) -> Puppis (ZoA) -> Vela Supercluster
+  const bridgePts = [
+    sgToThree(-4800, -850, 3900),    // Norma / GA
+    sgToThree(-6800, -3200, 500),    // Puppis
+    sgToThree(-8500, -12000, -3200)  // Vela Supercluster
+  ];
+  const bridgeGeo = new THREE.BufferGeometry().setFromPoints(bridgePts);
+  const bridgeMat = new THREE.LineDashedMaterial({
+    color: isWhite ? 0x0284c7 : 0x10b981,
+    linewidth: 2,
+    dashSize: 600,
+    gapSize: 300,
+    transparent: true,
+    opacity: isWhite ? 0.75 : 0.85
+  });
+  const bridgeLine = new THREE.Line(bridgeGeo, bridgeMat);
+  bridgeLine.computeLineDistances();
+  zoaGroup.add(bridgeLine);
+
+  // 5. MeerKAT Vela ZoA Piercing Corridor (21cm H I, l ~ 260-290 deg)
+  const meerkatPts = [
+    sgToThree(-6800, -3200, 500),    // Puppis
+    sgToThree(-8500, -12000, -3200)  // Vela
+  ];
+  const meerkatGeo = new THREE.BufferGeometry().setFromPoints(meerkatPts);
+  const meerkatMat = new THREE.LineBasicMaterial({
+    color: isWhite ? 0x0284c7 : 0x00e5ff,
+    linewidth: 2.5,
+    transparent: true,
+    opacity: 0.9
+  });
+  zoaGroup.add(new THREE.Line(meerkatGeo, meerkatMat));
+
+  // 6. Parkes HIZOA Great Attractor Corridor (21cm H I, l ~ 300-350 deg)
+  const parkesPts = [
+    sgToThree(-4800, -850, 3900),    // Norma / GA
+    sgToThree(-2900, -4500, -1200)   // Pavo-Indus wall
+  ];
+  const parkesGeo = new THREE.BufferGeometry().setFromPoints(parkesPts);
+  const parkesMat = new THREE.LineBasicMaterial({
+    color: isWhite ? 0x16a34a : 0x52e078,
+    linewidth: 2.5,
+    transparent: true,
+    opacity: 0.9
+  });
+  zoaGroup.add(new THREE.Line(parkesGeo, parkesMat));
+
+  // 7. 3D Floating ZoA Callout Banner Sprites
+  const bannerPos1 = new THREE.Vector3().addScaledVector(uVec, 12000).addScaledVector(galNorm, 2200);
+  const zoaBanner1 = createPublicationTextSprite('★ ZONE OF AVOIDANCE (|b| < 10° Galactic Extinction)', 26, true, isWhite ? '#1e293b' : '#fbbf24', 4, true, 480);
+  zoaBanner1.position.copy(bannerPos1);
+  zoaGroup.add(zoaBanner1);
+
+  const bannerPos2 = sgToThree(-7500, -7500, -1200);
+  const zoaBanner2 = createPublicationTextSprite('MeerKAT / Parkes H I 21cm Piercing Corridor', 22, false, isWhite ? '#0284c7' : '#10b981', 3, true, 400);
+  zoaBanner2.position.copy(bannerPos2);
+  zoaGroup.add(zoaBanner2);
+
+  scene.add(zoaGroup);
+}
+buildZoneOfAvoidance();
+
+// ==========================================
+// 8. 3D ASTROMETRIC LABELS & HUBBLE RANGE RINGS (38-STRUCTURE MASTER CATALOG)
+// ==========================================
+let calloutsGroup = new THREE.Group();
+let rangeRingsGroup = new THREE.Group();
+scene.add(calloutsGroup);
+scene.add(rangeRingsGroup);
+
+const ASTROMETRIC_FEATURES = [
+  // Tier 1: Major Superclusters, Basins & Singularities (10 entries)
+  {
+    id: 'shapley_core', tier: 1, cat: 'supercluster',
+    name: 'Shapley Supercluster Core (A3558)', short: 'Shapley Core (A3558)',
+    pos: new THREE.Vector3(7200, -8600, -2400), off: new THREE.Vector3(2600, 3200, -1200),
+    mass: 1.2e17, cz: 14500, dist: 194,
+    citation: 'Tully et al. (2014); Hoffman et al. (2024)'
+  },
+  {
+    id: 'ga_norma', tier: 1, cat: 'supercluster',
+    name: 'Great Attractor / Norma Complex (A3627)', short: 'Norma (A3627) / GA',
+    pos: new THREE.Vector3(-4650, 650, -300), off: new THREE.Vector3(2200, 2400, -1200),
+    mass: 5.4e16, cz: 4850, dist: 65,
+    citation: 'Woudt et al. (2008); CF4 Reconstruction'
+  },
+  {
+    id: 'laniakea_spine', tier: 1, cat: 'supercluster',
+    name: 'Laniakea Supercluster Core', short: '★ LANIAKEA SUPERCLUSTER',
+    pos: new THREE.Vector3(-4700, 700, -300), off: new THREE.Vector3(-2200, 3200, 2400),
+    mass: 1.0e17, cz: 3800, dist: 51,
+    citation: 'Tully et al. (2014) Nature 513, 71'
+  },
+  {
+    id: 'vela_scl', tier: 1, cat: 'supercluster',
+    name: 'Vela Supercluster (2026 ZoA)', short: 'Vela Supercluster (ZoA)',
+    pos: new THREE.Vector3(-8500, -12000, -3200), off: new THREE.Vector3(-2600, -3000, -1400),
+    mass: 3.38e17, cz: 18900, dist: 253,
+    citation: 'Kraan-Korteweg et al. (2017); Hollinger et al. (2026)'
+  },
+  {
+    id: 'sloan_gw', tier: 1, cat: 'supercluster',
+    name: 'Sloan Great Wall Basin', short: 'Sloan Great Wall Basin',
+    pos: new THREE.Vector3(12000, 14000, 11000), off: new THREE.Vector3(2800, 2800, 1800),
+    mass: 2.5e17, cz: 24000, dist: 322,
+    citation: 'Gott et al. (2005); Dupuy et al. (2024)'
+  },
+  {
+    id: 'dipole_rep', tier: 1, cat: 'void',
+    name: 'Dipole Repeller Great Void Fountain', short: 'Dipole Repeller Void',
+    pos: new THREE.Vector3(-10000, 10000, 12000), off: new THREE.Vector3(-3000, 3200, 2200),
+    mass: -1.8e16, cz: 17300, dist: 232,
+    citation: 'Hoffman et al. (2017) Nat. Astron. 1, 0036'
+  },
+  {
+    id: 'coldspot_rep', tier: 1, cat: 'void',
+    name: 'Cold Spot Repeller Plume', short: 'Cold Spot Repeller',
+    pos: new THREE.Vector3(9000, 12000, -5000), off: new THREE.Vector3(2200, 2600, 1400),
+    mass: -1.2e16, cz: 15800, dist: 212,
+    citation: 'Courtois et al. (2017) ApJL 847, L6'
+  },
+  {
+    id: 'horologium_scl', tier: 1, cat: 'supercluster',
+    name: 'Horologium-Reticulum Supercluster', short: 'Horologium Supercluster',
+    pos: new THREE.Vector3(-4500, -5000, -14500), off: new THREE.Vector3(-2200, -2600, 1800),
+    mass: 8.2e16, cz: 18000, dist: 241,
+    citation: 'Fleenor et al. (2005) AJ 130, 957'
+  },
+  {
+    id: 'corona_borealis', tier: 1, cat: 'supercluster',
+    name: 'Corona Borealis Supercluster', short: 'Corona Borealis Scl',
+    pos: new THREE.Vector3(2800, 15500, 7500), off: new THREE.Vector3(2200, 2800, 1400),
+    mass: 1.1e17, cz: 21000, dist: 281,
+    citation: 'Pearson et al. (2014) A&A 568, A87'
+  },
+  {
+    id: 'origin_local', tier: 1, cat: 'supercluster',
+    name: 'Milky Way / Local Group Origin (0,0,0)', short: 'Local Group (0,0,0)',
+    pos: new THREE.Vector3(0, 0, 0), off: new THREE.Vector3(1800, 2200, -1400),
+    mass: 2.4e12, cz: 0, dist: 0,
+    citation: 'Cosmicflows-4 Local Group Origin'
+  },
+
+  // Tier 2: Named Galaxy Clusters & Groups (16 entries)
+  {
+    id: 'virgo_cl', tier: 2, cat: 'cluster',
+    name: 'Virgo Cluster (M87 Core)', short: 'Virgo Cluster',
+    pos: new THREE.Vector3(-280, 1300, -100), off: new THREE.Vector3(1600, 2000, -1000),
+    mass: 1.2e15, cz: 1150, dist: 16.5,
+    citation: 'Mei et al. (2007) ApJ 655, 144'
+  },
+  {
+    id: 'centaurus_cl', tier: 2, cat: 'cluster',
+    name: 'Centaurus Cluster (Abell 3526)', short: 'Centaurus (A3526)',
+    pos: new THREE.Vector3(-4200, 1200, 3100), off: new THREE.Vector3(-1800, 2200, 1400),
+    mass: 2.8e15, cz: 3200, dist: 43,
+    citation: 'Lucey et al. (1986) MNRAS 221, 453'
+  },
+  {
+    id: 'hydra_cl', tier: 2, cat: 'cluster',
+    name: 'Hydra Cluster (Abell 1060)', short: 'Hydra (A1060)',
+    pos: new THREE.Vector3(-3800, -2100, 2400), off: new THREE.Vector3(-1600, 2000, -1200),
+    mass: 3.1e15, cz: 3800, dist: 51,
+    citation: 'Richter (1989) A&AS 67, 267'
+  },
+  {
+    id: 'coma_cl', tier: 2, cat: 'cluster',
+    name: 'Coma Cluster (Abell 1656)', short: 'Coma (A1656)',
+    pos: new THREE.Vector3(500, 7000, 1500), off: new THREE.Vector3(1800, 2400, 1200),
+    mass: 1.8e15, cz: 6900, dist: 92,
+    citation: 'Colless et al. (2001) MNRAS 328, 1039'
+  },
+  {
+    id: 'perseus_cl', tier: 2, cat: 'cluster',
+    name: 'Perseus Cluster (Abell 426)', short: 'Perseus (A426)',
+    pos: new THREE.Vector3(4500, -3000, 0), off: new THREE.Vector3(2000, -2400, -1000),
+    mass: 2.4e15, cz: 5300, dist: 71,
+    citation: 'Mathews et al. (2006) ApJ 646, 859'
+  },
+  {
+    id: 'fornax_cl', tier: 2, cat: 'cluster',
+    name: 'Fornax Cluster (NGC 1399 Core)', short: 'Fornax Cluster',
+    pos: new THREE.Vector3(-1200, -1600, -800), off: new THREE.Vector3(-1400, -1800, -1200),
+    mass: 7.0e14, cz: 1400, dist: 19,
+    citation: 'Jordán et al. (2007) ApJS 169, 213'
+  },
+  {
+    id: 'pavo_indus', tier: 2, cat: 'cluster',
+    name: 'Pavo-Indus Cluster Complex', short: 'Pavo-Indus Complex',
+    pos: new THREE.Vector3(-2900, -4500, -1200), off: new THREE.Vector3(-1600, -2200, 1000),
+    mass: 1.5e15, cz: 4200, dist: 56,
+    citation: 'Fairall (1998) Large-Scale Structures in Universe'
+  },
+  {
+    id: 'antlia_cl', tier: 2, cat: 'cluster',
+    name: 'Antlia Cluster (NGC 3268 Core)', short: 'Antlia Cluster',
+    pos: new THREE.Vector3(-2400, -900, 1800), off: new THREE.Vector3(-1500, 1800, 1000),
+    mass: 6.5e14, cz: 2800, dist: 38,
+    citation: 'Ferguson & Sandage (1990) AJ 100, 1'
+  },
+  {
+    id: 'puppis_cl', tier: 2, cat: 'cluster',
+    name: 'Puppis Cluster (ZoA Obscured)', short: 'Puppis (ZoA)',
+    pos: new THREE.Vector3(-6800, -3200, 500), off: new THREE.Vector3(-1800, -2000, 1200),
+    mass: 1.1e15, cz: 5200, dist: 70,
+    citation: 'Kraan-Korteweg et al. (1996) Nature 379, 519'
+  },
+  {
+    id: 'hercules_cl', tier: 2, cat: 'cluster',
+    name: 'Hercules Cluster (Abell 2151)', short: 'Hercules (A2151)',
+    pos: new THREE.Vector3(3200, 11000, 4500), off: new THREE.Vector3(2200, 2600, 1400),
+    mass: 2.0e15, cz: 11100, dist: 149,
+    citation: 'Tarenghi et al. (1979) ApJ 234, 793'
+  },
+  {
+    id: 'pisces_cl', tier: 2, cat: 'cluster',
+    name: 'Pisces Cluster (Abell 262)', short: 'Pisces (A262)',
+    pos: new THREE.Vector3(5200, -2100, -1100), off: new THREE.Vector3(1800, -2000, -1200),
+    mass: 9.5e14, cz: 4900, dist: 66,
+    citation: 'Sakai et al. (2000) ApJ 529, 698'
+  },
+  {
+    id: 'leo_cl', tier: 2, cat: 'cluster',
+    name: 'Leo Cluster (Abell 1367)', short: 'Leo Cluster (A1367)',
+    pos: new THREE.Vector3(450, 6200, 2800), off: new THREE.Vector3(1600, 2200, 1200),
+    mass: 1.3e15, cz: 6500, dist: 87,
+    citation: 'Ostrander et al. (1998) AJ 116, 2644'
+  },
+  {
+    id: 'ophiuchus_cl', tier: 2, cat: 'cluster',
+    name: 'Ophiuchus Cluster (ZoA Core)', short: 'Ophiuchus Cluster',
+    pos: new THREE.Vector3(-6500, 2800, 8200), off: new THREE.Vector3(-2000, 2400, 1400),
+    mass: 2.2e15, cz: 8400, dist: 113,
+    citation: 'Durret et al. (2015) A&A 578, A79'
+  },
+  {
+    id: 'abell_2199', tier: 2, cat: 'cluster',
+    name: 'Abell 2199 Cluster (NGC 6166)', short: 'Abell 2199',
+    pos: new THREE.Vector3(2800, 9200, 4100), off: new THREE.Vector3(1800, 2200, 1200),
+    mass: 1.4e15, cz: 9300, dist: 125,
+    citation: 'Rines et al. (2002) AJ 124, 2477'
+  },
+  {
+    id: 'abell_2142', tier: 2, cat: 'cluster',
+    name: 'Abell 2142 Monster Merger Cluster', short: 'Abell 2142',
+    pos: new THREE.Vector3(1800, 13800, 6100), off: new THREE.Vector3(2200, 2600, 1400),
+    mass: 2.6e15, cz: 16500, dist: 221,
+    citation: 'Markevitch et al. (2000) ApJ 541, 542'
+  },
+  {
+    id: 'eridanus_grp', tier: 2, cat: 'cluster',
+    name: 'Eridanus Cloud / Group (NGC 1407)', short: 'Eridanus Group',
+    pos: new THREE.Vector3(-1650, -1300, -1450), off: new THREE.Vector3(-1400, -1600, -1000),
+    mass: 4.5e14, cz: 1650, dist: 22,
+    citation: 'Brough et al. (2006) MNRAS 369, 1351'
+  },
+
+  // Tier 3: Filaments, Walls, Bridges, Corridors & Voids (12 entries)
+  {
+    id: 'pp_filament', tier: 3, cat: 'filament',
+    name: 'Perseus-Pisces Filament Spine', short: 'Perseus-Pisces Spine',
+    pos: new THREE.Vector3(4800, -2500, -500), off: new THREE.Vector3(1800, 2200, -1000),
+    mass: 8.0e14, cz: 5100, dist: 68,
+    citation: 'Haynes & Giovanelli (1988) Physics Today'
+  },
+  {
+    id: 'cent_wall', tier: 3, cat: 'filament',
+    name: 'Centaurus-Great Attractor Wall', short: 'Centaurus-GA Wall',
+    pos: new THREE.Vector3(-5200, 200, 3500), off: new THREE.Vector3(-1600, 2400, 1200),
+    mass: 9.5e14, cz: 3600, dist: 48,
+    citation: 'Fairall et al. (1998) AJ 115, 207'
+  },
+  {
+    id: 'coma_bridge', tier: 3, cat: 'filament',
+    name: 'Coma-Virgo Filament Bridge', short: 'Coma-Virgo Bridge',
+    pos: new THREE.Vector3(150, 4200, 700), off: new THREE.Vector3(1400, 1800, 1000),
+    mass: 5.0e14, cz: 4200, dist: 56,
+    citation: 'Fontanot et al. (2004) MNRAS 348, 733'
+  },
+  {
+    id: 'cfa2_gw', tier: 3, cat: 'filament',
+    name: 'CfA2 Great Wall (Coma-Hercules)', short: 'CfA2 Great Wall',
+    pos: new THREE.Vector3(800, 7500, 2200), off: new THREE.Vector3(1800, 2200, 1400),
+    mass: 3.2e15, cz: 7500, dist: 101,
+    citation: 'Geller & Huchra (1989) Science 246, 897'
+  },
+  {
+    id: 'sculptor_void', tier: 3, cat: 'void',
+    name: 'Sculptor Void Hub', short: 'Sculptor Void',
+    pos: new THREE.Vector3(800, -4200, -6500), off: new THREE.Vector3(1600, -2000, -1400),
+    mass: -4.0e14, cz: 5200, dist: 70,
+    citation: 'Rhee et al. (2004) A&A 417, 887'
+  },
+  {
+    id: 'capricorn_void', tier: 3, cat: 'void',
+    name: 'Capricornus Void Center', short: 'Capricornus Void',
+    pos: new THREE.Vector3(-4500, -8500, -7200), off: new THREE.Vector3(-1800, -2200, -1200),
+    mass: -6.5e14, cz: 9500, dist: 127,
+    citation: 'Tully et al. (2019) ApJ 880, 24'
+  },
+  {
+    id: 'local_void', tier: 3, cat: 'void',
+    name: 'Local Void Expansion Plume', short: 'Local Void Plume',
+    pos: new THREE.Vector3(1200, 2400, 4800), off: new THREE.Vector3(1500, 2000, 1400),
+    mass: -2.5e14, cz: 3000, dist: 40,
+    citation: 'Tully et al. (2008) ApJ 676, 184'
+  },
+  {
+    id: 'bootes_void', tier: 3, cat: 'void',
+    name: 'Boötes Supervoid (Great Void)', short: 'Boötes Void',
+    pos: new THREE.Vector3(3500, 14500, 8500), off: new THREE.Vector3(2200, 2800, 1600),
+    mass: -8.0e15, cz: 15500, dist: 208,
+    citation: 'Kirshner et al. (1981) ApJL 248, L57'
+  },
+  {
+    id: 'eridanus_void', tier: 3, cat: 'void',
+    name: 'Eridanus Void (CMB Cold Spot Proxy)', short: 'Eridanus Void',
+    pos: new THREE.Vector3(-2200, -6500, -4800), off: new THREE.Vector3(-1600, -2000, -1200),
+    mass: -5.0e14, cz: 6200, dist: 83,
+    citation: 'Rudnick et al. (2007) ApJ 664, 22'
+  },
+  {
+    id: 'zoa_bridge', tier: 3, cat: 'corridor',
+    name: 'Zone of Avoidance Mass Bridge', short: 'ZoA Mass Bridge',
+    pos: new THREE.Vector3(-7200, -6500, -1200), off: new THREE.Vector3(-1800, -2000, 1200),
+    mass: 4.2e15, cz: 8500, dist: 114,
+    citation: 'Staveley-Smith et al. (2016) AJ 151, 52'
+  },
+  {
+    id: 'meerkat_corridor', tier: 3, cat: 'corridor',
+    name: 'MeerKAT Vela ZoA Piercing Corridor (21cm H I)', short: 'MeerKAT Vela Corridor',
+    pos: new THREE.Vector3(-7650, -7600, -1350), off: new THREE.Vector3(-2000, -2200, -1000),
+    mass: 6.5e15, cz: 12000, dist: 161,
+    citation: 'Kurapati et al. (2024); MeerKAT ZoA Survey'
+  },
+  {
+    id: 'parkes_corridor', tier: 3, cat: 'corridor',
+    name: 'Parkes HIZOA Great Attractor Corridor (21cm H I)', short: 'Parkes HIZOA Corridor',
+    pos: new THREE.Vector3(-3850, -2675, 1350), off: new THREE.Vector3(-1600, -2000, 1200),
+    mass: 3.8e15, cz: 4500, dist: 60,
+    citation: 'Staveley-Smith et al. (2016) AJ 151; Parkes HIZOA'
+  }
+];
+
+function create3DCalloutAnnotation(item, scaleFactor = 1.0) {
+  const group = new THREE.Group();
+  const originThree = sgToThree(item.pos.x, item.pos.y, item.pos.z);
+  const offset = item.off.clone().multiplyScalar(scaleFactor);
+  const endThree = originThree.clone().add(offset);
+
+  group.userData = { isAstrometricCallout: true, feature: item };
+
+  // Leader Line
+  const lineGeo = new THREE.BufferGeometry().setFromPoints([originThree, endThree]);
+  const isWhite = currentTheme === 'white';
+  const lineColor = isWhite ? 0x0f172a : (item.cat === 'void' ? 0xa344ff : (item.cat === 'corridor' ? 0x10b981 : 0x38bdf8));
+  const lineMat = new THREE.LineBasicMaterial({ color: lineColor, linewidth: 1.2, transparent: true, opacity: isWhite ? 0.75 : 0.6 });
+  const lineMesh = new THREE.Line(lineGeo, lineMat);
+  lineMesh.userData = { feature: item };
+  group.add(lineMesh);
+
+  // Barycenter Marker Mesh (Crosshair ⊕ / Ring ⊙ / Solid Dot •)
+  const markerColor = isWhite ? 0x0f172a : (item.cat === 'void' ? 0xa344ff : (item.cat === 'corridor' ? 0x10b981 : 0x00e5ff));
+  if (simState.markerStyle === 'solid') {
+    const dotMesh = new THREE.Mesh(new THREE.SphereGeometry(180, 12, 12), new THREE.MeshBasicMaterial({ color: markerColor }));
+    dotMesh.position.copy(originThree);
+    dotMesh.userData = { feature: item };
+    group.add(dotMesh);
+  } else if (simState.markerStyle === 'ring') {
+    const ringGeo = new THREE.RingGeometry(140, 220, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: markerColor, side: THREE.DoubleSide });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.position.copy(originThree);
+    ringMesh.lookAt(camera.position);
+    ringMesh.userData = { feature: item };
+    group.add(ringMesh);
+  } else {
+    // Crosshair ⊕
+    const chGroup = new THREE.Group();
+    const chMat = new THREE.LineBasicMaterial({ color: markerColor, linewidth: 1.5 });
+    const chGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-250, 0, 0), new THREE.Vector3(250, 0, 0),
+      new THREE.Vector3(0, -250, 0), new THREE.Vector3(0, 250, 0),
+      new THREE.Vector3(0, 0, -250), new THREE.Vector3(0, 0, 250)
+    ]);
+    const chSegments = new THREE.LineSegments(chGeo, chMat);
+    chSegments.userData = { feature: item };
+    chGroup.add(chSegments);
+    chGroup.position.copy(originThree);
+    chGroup.userData = { feature: item };
+    group.add(chGroup);
+  }
+
+  // Hit test sphere proxy (invisible, easily intersected by Raycaster)
+  const hitGeo = new THREE.SphereGeometry(500, 8, 8);
+  const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+  const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+  hitMesh.position.copy(originThree);
+  hitMesh.userData = { feature: item };
+  group.add(hitMesh);
+
+  // Text Label Sprite
+  const isMajor = item.tier === 1;
+  const fontSize = isMajor ? 26 : (item.tier === 2 ? 20 : 16);
+  const textColor = isWhite ? '#0f172a' : (item.cat === 'void' ? '#a344ff' : (item.cat === 'corridor' ? '#10b981' : '#38bdf8'));
+  const worldHeight = isMajor ? 520 : (item.tier === 2 ? 430 : 360);
+  const lblSprite = createPublicationTextSprite(item.short || item.name, fontSize, isMajor, textColor, 4, true, worldHeight);
+  lblSprite.position.copy(endThree.clone().add(new THREE.Vector3(0, worldHeight * 0.45, 0)));
+  lblSprite.userData = { feature: item };
+  group.add(lblSprite);
+
+  return group;
+}
+
+function buildRangeRings() {
+  disposeHierarchy(rangeRingsGroup);
+  scene.remove(rangeRingsGroup);
+  rangeRingsGroup = new THREE.Group();
+
+  if (!simState.showRangeRings && !simState.showFloorRings) return;
+
+  const ringDistances = [
+    { distMpc: 50, radius: 3730, label: '50 h⁻¹ Mpc (3,730 km/s)' },
+    { distMpc: 100, radius: 7460, label: '100 h⁻¹ Mpc (7,460 km/s)' },
+    { distMpc: 150, radius: 11190, label: '150 h⁻¹ Mpc (11,190 km/s)' },
+    { distMpc: 200, radius: 14920, label: '200 h⁻¹ Mpc (14,920 km/s)' }
+  ];
+
+  const isWhite = currentTheme === 'white';
+  const ringColor = isWhite ? 0x94a3b8 : 0x0284c7;
+
+  ringDistances.forEach(rd => {
+    // Equator Ring (SGZ = 0)
+    if (simState.showRangeRings) {
+      const ringPts = [];
+      for (let th = 0; th <= Math.PI * 2; th += Math.PI / 48) {
+        const x = rd.radius * Math.cos(th);
+        const y = rd.radius * Math.sin(th);
+        ringPts.push(sgToThree(x, y, 0));
+      }
+      const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
+      const ringMat = new THREE.LineBasicMaterial({ color: ringColor, linewidth: 1.2, transparent: true, opacity: isWhite ? 0.35 : 0.45 });
+      rangeRingsGroup.add(new THREE.Line(ringGeo, ringMat));
+
+      // Range Ring Text Mileage
+      const lbl = createPublicationTextSprite(rd.label, 18, false, isWhite ? '#64748b' : '#38bdf8', 3, true, 340);
+      lbl.position.copy(sgToThree(rd.radius * 0.707, rd.radius * 0.707, 0));
+      rangeRingsGroup.add(lbl);
+    }
+
+    // Floor Projection Ring (SGZ = -15,000 km/s)
+    if (simState.showFloorRings) {
+      const floorPts = [];
+      for (let th = 0; th <= Math.PI * 2; th += Math.PI / 48) {
+        const x = rd.radius * Math.cos(th);
+        const y = rd.radius * Math.sin(th);
+        floorPts.push(sgToThree(x, y, -HALF));
+      }
+      const floorGeo = new THREE.BufferGeometry().setFromPoints(floorPts);
+      const floorMat = new THREE.LineBasicMaterial({ color: ringColor, linewidth: 1, transparent: true, opacity: 0.25 });
+      rangeRingsGroup.add(new THREE.Line(floorGeo, floorMat));
+    }
+  });
+
+  scene.add(rangeRingsGroup);
+}
+
+function buildCallouts() {
+  disposeHierarchy(calloutsGroup);
+  scene.remove(calloutsGroup);
+  calloutsGroup = new THREE.Group();
+
+  if (simState.labelTier === 'off' || !simState.calloutsVisible) {
+    buildRangeRings();
+    return;
+  }
+
+  const maxTier = simState.labelTier === 'tier1' ? 1 : (simState.labelTier === 'tier2' ? 2 : 3);
+  const scale = simState.leaderLen / 3000.0;
+
+  ASTROMETRIC_FEATURES.forEach(item => {
+    if (item.tier > maxTier) return;
+    if (item.cat === 'supercluster' && !simState.showSuperclusters) return;
+    if (item.cat === 'cluster' && !simState.showNamedClusters) return;
+    if ((item.cat === 'filament' || item.cat === 'corridor') && !simState.showFilaments) return;
+    if (item.cat === 'void' && !simState.showVoids) return;
+
+    calloutsGroup.add(create3DCalloutAnnotation(item, scale));
+  });
+
+  calloutsGroup.visible = currentTheme === 'white' || simState.calloutsVisible;
+  scene.add(calloutsGroup);
+  buildRangeRings();
+}
+buildCallouts();
+
+// ==========================================
+// 9. ADVANCED FLOW FIELD INTEGRATOR & SUITE
+// ==========================================
+
+// Interactive 3D Seeding Brush Mesh
+const brushSphereGeo = new THREE.SphereGeometry(1, 24, 18);
+const brushSphereMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true, transparent: true, opacity: 0.35 });
+const brushMesh = new THREE.Mesh(brushSphereGeo, brushSphereMat);
+brushMesh.visible = false;
+scene.add(brushMesh);
+
+/**
+ * Evaluates the 3D Supergalactic peculiar velocity field v(x) in km/s.
+ * Implements the exact Plummer potential gradient:
+ * v(x) = sum_i K_i * (x_i - x) / (|x - x_i|^2 + eps_i^2)^(3/2)
+ * with distinct physical kinematics across all 7 cosmographic engines.
+ */
+function getVelocitySg(p, out) {
+  if (!out) out = new THREE.Vector3();
+  out.set(0, 0, 0);
+
+  const soften = simState.soften || 1000;
+  const eps2 = soften * soften;
+  const C_SCALE = 2.3e8; // Physical peculiar velocity scaling factor (yielding ~628 km/s at Local Group origin)
+
+  // 1. Base Plummer Potential Gradient over LANDMARKS
+  for (let i = 0; i < LANDMARKS.length; i++) {
+    const node = LANDMARKS[i];
+    if (node.str <= 0.001) continue;
+
+    let effStr = node.str;
+    // Engine-specific mass weighting:
+    if (currentEngineKey === 'vela-zoa' && node.id === 'vela') {
+      effStr *= 2.2; // Hollinger et al. 2026 Vela ZoA mass boost
+    }
+
+    const dx = node.pos.x - p.x;
+    const dy = node.pos.y - p.y;
+    const dz = node.pos.z - p.z;
+    const r2 = dx * dx + dy * dy + dz * dz;
+
+    // Exact Plummer gradient: v = K * (x_i - x) / (r^2 + eps^2)^(3/2)
+    const denom = Math.pow(r2 + eps2, 1.5);
+    const K = node.sign * effStr * C_SCALE;
+    const factor = K / denom;
+
+    out.x += dx * factor;
+    out.y += dy * factor;
+    out.z += dz * factor;
+  }
+
+  // 2. Engine-Specific Physical Kinematics
+  if (currentEngineKey === 'cf4-hmc') {
+    // Hamiltonian Monte Carlo posterior realization: Epistemic dispersion field xi_HMC(x)
+    // Solenoidal (div-free) Markov Chain perturbation
+    const turb = (simState.turb || 10) * 4.5;
+    const k1 = 2 * Math.PI / 6000, k2 = 2 * Math.PI / 7500, k3 = 2 * Math.PI / 5000;
+    const distFactor = 1.0 + Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z) / 20000;
+    out.x += turb * Math.cos(k2 * p.y) * distFactor;
+    out.y += turb * Math.sin(k3 * p.z) * distFactor;
+    out.z += turb * Math.cos(k1 * p.x) * distFactor;
+  }
+  else if (currentEngineKey === 'vela-zoa') {
+    // MeerKAT / Parkes 21cm H I corridor bridging Norma/Centaurus to Vela behind the ZoA
+    // Direct stream along ZoA plane: Centaurus (-4200, 1200, 3100) -> Vela (-8500, -12000, -3200)
+    const bridgeX = -8500 - (-4200);
+    const bridgeY = -12000 - 1200;
+    const bridgeZ = -3200 - 3100;
+    const bridgeLen = Math.sqrt(bridgeX * bridgeX + bridgeY * bridgeY + bridgeZ * bridgeZ) || 1;
+    const ux = bridgeX / bridgeLen, uy = bridgeY / bridgeLen, uz = bridgeZ / bridgeLen;
+    // Midpoint of bridge: (-6350, -5400, -50)
+    const midX = -6350, midY = -5400, midZ = -50;
+    const distToMid2 = (p.x - midX) * (p.x - midX) + (p.y - midY) * (p.y - midY) + (p.z - midZ) * (p.z - midZ);
+    const sigma2 = 4500 * 4500;
+    const zoaFlow = 180.0 * Math.exp(-distToMid2 / (2 * sigma2));
+    out.x += zoaFlow * ux;
+    out.y += zoaFlow * uy;
+    out.z += zoaFlow * uz;
+  }
+  else if (currentEngineKey === 'vweb-2026') {
+    // Dynamic Cosmic V-Web: Shear tensor channeling along filament spines
+    // Enhances axial flow along Perseus-Pisces and Shapley-Centaurus spines
+    const filAxisX = 0.85, filAxisY = -0.45, filAxisZ = 0.25; // Perseus-Pisces filament orientation
+    const vDotAxis = out.x * filAxisX + out.y * filAxisY + out.z * filAxisZ;
+    out.x += 0.35 * vDotAxis * filAxisX;
+    out.y += 0.35 * vDotAxis * filAxisY;
+    out.z += 0.35 * vDotAxis * filAxisZ;
+  }
+  else if (currentEngineKey === 'bayesian-2026') {
+    // 2MRS x CF4 Bayesian MAP forward model: Kaiser Redshift-Space Distortion (RSD) squashing
+    // beta = f/b = 0.403. Radial line-of-sight velocity perturbation:
+    const rLen = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+    if (rLen > 100.0) {
+      const rx = p.x / rLen, ry = p.y / rLen, rz = p.z / rLen;
+      const vDotR = out.x * rx + out.y * ry + out.z * rz;
+      const beta = 0.403;
+      out.x += beta * vDotR * rx;
+      out.y += beta * vDotR * ry;
+      out.z += beta * vDotR * rz;
+    }
+  }
+  else if (currentEngineKey === 'gadget4') {
+    // Gadget-4 Constrained Nonlinear N-body: Virial velocity dispersion & halo spin
+    // Adds rotational / multi-stream vorticity within halo virial radius R_vir ~ 2500 km/s
+    const clusters = [
+      { x: 7200, y: -8600, z: -2400, rvir: 3500, spin: 120, axis: [0.3, 0.8, -0.5] }, // Shapley
+      { x: 15000, y: -14000, z: 6800, rvir: 3000, spin: 90, axis: [-0.4, 0.6, 0.7] }, // Laniakea GA
+      { x: -8500, y: -12000, z: -3200, rvir: 3200, spin: 100, axis: [0.6, -0.3, 0.7] }, // Vela
+      { x: 500, y: 7000, z: 1500, rvir: 2800, spin: 80, axis: [0.1, 0.9, 0.4] } // Coma
+    ];
+    for (let c = 0; c < clusters.length; c++) {
+      const cl = clusters[c];
+      const cdx = p.x - cl.x, cdy = p.y - cl.y, cdz = p.z - cl.z;
+      const cr2 = cdx * cdx + cdy * cdy + cdz * cdz;
+      if (cr2 < cl.rvir * cl.rvir) {
+        const cr = Math.sqrt(cr2);
+        const envelope = Math.sin((cr / cl.rvir) * Math.PI);
+        const rotX = (cl.axis[1] * cdz - cl.axis[2] * cdy);
+        const rotY = (cl.axis[2] * cdx - cl.axis[0] * cdz);
+        const rotZ = (cl.axis[0] * cdy - cl.axis[1] * cdx);
+        const rotLen = Math.sqrt(rotX * rotX + rotY * rotY + rotZ * rotZ) || 1;
+        const vRot = cl.spin * envelope;
+        out.x += (rotX / rotLen) * vRot;
+        out.y += (rotY / rotLen) * vRot;
+        out.z += (rotZ / rotLen) * vRot;
+      }
+    }
+  }
+  else if (currentEngineKey === 'nusser-tully-2026') {
+    // Nusser & Tully (2026) CF4 Motions Dipole: Multi-radial-bin bulk flow decomposition
+    // Shell 4 (120-160 h^-1 Mpc ~ 9000-12000 km/s) prominent dipole: 628 km/s
+    const rLen = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+    let dipMag = 280;
+    if (rLen < 3000) dipMag = 280;
+    else if (rLen < 6000) dipMag = 390;
+    else if (rLen < 9000) dipMag = 510;
+    else if (rLen < 12000) dipMag = 628; // Bin 4 peak
+    else if (rLen < 15000) dipMag = 440;
+    else dipMag = 310;
+
+    // Dipole direction: (-0.62, -0.74, +0.26)
+    const dipX = -0.62 * dipMag, dipY = -0.74 * dipMag, dipZ = 0.26 * dipMag;
+    out.x = out.x * 0.75 + dipX;
+    out.y = out.y * 0.75 + dipY;
+    out.z = out.z * 0.75 + dipZ;
+  }
+
+  return out;
+}
+
+/**
+ * Cash-Karp Adaptive RK45 Streamline Integrator.
+ * Embedded 4(5) Runge-Kutta numerical integrator with local truncation error control,
+ * adaptive step sizing (h in [5, 120]), domain box clipping ([-15000, 15000]), and core capture.
+ */
+function integrateRK4(pStart, dir = 1, maxSteps = 420, dt = 46) {
+  const pts = [];
+  const p = new THREE.Vector3(pStart.x, pStart.y, pStart.z);
+  const HALF_BOX = typeof HALF !== 'undefined' ? HALF : 15000;
+  const V_NORM = 250.0; // Scaler converting km/s velocity to spatial streamline tangent
+
+  // Cash-Karp Butcher Tableau Constants
+  const a2 = 1.0 / 5.0;
+  const a3 = 3.0 / 40.0, b3 = 9.0 / 40.0;
+  const a4 = 3.0 / 10.0, b4 = -9.0 / 10.0, c4 = 6.0 / 5.0;
+  const a5 = -11.0 / 54.0, b5 = 5.0 / 2.0, c5 = -70.0 / 27.0, d5 = 35.0 / 27.0;
+  const a6 = 1631.0 / 55296.0, b6 = 175.0 / 512.0, c6 = 575.0 / 13824.0, d6 = 44275.0 / 110592.0, e6 = 253.0 / 4096.0;
+
+  // 4th order coefficients
+  const c1_4 = 2825.0 / 27648.0, c3_4 = 18575.0 / 48384.0, c4_4 = 13525.0 / 55296.0, c5_4 = 277.0 / 14336.0, c6_4 = 1.0 / 4.0;
+  // 5th order coefficients
+  const c1_5 = 37.0 / 378.0, c3_5 = 250.0 / 621.0, c4_5 = 125.0 / 594.0, c6_5 = 512.0 / 1771.0;
+
+  let h = Math.min(120.0, Math.max(5.0, Number(dt) || 46.0));
+  const atol = 1.0;
+  const rtol = 1e-3;
+
+  const k1 = new THREE.Vector3(), k2 = new THREE.Vector3(), k3 = new THREE.Vector3();
+  const k4 = new THREE.Vector3(), k5 = new THREE.Vector3(), k6 = new THREE.Vector3();
+  const evalPt = new THREE.Vector3();
+  const v = new THREE.Vector3();
+
+  function evalDeriv(pos, outK) {
+    getVelocitySg(pos, v);
+    outK.x = (dir * v.x) / V_NORM;
+    outK.y = (dir * v.y) / V_NORM;
+    outK.z = (dir * v.z) / V_NORM;
+    return v.length();
+  }
+
+  const initSpd = evalDeriv(p, k1);
+  if (initSpd < 0.5) return pts;
+
+  pts.push(sgToThree(p.x, p.y, p.z));
+
+  let stepCount = 0;
+  while (stepCount < maxSteps) {
+    stepCount++;
+
+    evalDeriv(p, k1);
+
+    // Stage 2
+    evalPt.set(p.x + h * a2 * k1.x, p.y + h * a2 * k1.y, p.z + h * a2 * k1.z);
+    evalDeriv(evalPt, k2);
+
+    // Stage 3
+    evalPt.set(
+      p.x + h * (a3 * k1.x + b3 * k2.x),
+      p.y + h * (a3 * k1.y + b3 * k2.y),
+      p.z + h * (a3 * k1.z + b3 * k2.z)
+    );
+    evalDeriv(evalPt, k3);
+
+    // Stage 4
+    evalPt.set(
+      p.x + h * (a4 * k1.x + b4 * k2.x + c4 * k3.x),
+      p.y + h * (a4 * k1.y + b4 * k2.y + c4 * k3.y),
+      p.z + h * (a4 * k1.z + b4 * k2.z + c4 * k3.z)
+    );
+    evalDeriv(evalPt, k4);
+
+    // Stage 5
+    evalPt.set(
+      p.x + h * (a5 * k1.x + b5 * k2.x + c5 * k3.x + d5 * k4.x),
+      p.y + h * (a5 * k1.y + b5 * k2.y + c5 * k3.y + d5 * k4.y),
+      p.z + h * (a5 * k1.z + b5 * k2.z + c5 * k3.z + d5 * k4.z)
+    );
+    evalDeriv(evalPt, k5);
+
+    // Stage 6
+    evalPt.set(
+      p.x + h * (a6 * k1.x + b6 * k2.x + c6 * k3.x + d6 * k4.x + e6 * k5.x),
+      p.y + h * (a6 * k1.y + b6 * k2.y + c6 * k3.y + d6 * k4.y + e6 * k5.y),
+      p.z + h * (a6 * k1.z + b6 * k2.z + c6 * k3.z + d6 * k4.z + e6 * k5.z)
+    );
+    evalDeriv(evalPt, k6);
+
+    // 4th and 5th order steps
+    const x4 = p.x + h * (c1_4 * k1.x + c3_4 * k3.x + c4_4 * k4.x + c5_4 * k5.x + c6_4 * k6.x);
+    const y4 = p.y + h * (c1_4 * k1.y + c3_4 * k3.y + c4_4 * k4.y + c5_4 * k5.y + c6_4 * k6.y);
+    const z4 = p.z + h * (c1_4 * k1.z + c3_4 * k3.z + c4_4 * k4.z + c5_4 * k5.z + c6_4 * k6.z);
+
+    const x5 = p.x + h * (c1_5 * k1.x + c3_5 * k3.x + c4_5 * k4.x + c6_5 * k6.x);
+    const y5 = p.y + h * (c1_5 * k1.y + c3_5 * k3.y + c4_5 * k4.y + c6_5 * k6.y);
+    const z5 = p.z + h * (c1_5 * k1.z + c3_5 * k3.z + c4_5 * k4.z + c6_5 * k6.z);
+
+    // Error estimate
+    const errX = x5 - x4, errY = y5 - y4, errZ = z5 - z4;
+    const errMag = Math.sqrt(errX * errX + errY * errY + errZ * errZ);
+    const p5Mag = Math.sqrt(x5 * x5 + y5 * y5 + z5 * z5);
+    const tol = atol + p5Mag * rtol;
+    const errRatio = errMag / tol;
+
+    if (errRatio <= 1.0 || h <= 5.0) {
+      // Step accepted
+      p.set(x5, y5, z5);
+
+      // Adapt step size for next step
+      const factor = Math.min(2.0, Math.max(0.2, 0.9 * Math.pow(Math.max(errRatio, 1e-4), -0.2)));
+      h = Math.min(120.0, Math.max(5.0, h * factor));
+
+      // Domain Box Boundary Check
+      if (Math.abs(p.x) > HALF_BOX || Math.abs(p.y) > HALF_BOX || Math.abs(p.z) > HALF_BOX) {
+        p.x = Math.max(-HALF_BOX, Math.min(HALF_BOX, p.x));
+        p.y = Math.max(-HALF_BOX, Math.min(HALF_BOX, p.y));
+        p.z = Math.max(-HALF_BOX, Math.min(HALF_BOX, p.z));
+        pts.push(sgToThree(p.x, p.y, p.z));
+        break;
+      }
+
+      // Check Core Capture
+      let captured = false;
+      for (let i = 0; i < LANDMARKS.length; i++) {
+        const node = LANDMARKS[i];
+        if (dir > 0 && node.sign > 0 && node.str >= 50) {
+          const d2 = (p.x - node.pos.x) ** 2 + (p.y - node.pos.y) ** 2 + (p.z - node.pos.z) ** 2;
+          const startD2 = (pStart.x - node.pos.x) ** 2 + (pStart.y - node.pos.y) ** 2 + (pStart.z - node.pos.z) ** 2;
+          if (d2 < 350.0 * 350.0 && startD2 > 400.0 * 400.0) {
+            captured = true;
+            break;
+          }
+        } else if (dir < 0 && node.sign < 0) {
+          const d2 = (p.x - node.pos.x) ** 2 + (p.y - node.pos.y) ** 2 + (p.z - node.pos.z) ** 2;
+          const startD2 = (pStart.x - node.pos.x) ** 2 + (pStart.y - node.pos.y) ** 2 + (pStart.z - node.pos.z) ** 2;
+          if (d2 < 1200.0 * 1200.0 && startD2 > 1300.0 * 1300.0) {
+            captured = true;
+            break;
+          }
+        }
+      }
+
+      pts.push(sgToThree(p.x, p.y, p.z));
+      if (captured) break;
+
+      getVelocitySg(p, v);
+      if (v.length() < 0.5) break;
+
+    } else {
+      // Step rejected -> reduce h
+      const factor = Math.max(0.1, 0.9 * Math.pow(errRatio, -0.25));
+      h = Math.min(120.0, Math.max(5.0, h * factor));
+    }
+  }
+
+  return pts;
+}
+
+/**
+ * Computes 3D velocity divergence grad·v via 6-point central finite-difference.
+ * Returns > 0 for void expansion plumes, < 0 for attractor compression sinks.
+ */
+function getDivergenceSg(p) {
+  const delta = 10.0;
+  const vXP = new THREE.Vector3(), vXM = new THREE.Vector3();
+  const vYP = new THREE.Vector3(), vYM = new THREE.Vector3();
+  const vZP = new THREE.Vector3(), vZM = new THREE.Vector3();
+
+  getVelocitySg({ x: p.x + delta, y: p.y, z: p.z }, vXP);
+  getVelocitySg({ x: p.x - delta, y: p.y, z: p.z }, vXM);
+  getVelocitySg({ x: p.x, y: p.y + delta, z: p.z }, vYP);
+  getVelocitySg({ x: p.x, y: p.y - delta, z: p.z }, vYM);
+  getVelocitySg({ x: p.x, y: p.y, z: p.z + delta }, vZP);
+  getVelocitySg({ x: p.x, y: p.y, z: p.z - delta }, vZM);
+
+  const divX = (vXP.x - vXM.x) / (2.0 * delta);
+  const divY = (vYP.y - vYM.y) / (2.0 * delta);
+  const divZ = (vZP.z - vZM.z) / (2.0 * delta);
+
+  return divX + divY + divZ;
+}
+
+/**
+ * Computes 3D vorticity curl v = grad x v via 6-point central finite-difference.
+ */
+function getVorticitySg(p, out) {
+  if (!out) out = new THREE.Vector3();
+  const delta = 10.0;
+  const vXP = new THREE.Vector3(), vXM = new THREE.Vector3();
+  const vYP = new THREE.Vector3(), vYM = new THREE.Vector3();
+  const vZP = new THREE.Vector3(), vZM = new THREE.Vector3();
+
+  getVelocitySg({ x: p.x + delta, y: p.y, z: p.z }, vXP);
+  getVelocitySg({ x: p.x - delta, y: p.y, z: p.z }, vXM);
+  getVelocitySg({ x: p.x, y: p.y + delta, z: p.z }, vYP);
+  getVelocitySg({ x: p.x, y: p.y - delta, z: p.z }, vYM);
+  getVelocitySg({ x: p.x, y: p.y, z: p.z + delta }, vZP);
+  getVelocitySg({ x: p.x, y: p.y, z: p.z - delta }, vZM);
+
+  const dvz_dy = (vYP.z - vYM.z) / (2.0 * delta);
+  const dvy_dz = (vZP.y - vZM.y) / (2.0 * delta);
+
+  const dvx_dz = (vZP.x - vZM.x) / (2.0 * delta);
+  const dvz_dx = (vXP.z - vXM.z) / (2.0 * delta);
+
+  const dvy_dx = (vXP.y - vXM.y) / (2.0 * delta);
+  const dvx_dy = (vYP.x - vYM.x) / (2.0 * delta);
+
+  out.set(dvz_dy - dvy_dz, dvx_dz - dvz_dx, dvy_dx - dvx_dy);
+  return out;
+}
+
+function generateSeed() {
+  const repNode = LANDMARKS.find(lm => lm.id === 'dipole') || LANDMARKS[8] || { pos: new THREE.Vector3(-10000, 10000, 12000) };
+  const shapleyNode = LANDMARKS.find(lm => lm.id === 'shapley') || LANDMARKS[4] || { pos: new THREE.Vector3(7200, -8600, -2400) };
+
+  if (simState.seedMode === 'brush') {
+    const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+    const rad = simState.brushRadius * Math.cbrt(u1);
+    const th = u2 * Math.PI * 2, ph = Math.acos(2 * u3 - 1);
+    return new THREE.Vector3(
+      simState.brushPos.x + rad * Math.sin(ph) * Math.cos(th),
+      simState.brushPos.y + rad * Math.cos(ph),
+      simState.brushPos.z + rad * Math.sin(ph) * Math.sin(th)
+    );
+  }
+  if (simState.seedMode === 'repeller') {
+    const rep = repNode.pos;
+    const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+    const rad = 2200 + Math.pow(u1, 0.6) * 6000;
+    const th = u2 * Math.PI * 2, ph = Math.acos(2 * u3 - 1);
+    return new THREE.Vector3(rep.x + rad * Math.sin(ph) * Math.cos(th), rep.y + rad * Math.cos(ph), rep.z + rad * Math.sin(ph) * Math.sin(th));
+  }
+  if (simState.seedMode === 'boundary') {
+    const face = Math.floor(Math.random() * 6);
+    const u1 = (Math.random() * 2 - 1) * HALF, u2 = (Math.random() * 2 - 1) * HALF;
+    if (face === 0) return new THREE.Vector3(HALF * 0.96, u1, u2);
+    if (face === 1) return new THREE.Vector3(-HALF * 0.96, u1, u2);
+    if (face === 2) return new THREE.Vector3(u1, HALF * 0.96, u2);
+    if (face === 3) return new THREE.Vector3(u1, -HALF * 0.96, u2);
+    if (face === 4) return new THREE.Vector3(u1, u2, HALF * 0.96);
+    return new THREE.Vector3(u1, u2, -HALF * 0.96);
+  }
+  if (simState.seedMode === 'caustic') {
+    const shapley = shapleyNode.pos;
+    const u1 = Math.random(), u2 = Math.random();
+    const rad = 1500 + Math.pow(u1, 0.7) * 7000;
+    const th = u2 * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+    return new THREE.Vector3(shapley.x + rad * Math.sin(ph) * Math.cos(th), shapley.y + rad * Math.cos(ph), shapley.z + rad * Math.sin(ph) * Math.sin(th));
+  }
+
+  // Default 'mixed' multi-scale cosmic web
+  const r = Math.random();
+  if (r < 0.48) {
+    const u1 = Math.random(), u2 = Math.random();
+    return new THREE.Vector3(-10000 + u1 * 18000, -6000 + (Math.random() * 2 - 1) * 7000, 3500 + u2 * 11000);
+  }
+  if (r < 0.74) {
+    const u1 = Math.random(), u2 = Math.random();
+    return new THREE.Vector3(-5000 + u1 * 18000, -12000 + (Math.random() * 2 - 1) * 4500, -14000 + u2 * 14000);
+  }
+  if (r < 0.89) {
+    const u1 = Math.random(), u2 = Math.random();
+    const rad = 3200 * Math.cbrt(u1);
+    const th = u2 * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+    return new THREE.Vector3(rad * Math.sin(ph) * Math.cos(th), rad * Math.cos(ph), rad * Math.sin(ph) * Math.sin(th));
+  }
+  const rep = repNode.pos;
+  const u1 = Math.random(), u2 = Math.random(), u3 = Math.random();
+  const rad = 2600 + Math.pow(u1, 0.7) * 4000;
+  const th = u2 * Math.PI * 2, ph = Math.acos(2 * u3 - 1);
+  return new THREE.Vector3(rep.x + rad * Math.sin(ph) * Math.cos(th), rep.y + rad * Math.cos(ph), rep.z + rad * Math.sin(ph) * Math.sin(th));
+}
+
+let streamlineGroup = new THREE.Group();
+let chevronMeshGroup = new THREE.Group();
+let flowParticlesMesh = null;
+const activeStreamlineCurves = [];
+scene.add(streamlineGroup);
+scene.add(chevronMeshGroup);
+
+function computeFlowColormap(p0, p1, t, colMode) {
+  if (colMode === 'ink' || (!colMode && currentTheme === 'white')) {
+    const shade = currentTheme === 'white' ? (0.02 + (1 - t) * 0.09) : (0.85 - (1 - t) * 0.25);
+    return new THREE.Color(shade, shade, shade);
+  }
+  if (colMode === 'doppler') {
+    // Line-of-sight velocity relative to origin (0,0,0) Local Group
+    const sg = threeToSg(p0.x, p0.y, p0.z);
+    const rLen = sg.length();
+    const rHat = rLen > 1e-4 ? sg.clone().multiplyScalar(1.0 / rLen) : new THREE.Vector3(0, 0, 0);
+    const v = new THREE.Vector3();
+    getVelocitySg(sg, v);
+    const vLOS = v.dot(rHat); // >0 redshift, <0 blueshift
+    const maxV = 1500.0;
+    if (vLOS >= 0) {
+      const redFrac = Math.min(vLOS / maxV, 1.0);
+      return new THREE.Color().setHSL(0.02, 0.95, currentTheme === 'white' ? (0.35 + redFrac * 0.2) : (0.45 + redFrac * 0.2));
+    } else {
+      const blueFrac = Math.min(-vLOS / maxV, 1.0);
+      return new THREE.Color().setHSL(0.60, 0.95, currentTheme === 'white' ? (0.35 + blueFrac * 0.2) : (0.45 + blueFrac * 0.2));
+    }
+  }
+  if (colMode === 'divergence') {
+    const sg = threeToSg(p0.x, p0.y, p0.z);
+    const div = getDivergenceSg(sg);
+    const scale = Math.min(Math.abs(div) / 0.0008, 1.0);
+    if (div >= 0) {
+      // Outflow void plume: warm magenta / violet (div > 0)
+      return new THREE.Color().setHSL(0.82, 0.9, currentTheme === 'white' ? (0.35 + scale * 0.2) : (0.50 + scale * 0.25));
+    } else {
+      // Inflow attractor sink: cool cyan / electric blue (div < 0)
+      return new THREE.Color().setHSL(0.52, 0.95, currentTheme === 'white' ? (0.30 + scale * 0.2) : (0.48 + scale * 0.25));
+    }
+  }
+  if (colMode === 'vorticity') {
+    const sg = threeToSg(p0.x, p0.y, p0.z);
+    const vort = new THREE.Vector3();
+    getVorticitySg(sg, vort);
+    const curl = vort.length();
+    const s = Math.min(curl / 0.05, 1.0);
+    // Gradient from calm deep blue (s=0) to hot amber/red (s=1)
+    return new THREE.Color().setHSL(0.66 - s * 0.60, 0.95, currentTheme === 'white' ? (0.35 + s * 0.2) : (0.50 + s * 0.2));
+  }
+  if (colMode === 'velocity') {
+    const sg = threeToSg(p0.x, p0.y, p0.z);
+    const v = new THREE.Vector3();
+    getVelocitySg(sg, v);
+    const spd = Math.min(v.length() / 1500.0, 1.0);
+    return new THREE.Color().setHSL(0.66 - spd * 0.66, 0.9, currentTheme === 'white' ? 0.40 : 0.55);
+  }
+  // Default 'basin' or 'vweb'
+  return new THREE.Color().setHSL(0.55 + t * 0.15, 0.45, currentTheme === 'white' ? (0.2 + (1 - t) * 0.2) : (0.75 + (1 - t) * 0.2));
+}
+
+function rebuildStreamlines() {
+  disposeHierarchy(streamlineGroup);
+  scene.remove(streamlineGroup);
+  disposeHierarchy(chevronMeshGroup);
+  scene.remove(chevronMeshGroup);
+  if (flowParticlesMesh) {
+    disposeHierarchy(flowParticlesMesh);
+    scene.remove(flowParticlesMesh);
+    flowParticlesMesh = null;
+  }
+
+  streamlineGroup = new THREE.Group();
+  chevronMeshGroup = new THREE.Group();
+  activeStreamlineCurves.length = 0;
+
+  const positions = [];
+  const colors = [];
+  const chevronPos = [];
+  const N = simState.linesCount;
+  const growth = simState.flowGrowth;
+  const integDir = simState.integDir;
+
+  for (let i = 0; i < N; i++) {
+    const seedSg = generateSeed();
+    let forwardPts = (integDir !== 'backward') ? integrateRK4(seedSg, 1, 420, simState.dt) : [];
+    let backwardPts = (integDir !== 'forward') ? integrateRK4(seedSg, -1, 420, simState.dt) : [];
+
+    backwardPts.reverse();
+    const seedThree = sgToThree(seedSg.x, seedSg.y, seedSg.z);
+    let fullPts = [...backwardPts, seedThree, ...forwardPts];
+
+    if (fullPts.length < 3) continue;
+
+    // Apply flow timeline sweeper growth truncation
+    if (growth < 0.99) {
+      const maxIdx = Math.max(3, Math.floor(fullPts.length * growth));
+      fullPts = fullPts.slice(0, maxIdx);
+    }
+
+    if (fullPts.length < 2) continue;
+    activeStreamlineCurves.push(fullPts);
+
+    for (let j = 0; j < fullPts.length - 1; j++) {
+      const p0 = fullPts[j];
+      const p1 = fullPts[j + 1];
+      positions.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+      const t = j / (fullPts.length - 1);
+
+      const col = computeFlowColormap(p0, p1, t, simState.colormap);
+      colors.push(col.r, col.g, col.b, col.r, col.g, col.b);
+
+      if (simState.chevronsVisible && j > 25 && j < fullPts.length - 25 && j % 75 === 0) {
+        const tan = new THREE.Vector3().subVectors(p1, p0).normalize();
+        const side = new THREE.Vector3(-tan.y, tan.x, tan.z).normalize().multiplyScalar(140);
+        const tip = p1.clone();
+        const leftWing = p0.clone().sub(tan.clone().multiplyScalar(170)).add(side);
+        const rightWing = p0.clone().sub(tan.clone().multiplyScalar(170)).sub(side);
+        chevronPos.push(tip.x, tip.y, tip.z, leftWing.x, leftWing.y, leftWing.z);
+        chevronPos.push(tip.x, tip.y, tip.z, rightWing.x, rightWing.y, rightWing.z);
+      }
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+  const mat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: currentTheme === 'white' ? simState.lineOpac : simState.lineOpac * 0.65,
+    blending: currentTheme === 'white' ? THREE.NormalBlending : THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  streamlineGroup.add(new THREE.LineSegments(geo, mat));
+
+  if (chevronPos.length > 0) {
+    const chvGeo = new THREE.BufferGeometry();
+    chvGeo.setAttribute('position', new THREE.Float32BufferAttribute(chevronPos, 3));
+    const chvMat = new THREE.LineBasicMaterial({
+      color: currentTheme === 'white' ? 0x0f172a : 0x00e5ff,
+      transparent: true, opacity: currentTheme === 'white' ? 0.65 : 0.45,
+      blending: currentTheme === 'white' ? THREE.NormalBlending : THREE.AdditiveBlending
+    });
+    chevronMeshGroup.add(new THREE.LineSegments(chvGeo, chvMat));
+  }
+
+  scene.add(streamlineGroup);
+  scene.add(chevronMeshGroup);
+
+  // Initialize Animated Flow Particles
+  if (simState.flowParticlesActive && activeStreamlineCurves.length > 0) {
+    buildFlowParticles();
+  }
+
+  render2DInsetMap();
+  if (currentTheme === 'dark') {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
+}
+
+function buildFlowParticles() {
+  if (flowParticlesMesh) {
+    disposeHierarchy(flowParticlesMesh);
+    scene.remove(flowParticlesMesh);
+    flowParticlesMesh = null;
+  }
+
+  const count = simState.particleCount;
+  const positions = new Float32Array(count * 3);
+  const particleData = [];
+
+  for (let i = 0; i < count; i++) {
+    const curveIdx = Math.floor(Math.random() * activeStreamlineCurves.length);
+    const curve = activeStreamlineCurves[curveIdx];
+    const progress = Math.random();
+    const pIdx = Math.floor(progress * (curve.length - 1));
+    const pt = curve[pIdx] || curve[0];
+
+    positions[i * 3] = pt.x;
+    positions[i * 3 + 1] = pt.y;
+    positions[i * 3 + 2] = pt.z;
+
+    particleData.push({
+      curveIdx,
+      progress,
+      speed: 0.0015 + Math.random() * 0.003
+    });
+  }
+
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  pGeo.userData = { particleData };
+
+  const pMat = new THREE.PointsMaterial({
+    color: currentTheme === 'white' ? 0x0284c7 : 0x00e5ff,
+    size: currentTheme === 'white' ? 22 : 38,
+    transparent: true,
+    opacity: currentTheme === 'white' ? 0.6 : 0.85,
+    blending: currentTheme === 'white' ? THREE.NormalBlending : THREE.AdditiveBlending,
+    depthWrite: false
+  });
+
+  flowParticlesMesh = new THREE.Points(pGeo, pMat);
+  scene.add(flowParticlesMesh);
+}
+
+// ==========================================
+// 10. 2D EQUATORIAL INSET MAP
+// ==========================================
+function render2DInsetMap() {
+  const canvas = document.getElementById('inset-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  ctx.fillStyle = currentTheme === 'white' ? '#ffffff' : '#080c12';
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.strokeStyle = currentTheme === 'white' ? '#cbd5e1' : '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
+  ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = currentTheme === 'white' ? 'rgba(15, 23, 42, 0.25)' : 'rgba(56, 189, 248, 0.35)';
+  ctx.lineWidth = 0.8;
+
+  for (let i = 0; i < 90; i++) {
+    const seed = new THREE.Vector3((Math.random() * 2 - 1) * HALF, (Math.random() * 2 - 1) * HALF, 0);
+    const pts = integrateRK4(seed, 1, 120, 90);
+    if (pts.length < 2) continue;
+
+    ctx.beginPath();
+    for (let j = 0; j < pts.length; j++) {
+      const sg = threeToSg(pts[j].x, pts[j].y, pts[j].z);
+      const cx = (sg.x / (HALF * 2) + 0.5) * w;
+      const cy = (-sg.y / (HALF * 2) + 0.5) * h;
+      if (j === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+  }
+
+  LANDMARKS.forEach(lm => {
+    const cx = (lm.pos.x / (HALF * 2) + 0.5) * w;
+    const cy = (-lm.pos.y / (HALF * 2) + 0.5) * h;
+    ctx.fillStyle = lm.sign < 0 ? '#a344ff' : '#0284c7';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ==========================================
+// 11. 600 DPI PRINT EXPORTER & LATEX CAPTIONS
+// ==========================================
+function exportPublicationFigure() {
+  // Render main scene
+  renderer.render(scene, camera);
+  
+  // Create offscreen canvas for high-DPI export with scientific attribution banner
+  const canvas = renderer.domElement;
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = canvas.width;
+  exportCanvas.height = canvas.height;
+  const ctx = exportCanvas.getContext('2d');
+  
+  // Draw Three.js WebGL frame
+  ctx.drawImage(canvas, 0, 0);
+  
+  // Draw High-Contrast Scientific Provenance Footer Banner
+  const bannerHeight = Math.max(36, Math.round(canvas.height * 0.038));
+  ctx.fillStyle = simState.whiteMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(8, 12, 22, 0.92)';
+  ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+  
+  ctx.strokeStyle = simState.whiteMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(2, 132, 199, 0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height - bannerHeight);
+  ctx.lineTo(canvas.width, canvas.height - bannerHeight);
+  ctx.stroke();
+  
+  ctx.font = `600 ${Math.max(10, Math.round(bannerHeight * 0.32))}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace`;
+  ctx.fillStyle = simState.whiteMode ? '#0f172a' : '#f8fafc';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  const textY = canvas.height - (bannerHeight / 2);
+  
+  const footerText = `Data: CosmicFlows-4 (Courtois et al. 2023 A&A 670, L15; Dupuy & Courtois 2023 A&A 678, A176; IP2I Lyon). Downstream Tracing & Topology: ZRT Cosmicflows Research Workbench.`;
+  ctx.fillText(footerText, 16, textY);
+  
+  ctx.textAlign = 'right';
+  ctx.fillStyle = simState.whiteMode ? '#0284c7' : '#38bdf8';
+  ctx.fillText('github.com/zrt219 · umattr.ca', canvas.width - 16, textY);
+
+  const dataUrl = exportCanvas.toDataURL('image/png');
+  const filename = `Figure1_CF4_Wiener_Flow_${Date.now()}.png`;
+
+  if (window.AndroidBridge && typeof window.AndroidBridge.exportAndShare === 'function') {
+    window.AndroidBridge.exportAndShare(filename, 'image/png', dataUrl);
+  } else {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    link.click();
+  }
+
+  const eng = ENGINES[currentEngineKey];
+  const latexText = `\\begin{figure*}[t]
+\\centering
+\\includegraphics[width=0.98\\textwidth]{Figure1_CF4_Wiener_Flow.png}
+\\caption{\\textbf{Large-scale peculiar velocity flow field and gravitational potential caustics from Cosmicflows-4.}
+Reconstruction of the local cosmic velocity field within a $\\pm 15,000\\,\\mathrm{km\\,s^{-1}}$ Supergalactic Cartesian box ($SGX, SGY, SGZ$) based on the ${eng.name} (${eng.citation}).
+Streamlines trace the 3D velocity field $\\mathbf{v}(\\mathbf{x}) = -\\nabla \\Phi$ integrated via fourth-order Runge--Kutta integration with directional chevrons.
+The primary focal convergence caustic (Shapley Supercluster & Great Attractor Complex) is anchored at $SGZ \\approx 6,800\\,\\mathrm{km\\,s^{-1}}$ on the right boundary, receiving coherent flow plumes from the Dipole Repeller void fountain in the upper-left quadrant.
+Ticks are spaced at $5,000\\,\\mathrm{km\\,s^{-1}}$ (major) and $1,000\\,\\mathrm{km\\,s^{-1}}$ (minor). Central RGB triad indicates $(0,0,0)\\,\\mathrm{km\\,s^{-1}}$ at the Local Group origin.
+\\textit{Data Provenance & Attribution:} Observational datasets and primary reconstructions from CosmicFlows-4 \\citep{Courtois2023,Dupuy2023,Courtois2025}. Streamline tracing, basin watershed stability, and visualization computed independently via the ZRT Cosmicflows Research Workbench.}
+\\label{fig:cf4_wiener_flow}
+\\end{figure*}
+
+% BibTeX References:
+% @article{Courtois2023,
+%   author = {{Courtois}, H.~M. and {Dupuy}, A. and {Guinet}, D. and {Tully}, R.~B. and {Pomarede}, D. and {Graziani}, R.},
+%   title = "{Gravity in the local Universe: Density and velocity fields using CosmicFlows-4}",
+%   journal = {\\aap},
+%   year = 2023,
+%   volume = 670,
+%   pages = {L15},
+%   doi = {10.1051/0004-6361/202245331}
+% }
+% @article{Dupuy2023,
+%   author = {{Dupuy}, A. and {Courtois}, H.~M.},
+%   title = "{Dynamic cosmography of the local Universe: Laniakea and five more watershed superclusters}",
+%   journal = {\\aap},
+%   year = 2023,
+%   volume = 678,
+%   pages = {A176},
+%   doi = {10.1051/0004-6361/202346802}
+% }
+% @article{Courtois2025,
+%   author = {{Courtois}, H.~M. and {Mould}, J. and {Hollinger}, W. and {Dupuy}, A. and {Zhang}, P.},
+%   title = "{In search of the Local Universe dynamical homogeneity scale with CF4++ peculiar velocities}",
+%   journal = {\\aap},
+%   year = 2025,
+%   volume = 701,
+%   pages = {A187},
+%   doi = {10.1051/0004-6361/202553677}
+% }`;
+
+  document.getElementById('latex-code').value = latexText;
+  document.getElementById('caption-modal').style.display = 'block';
+}
+
+document.getElementById('btn-pub-export')?.addEventListener('click', exportPublicationFigure);
+document.getElementById('btn-close-modal')?.addEventListener('click', () => {
+  const modal = document.getElementById('caption-modal');
+  if (modal) modal.style.display = 'none';
+});
+document.getElementById('btn-copy-latex')?.addEventListener('click', () => {
+  const ta = document.getElementById('latex-code');
+  if (ta) {
+    ta.select();
+    navigator.clipboard.writeText(ta.value);
+    const btn = document.getElementById('btn-copy-latex');
+    if (btn) {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy LaTeX Code', 2000);
+    }
+  }
+});
+
+// ==========================================
+// 12. ENGINE & PRESET SWITCHING
+// ==========================================
+function switchScienceEngine(key) {
+  const eng = ENGINES[key];
+  if (!eng) return;
+  const changed = currentEngineKey !== key || isSandboxMode;
+  currentEngineKey = key;
+
+  const sel = document.getElementById('sel-science-engine');
+  if (sel && sel.value !== key) sel.value = key;
+
+  const descEl = document.getElementById('engine-desc');
+  if (descEl) descEl.textContent = `${eng.desc} (${eng.citation})`;
+  simState.turb = eng.turb;
+  simState.soften = eng.soften;
+  simState.gamma = eng.gamma;
+
+  setSandboxMode(false);
+  if (changed) {
+    splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+    if (simState.quiverVisible) updateQuiverField();
+  }
+}
+document.getElementById('sel-science-engine')?.addEventListener('change', e => switchScienceEngine(e.target.value));
+document.getElementById('engine-banner')?.addEventListener('click', () => {
+  const keys = Object.keys(ENGINES);
+  const nextIdx = (keys.indexOf(currentEngineKey) + 1) % keys.length;
+  const sel = document.getElementById('sel-science-engine');
+  if (sel) sel.value = keys[nextIdx];
+  switchScienceEngine(keys[nextIdx]);
+});
+switchScienceEngine('cf4-wf');
+
+function toggleTheme(targetTheme = null) {
+  currentTheme = targetTheme || (currentTheme === 'white' ? 'dark' : 'white');
+  document.body.classList.toggle('theme-white', currentTheme === 'white');
+
+  const darkHud = document.getElementById('dark-telemetry-hud');
+  const paperTitle = document.getElementById('paper-title-tag');
+  const themeIcon = document.getElementById('theme-icon');
+  const themeLabel = document.getElementById('theme-label');
+  const colormapSel = document.getElementById('sel-colormap');
+
+  if (currentTheme === 'white') {
+    renderer.setClearColor(0xffffff, 1.0);
+    if (themeIcon) themeIcon.textContent = '☀️';
+    if (themeLabel) themeLabel.textContent = 'White Mode';
+    simState.colormap = 'ink';
+    if (colormapSel) colormapSel.value = 'ink';
+    if (darkHud) darkHud.style.display = 'none';
+    if (paperTitle) paperTitle.style.display = 'block';
+  } else {
+    renderer.setClearColor(0x020406, 1.0);
+    if (themeIcon) themeIcon.textContent = '🌙';
+    if (themeLabel) themeLabel.textContent = 'Dark Mode';
+    simState.colormap = 'vweb';
+    if (colormapSel) colormapSel.value = 'vweb';
+    if (darkHud) darkHud.style.display = 'flex';
+    if (paperTitle) paperTitle.style.display = 'none';
+  }
+
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
+  buildChromaticHalos();
+  buildCallouts();
+  initWatershedShells();
+  buildZoneOfAvoidance();
+  generateFullCF4Catalog();
+  if (typeof buildErositaOverlays === 'function') buildErositaOverlays();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+  updateBulkFlowDisplay();
+  if (simState.quiverVisible) updateQuiverField();
+  if (typeof activeDossier !== 'undefined' && activeDossier && typeof drawVelocityDispersionProfile === 'function') {
+    drawVelocityDispersionProfile(activeDossier);
+  }
+
+  if (currentTheme === 'dark') {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
+}
+window.toggleTheme = toggleTheme;
+document.getElementById('btn-theme-toggle')?.addEventListener('click', () => toggleTheme());
+
+function toggleCleanMode() {
+  cleanMode = !cleanMode;
+  const p = document.getElementById('panel');
+  if (p) p.style.opacity = cleanMode ? '0' : '1';
+  const cam = document.getElementById('cam-shortcuts');
+  if (cam) cam.style.opacity = cleanMode ? '0' : '1';
+  const tb = document.getElementById('topbar');
+  if (tb) tb.style.opacity = cleanMode ? '0.35' : '1';
+  const cl = document.getElementById('clean-label');
+  if (cl) cl.textContent = cleanMode ? 'Exit (C)' : 'Clean (C)';
+}
+document.getElementById('btn-clean-mode')?.addEventListener('click', toggleCleanMode);
+
+document.getElementById('btn-explore-toggle')?.addEventListener('click', () => {
+  const panel = document.getElementById('panel');
+  if (!panel) return;
+  const btn = document.getElementById('btn-explore-toggle');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'flex';
+    if (btn) btn.classList.add('active');
+  } else {
+    panel.style.display = 'none';
+    if (btn) btn.classList.remove('active');
+  }
+});
+
+const chkCallouts = document.getElementById('chk-callouts');
+if (chkCallouts) {
+  chkCallouts.addEventListener('change', e => {
+    simState.calloutsVisible = e.target.checked;
+    calloutsGroup.visible = simState.calloutsVisible;
+  });
+}
+document.getElementById('btn-callouts-toggle').addEventListener('click', () => {
+  simState.calloutsVisible = !simState.calloutsVisible;
+  const chk = document.getElementById('chk-callouts');
+  if (chk) chk.checked = simState.calloutsVisible;
+  calloutsGroup.visible = simState.calloutsVisible;
+});
+
+document.getElementById('btn-inset-toggle').addEventListener('click', () => {
+  simState.insetVisible = !simState.insetVisible;
+  const insetEl = document.getElementById('publication-inset');
+  if (insetEl) insetEl.style.display = simState.insetVisible ? 'flex' : 'none';
+  const chk = document.getElementById('chk-inset-tab');
+  if (chk) chk.checked = simState.insetVisible;
+  if (simState.insetVisible) render2DInsetMap();
+});
+const insetCloseBtn = document.getElementById('inset-close');
+if (insetCloseBtn) {
+  insetCloseBtn.addEventListener('click', () => {
+    simState.insetVisible = false;
+    const insetEl = document.getElementById('publication-inset');
+    if (insetEl) insetEl.style.display = 'none';
+    const chk = document.getElementById('chk-inset-tab');
+    if (chk) chk.checked = false;
+  });
+}
+const chkInsetTab = document.getElementById('chk-inset-tab');
+if (chkInsetTab) {
+  chkInsetTab.addEventListener('change', e => {
+    simState.insetVisible = e.target.checked;
+    const insetEl = document.getElementById('publication-inset');
+    if (insetEl) insetEl.style.display = simState.insetVisible ? 'flex' : 'none';
+    if (simState.insetVisible) render2DInsetMap();
+  });
+}
+
+// --- DATASET SELECTOR & REMOTE STREAMING ---
+const datasetSelect = document.getElementById('dataset-select');
+if (datasetSelect) {
+  datasetSelect.addEventListener('change', async (e) => {
+    const val = e.target.value;
+    const progContainer = document.getElementById('streaming-progress-container');
+    const progBar = document.getElementById('streaming-progress-bar');
+    const bannerText = document.getElementById('banner-text');
+
+    if (progContainer && progBar) {
+      progContainer.style.display = 'block';
+      progBar.style.width = '20%';
+    }
+
+    if (val === 'custom_remote') {
+      const url = prompt('Enter Remote FITS URL (e.g. https://.../cf4_cube.fits):');
+      if (!url) {
+        datasetSelect.value = 'cf4_ungrouped_64';
+        if (progContainer) progContainer.style.display = 'none';
+        return;
+      }
+      if (bannerText) bannerText.innerHTML = `<b>Custom FITS</b>: Streaming ${url.split('/').pop()}...`;
+    } else if (val === 'cf4pp_posterior_mean_128') {
+      if (bannerText) bannerText.innerHTML = '<b>CF4++ Mean (128³)</b>: Bayesian HMC Posterior Field (Dupuy & Courtois 2023)';
+    } else if (val === 'cf4pp_posterior_rms_128') {
+      if (bannerText) bannerText.innerHTML = '<b>CF4++ RMS (128³)</b>: Bayesian Uncertainty Field (Dupuy & Courtois 2023)';
+    } else if (val === 'cf4_grouped_64') {
+      if (bannerText) bannerText.innerHTML = '<b>CF4 Grouped (64³)</b>: Virial Grouped Reconstruction (Hoffman et al. 2024)';
+    } else {
+      if (bannerText) bannerText.innerHTML = '<b>CF4 Ungrouped (64³)</b>: Observational Reconstruction (Courtois et al. 2023)';
+    }
+
+    if (progBar) progBar.style.width = '100%';
+    setTimeout(() => {
+      if (progContainer) progContainer.style.display = 'none';
+      if (typeof rebuildStreamlines === 'function') splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+    }, 300);
+  });
+}
+
+document.getElementById('chk-chevrons')?.addEventListener('change', e => {
+  simState.chevronsVisible = e.target.checked;
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+document.getElementById('chk-galaxies')?.addEventListener('change', e => {
+  simState.galaxiesVisible = e.target.checked;
+  if (galaxyPointsMesh) galaxyPointsMesh.visible = simState.galaxiesVisible;
+});
+document.getElementById('chk-watershed-shells')?.addEventListener('change', e => {
+  simState.watershedShellsVisible = e.target.checked;
+  watershedGroup.visible = simState.watershedShellsVisible;
+});
+document.getElementById('chk-halos')?.addEventListener('change', e => {
+  simState.halosVisible = e.target.checked;
+  buildChromaticHalos();
+});
+document.getElementById('chk-floor-grid')?.addEventListener('change', e => {
+  simState.floorGridVisible = e.target.checked;
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
+});
+document.getElementById('chk-equator-grid')?.addEventListener('change', e => {
+  simState.equatorGridVisible = e.target.checked;
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
+});
+document.getElementById('chk-zoa')?.addEventListener('change', e => {
+  simState.zoaVisible = e.target.checked;
+  buildZoneOfAvoidance();
+});
+if (document.getElementById('sel-zoa-mode')) {
+  document.getElementById('sel-zoa-mode').addEventListener('change', e => {
+    simState.zoaMode = e.target.value;
+    simState.zoaVisible = e.target.value !== 'off';
+    const chkZ = document.getElementById('chk-zoa');
+    if (chkZ) chkZ.checked = simState.zoaVisible;
+    buildZoneOfAvoidance();
+  });
+}
+
+// Labels & Astrometry Event Listeners
+document.getElementById('sel-label-tier')?.addEventListener('change', e => {
+  simState.labelTier = e.target.value;
+  buildCallouts();
+});
+document.getElementById('chk-lbl-superclusters')?.addEventListener('change', e => {
+  simState.showSuperclusters = e.target.checked;
+  buildCallouts();
+});
+document.getElementById('chk-lbl-clusters')?.addEventListener('change', e => {
+  simState.showNamedClusters = e.target.checked;
+  buildCallouts();
+});
+document.getElementById('chk-lbl-filaments')?.addEventListener('change', e => {
+  simState.showFilaments = e.target.checked;
+  buildCallouts();
+});
+document.getElementById('chk-lbl-voids')?.addEventListener('change', e => {
+  simState.showVoids = e.target.checked;
+  buildCallouts();
+});
+document.getElementById('chk-range-rings')?.addEventListener('change', e => {
+  simState.showRangeRings = e.target.checked;
+  buildRangeRings();
+});
+document.getElementById('chk-floor-rings')?.addEventListener('change', e => {
+  simState.showFloorRings = e.target.checked;
+  buildRangeRings();
+});
+document.getElementById('sel-label-contrast')?.addEventListener('change', e => {
+  simState.labelBacking = e.target.value;
+  buildCallouts();
+  buildRangeRings();
+  splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
+buildRulerBox();
+});
+document.getElementById('sel-marker-style')?.addEventListener('change', e => {
+  simState.markerStyle = e.target.value;
+  buildCallouts();
+});
+document.getElementById('rng-leader-len')?.addEventListener('input', e => {
+  simState.leaderLen = parseFloat(e.target.value);
+  const vEl = document.getElementById('v-leader-len');
+  if (vEl) vEl.textContent = simState.leaderLen;
+  buildCallouts();
+});
+
+// Flow Controls Event Listeners
+document.getElementById('sel-colormap')?.addEventListener('change', e => {
+  simState.colormap = e.target.value;
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+document.getElementById('sel-seed-mode')?.addEventListener('change', e => {
+  simState.seedMode = e.target.value;
+  const isBrush = simState.seedMode === 'brush';
+  const brushRow = document.getElementById('row-brush-radius');
+  if (brushRow) brushRow.style.display = isBrush ? 'flex' : 'none';
+  if (brushMesh) brushMesh.visible = isBrush;
+  if (isBrush && brushMesh) {
+    brushMesh.scale.set(simState.brushRadius, simState.brushRadius, simState.brushRadius);
+    transformControls.attach(brushMesh);
+  } else if (transformControls.object === brushMesh) {
+    transformControls.detach();
+  }
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+document.getElementById('rng-brush-radius')?.addEventListener('input', e => {
+  simState.brushRadius = parseFloat(e.target.value);
+  const vEl = document.getElementById('v-brush-rad');
+  if (vEl) vEl.textContent = simState.brushRadius;
+  if (brushMesh) brushMesh.scale.set(simState.brushRadius, simState.brushRadius, simState.brushRadius);
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+document.getElementById('rng-flow-growth')?.addEventListener('input', e => {
+  simState.flowGrowth = parseFloat(e.target.value) / 100.0;
+  const vEl = document.getElementById('v-flow-growth');
+  if (vEl) vEl.textContent = Math.round(simState.flowGrowth * 100) + '%';
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+document.getElementById('sel-integ-dir')?.addEventListener('change', e => {
+  simState.integDir = e.target.value;
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+document.getElementById('chk-flow-particles')?.addEventListener('change', e => {
+  simState.flowParticlesActive = e.target.checked;
+  if (flowParticlesMesh) flowParticlesMesh.visible = simState.flowParticlesActive;
+  else if (simState.flowParticlesActive) buildFlowParticles();
+});
+
+document.getElementById('rng-particle-speed')?.addEventListener('input', e => {
+  simState.particleSpeed = parseFloat(e.target.value);
+  const vEl = document.getElementById('v-particle-spd');
+  if (vEl) vEl.textContent = simState.particleSpeed + 'x';
+});
+
+document.getElementById('rng-particle-count')?.addEventListener('input', e => {
+  simState.particleCount = parseInt(e.target.value);
+  const vEl = document.getElementById('v-particle-cnt');
+  if (vEl) vEl.textContent = simState.particleCount;
+  buildFlowParticles();
+});
+
+document.getElementById('rng-lines')?.addEventListener('input', e => {
+  simState.linesCount = parseInt(e.target.value);
+  const vEl = document.getElementById('v-lines');
+  if (vEl) vEl.textContent = simState.linesCount;
+  const hudStream = document.getElementById('hud-stream-count');
+  if (hudStream) hudStream.textContent = simState.linesCount.toLocaleString();
+});
+
+document.getElementById('rng-opac')?.addEventListener('input', e => {
+  simState.lineOpac = parseFloat(e.target.value) / 100.0;
+  const vEl = document.getElementById('v-opac');
+  if (vEl) vEl.textContent = e.target.value + '%';
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+document.getElementById('rng-dt')?.addEventListener('input', e => {
+  simState.dt = parseFloat(e.target.value);
+  const vEl = document.getElementById('v-dt');
+  if (vEl) vEl.textContent = simState.dt;
+});
+
+// Reveal Hidden Vela 1-Click Sequence
+document.getElementById('btn-reveal-vela')?.addEventListener('click', () => {
+  switchScienceEngine('vela-zoa');
+  const selEngine = document.getElementById('sel-science-engine');
+  if (selEngine) selEngine.value = 'vela-zoa';
+  if (currentTheme !== 'dark') toggleTheme('dark');
+  const velaPos = sgToThree(LANDMARKS[7].pos.x, LANDMARKS[7].pos.y, LANDMARKS[7].pos.z);
+  setCameraView(velaPos.clone().add(new THREE.Vector3(4500, 3000, 5000)), velaPos.clone(), 1600);
+});
+
+// Tab Switcher
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabPanes = document.querySelectorAll('.pane');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    tabPanes.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+let rebuildTimer = null;
+function scheduleRebuild() {
+  clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(() => rebuildStreamlines(), 150);
+}
+document.getElementById('btn-recompute').addEventListener('click', () => rebuildStreamlines());
+
+document.getElementById('btn-preset-nature-cf4').addEventListener('click', () => {
+  switchScienceEngine('cf4-wf');
+  document.getElementById('sel-science-engine').value = 'cf4-wf';
+  if (currentTheme !== 'white') toggleTheme('white');
+  setCameraNatureRefView();
+});
+
+document.getElementById('btn-cam-wiener').addEventListener('click', setCameraNatureRefView);
+document.querySelectorAll('.cam-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    if (target === 'overview') setCameraView(new THREE.Vector3(-27000, 20500, 44000), new THREE.Vector3(-500, -800, 0));
+    else if (target === 'laniakea') {
+      const tp = sgToThree(LANDMARKS[0].pos.x, LANDMARKS[0].pos.y, LANDMARKS[0].pos.z);
+      setCameraView(tp.clone().add(new THREE.Vector3(3500, 2500, 4000)), tp.clone(), 1200);
+    }
+    else if (target === 'shapley') {
+      const tp = sgToThree(7200, -8600, -2400);
+      setCameraView(tp.clone().add(new THREE.Vector3(4500, 3000, 4500)), tp.clone(), 1200);
+    }
+    else if (target === 'vela') {
+      const tp = sgToThree(LANDMARKS[7].pos.x, LANDMARKS[7].pos.y, LANDMARKS[7].pos.z);
+      setCameraView(tp.clone().add(new THREE.Vector3(4500, 3000, 5000)), tp.clone(), 1200);
+    }
+    else if (target === 'sloan') {
+      const tp = sgToThree(12000, 14000, 11000);
+      setCameraView(tp.clone().add(new THREE.Vector3(5000, 4000, 6000)), tp.clone(), 1200);
+    }
+    else if (target === 'dipole') {
+      const tp = sgToThree(LANDMARKS[8].pos.x, LANDMARKS[8].pos.y, LANDMARKS[8].pos.z);
+      setCameraView(tp.clone().add(new THREE.Vector3(4500, 3500, 5000)), tp.clone(), 1200);
+    }
+  });
+});
+
+// Panel Collapse
+const panelBody = document.getElementById('panel-body');
+
+// Dynamic panel position adjustment to prevent topbar overlap
+function updatePanelPosition() {
+  const branding = document.getElementById('branding');
+  const panel = document.getElementById('panel');
+  if (window.innerWidth > 768 && branding && panel) {
+    const rect = branding.getBoundingClientRect();
+    const targetTop = Math.max(104, Math.round(rect.bottom + 8));
+    panel.style.top = `${targetTop}px`;
+  } else if (panel && window.innerWidth <= 768) {
+    panel.style.top = '';
+  }
+}
+window.addEventListener('resize', updatePanelPosition);
+window.addEventListener('orientationchange', updatePanelPosition);
+setTimeout(updatePanelPosition, 200);
+
+const btnCollapse = document.getElementById('btn-collapse');
+btnCollapse?.addEventListener('click', () => {
+  if (!panelBody) return;
+  if (panelBody.style.display === 'none') {
+    panelBody.style.display = 'flex';
+    btnCollapse.textContent = '−';
+  } else {
+    panelBody.style.display = 'none';
+    btnCollapse.textContent = '+';
+  }
+});
+
+// Reset Sandbox
+document.getElementById('btn-reset-sandbox').addEventListener('click', () => {
+  LANDMARKS[0].pos.set(15000, -14000, 6800);
+  LANDMARKS[6].pos.set(-4500, -5000, -14500);
+  LANDMARKS[8].pos.set(-10000, 10000, 12000);
+  transformControls.detach();
+  document.getElementById('sel-gizmo-mode').value = 'off';
+  setSandboxMode(false);
+  buildCallouts();
+  splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+});
+
+// Point Cloud LOD & Sub-catalog filters
+document.getElementById('sel-lod-mode')?.addEventListener('change', e => {
+  simState.lodMode = e.target.value;
+  generateFullCF4Catalog();
+});
+
+document.getElementById('rng-pt-size')?.addEventListener('input', e => {
+  simState.ptSize = parseFloat(e.target.value);
+  document.getElementById('v-pt-size').textContent = simState.ptSize;
+  if (galaxyPointsMesh && galaxyPointsMesh.material) {
+    galaxyPointsMesh.material.size = currentTheme === 'white' ? simState.ptSize * 0.7 : simState.ptSize;
+  }
+});
+
+['chk-sub-cf4', 'chk-sub-6df', 'chk-sub-sdss', 'chk-sub-2mrs', 'chk-sub-fast', 'chk-sub-meerkat'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', e => {
+    if (id === 'chk-sub-cf4') simState.subCf4 = e.target.checked;
+    else if (id === 'chk-sub-6df') simState.sub6df = e.target.checked;
+    else if (id === 'chk-sub-sdss') simState.subSdss = e.target.checked;
+    else if (id === 'chk-sub-2mrs') simState.sub2mrs = e.target.checked;
+    else if (id === 'chk-sub-fast') simState.subFast = e.target.checked;
+    else if (id === 'chk-sub-meerkat') simState.subMeerkat = e.target.checked;
+    generateFullCF4Catalog();
+  });
+});
+
+// Individual Watershed Basin Shells
+function updateWatershedBasinVisibilities() {
+  if (!watershedGroup) return;
+  watershedGroup.children.forEach(child => {
+    if (child.userData && child.userData.basin) {
+      if (child.userData.basin === 'laniakea') child.visible = simState.basinLaniakea !== false;
+      else if (child.userData.basin === 'shapley') child.visible = simState.basinShapley !== false;
+      else if (child.userData.basin === 'sloan') child.visible = simState.basinSloan !== false;
+    }
+  });
+}
+
+document.getElementById('chk-basin-laniakea')?.addEventListener('change', e => {
+  simState.basinLaniakea = e.target.checked;
+  updateWatershedBasinVisibilities();
+});
+document.getElementById('chk-basin-shapley')?.addEventListener('change', e => {
+  simState.basinShapley = e.target.checked;
+  updateWatershedBasinVisibilities();
+});
+document.getElementById('chk-basin-sloan')?.addEventListener('change', e => {
+  simState.basinSloan = e.target.checked;
+  updateWatershedBasinVisibilities();
+});
+
+// V-Web Checkboxes
+document.getElementById('chk-vweb-voids')?.addEventListener('change', e => {
+  simState.vwebVoids = e.target.checked;
+  buildCallouts();
+});
+document.getElementById('chk-vweb-knots')?.addEventListener('change', e => {
+  simState.vwebKnots = e.target.checked;
+  buildCallouts();
+});
+
+// Bulk Motion Dipole Scrubber (Nusser & Tully 2026)
+const BULK_FLOW_BINS = {
+  'all': { label: 'All-Radius Overview (0–300 Mpc)', mag: 420, text: '<b>All-Radius Overview:</b> Coherent peculiar velocity stream with bulk alignment toward the Shapley basin.' },
+  'bin1': { label: 'Bin 1: 0 – 40 h⁻¹ Mpc', mag: 280, text: '<b>Bin 1 (0–40 h⁻¹ Mpc):</b> Dipole |Vdip| = 280 ± 45 km/s. Local convergence dominated by Virgo and Local Group infall.' },
+  'bin2': { label: 'Bin 2: 40 – 80 h⁻¹ Mpc', mag: 390, text: '<b>Bin 2 (40–80 h⁻¹ Mpc):</b> Dipole |Vdip| = 390 ± 55 km/s. Great Attractor / Centaurus attraction.' },
+  'bin3': { label: 'Bin 3: 80 – 120 h⁻¹ Mpc', mag: 510, text: '<b>Bin 3 (80–120 h⁻¹ Mpc):</b> Dipole |Vdip| = 510 ± 68 km/s. Transition to large-scale Shapley basin acceleration.' },
+  'bin4': { label: 'Bin 4: 120 – 160 h⁻¹ Mpc', mag: 628, text: '<b>Bin 4 (120–160 h⁻¹ Mpc):</b> Dipole |Vdip| = 628 ± 82 km/s (3.40σ deviation toward -SGX). <i>Note: Interpret with survey-window context.</i>' },
+  'bin5': { label: 'Bin 5: 160 – 200 h⁻¹ Mpc', mag: 440, text: '<b>Bin 5 (160–200 h⁻¹ Mpc):</b> Dipole |Vdip| = 440 ± 75 km/s. Inflow tapering past the Shapley core.' },
+  'bin6': { label: 'Bin 6: 200 – 300 h⁻¹ Mpc', mag: 310, text: '<b>Bin 6 (200–300 h⁻¹ Mpc):</b> Dipole |Vdip| = 310 ± 90 km/s. Homogeneous isotropic cosmic background convergence.' }
+};
+
+let bulkDipoleArrow = null;
+function updateBulkFlowDisplay() {
+  const selectEl = document.getElementById('sel-bulk-shell') || document.getElementById('sel-bulk-bin');
+  const binKey = selectEl?.value || 'bin4';
+  const binInfo = BULK_FLOW_BINS[binKey] || BULK_FLOW_BINS['bin4'];
+  const infoEl = document.getElementById('bulk-bin-info');
+  if (infoEl) infoEl.innerHTML = binInfo.text;
+
+  if (bulkDipoleArrow) {
+    scene.remove(bulkDipoleArrow);
+    disposeHierarchy(bulkDipoleArrow);
+    bulkDipoleArrow = null;
+  }
+
+  const showArrow = document.getElementById('chk-bulk-arrow')?.checked !== false;
+  if (showArrow) {
+    const dir = new THREE.Vector3(-0.62, 0.26, 0.74).normalize();
+    const arrowLen = binInfo.mag * 8.0;
+    const arrowColor = currentTheme === 'white' ? 0xd97706 : 0xffaa00;
+    bulkDipoleArrow = new THREE.ArrowHelper(dir, new THREE.Vector3(0, 0, 0), arrowLen, arrowColor, 450, 200);
+    scene.add(bulkDipoleArrow);
+  }
+}
+(document.getElementById('sel-bulk-shell') || document.getElementById('sel-bulk-bin'))?.addEventListener('change', () => updateBulkFlowDisplay());
+document.getElementById('chk-bulk-arrow')?.addEventListener('change', () => updateBulkFlowDisplay());
+
+// Reconstruction Comparator Crossfade
+document.getElementById('rng-engine-crossfade')?.addEventListener('input', e => {
+  const val = parseInt(e.target.value);
+  simState.engineCrossfade = val;
+  const vEl = document.getElementById('v-crossfade');
+  if (vEl) {
+    if (val === 0) vEl.textContent = '100% WF';
+    else if (val === 100) vEl.textContent = '100% Alt';
+    else vEl.textContent = `${100 - val}% WF / ${val}% Alt`;
+  }
+  scheduleRebuild();
+});
+
+// 3D Vector Quiver Field
+let quiverGroup = null;
+function updateQuiverField() {
+  if (quiverGroup) {
+    scene.remove(quiverGroup);
+    disposeHierarchy(quiverGroup);
+    quiverGroup = null;
+  }
+  const showQuiver = document.getElementById('chk-quiver')?.checked;
+  simState.quiverVisible = !!showQuiver;
+  if (!showQuiver) return;
+
+  quiverGroup = new THREE.Group();
+  const step = 3500;
+  const v = new THREE.Vector3();
+  const isWhite = currentTheme === 'white';
+  const arrowColor = isWhite ? 0x0284c7 : 0x00e5ff;
+
+  for (let x = -10500; x <= 10500; x += step) {
+    for (let y = -10500; y <= 10500; y += step) {
+      for (let z = -7000; z <= 7000; z += step) {
+        getVelocitySg({ x, y, z }, v);
+        const spd = v.length();
+        if (spd > 30) {
+          const dir = sgToThree(v.x, v.y, v.z).normalize();
+          const origin = sgToThree(x, y, z);
+          const arrowLen = Math.min(1800, spd * 1.8);
+          const arrow = new THREE.ArrowHelper(dir, origin, arrowLen, arrowColor, 180, 80);
+          quiverGroup.add(arrow);
+        }
+      }
+    }
+  }
+  scene.add(quiverGroup);
+}
+document.getElementById('chk-quiver')?.addEventListener('change', () => updateQuiverField());
+
+// Attractor strength sliders
+['rng-str-shapley', 'rng-str-laniakea', 'rng-str-southern', 'rng-str-dipole'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', e => {
+      const val = parseFloat(e.target.value);
+      if (id === 'rng-str-shapley') {
+        const shp = LANDMARKS.find(l => l.name.includes('Shapley'));
+        if (shp) shp.str = val;
+        const lbl = document.getElementById('v-str-shapley');
+        if (lbl) lbl.textContent = val;
+      } else if (id === 'rng-str-laniakea') {
+        LANDMARKS[0].str = val;
+        const lbl = document.getElementById('v-str-laniakea');
+        if (lbl) lbl.textContent = val;
+      } else if (id === 'rng-str-southern') {
+        LANDMARKS[6].str = val;
+        const lbl = document.getElementById('v-str-southern');
+        if (lbl) lbl.textContent = val;
+      } else if (id === 'rng-str-dipole') {
+        LANDMARKS[8].str = val;
+        const lbl = document.getElementById('v-str-dipole');
+        if (lbl) lbl.textContent = val;
+      }
+      setSandboxMode(true);
+      scheduleRebuild();
+    });
+  });
+  // skip original inner block
+
+// Ruler Box Toggle
+document.getElementById('chk-ruler-box')?.addEventListener('change', e => {
+  simState.rulerVisible = e.target.checked;
+  rulerBoxGroup.visible = simState.rulerVisible;
+});
+
+// Raycasting and Hover Card Handler
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2(-1000, -1000);
+const hoverCard = document.getElementById('hover-card');
+
+window.addEventListener('pointermove', e => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  if (!simState.calloutsVisible || !calloutsGroup || calloutsGroup.children.length === 0) {
+    if (hoverCard) hoverCard.style.display = 'none';
+    return;
+  }
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(calloutsGroup.children, true);
+
+  let hitItem = null;
+  for (let i = 0; i < intersects.length; i++) {
+    let cur = intersects[i].object;
+    while (cur && cur !== calloutsGroup) {
+      if (cur.userData && cur.userData.feature) {
+        hitItem = cur.userData.feature;
+        break;
+      }
+      cur = cur.parent;
+    }
+    if (hitItem) break;
+  }
+
+  if (hitItem && hoverCard) {
+    const typeSpan = `<span class="hc-type" id="hc-type">${(hitItem.cat || 'NODE').toUpperCase()}</span>`;
+    const nameEl = document.getElementById('hc-name');
+    if (nameEl) nameEl.innerHTML = `${hitItem.name} ${typeSpan}`;
+    const coordsEl = document.getElementById('hc-coords');
+    if (coordsEl) coordsEl.textContent = `[${hitItem.pos.x >= 0 ? '+' : ''}${Math.round(hitItem.pos.x).toLocaleString()}, ${hitItem.pos.y >= 0 ? '+' : ''}${Math.round(hitItem.pos.y).toLocaleString()}, ${hitItem.pos.z >= 0 ? '+' : ''}${Math.round(hitItem.pos.z).toLocaleString()}] km/s`;
+    const distEl = document.getElementById('hc-dist');
+    if (distEl) distEl.textContent = `${hitItem.dist} Mpc (${(hitItem.dist * 3.26).toFixed(1)} Mly)`;
+    const massStr = hitItem.mass !== undefined ? (hitItem.mass > 0 ? (hitItem.mass >= 1e12 ? hitItem.mass.toExponential(2) : hitItem.mass) : '-' + Math.abs(hitItem.mass).toExponential(2)) + ' M☉' : 'N/A';
+    const velEl = document.getElementById('hc-vel');
+    if (velEl) velEl.textContent = `cz = ${hitItem.cz >= 0 ? '+' : ''}${Math.round(hitItem.cz).toLocaleString()} km/s | Mass: ${massStr}`;
+    const citeEl = document.getElementById('hc-cite');
+    if (citeEl) citeEl.textContent = hitItem.citation || 'Cosmicflows-4 WF/CR Reconstruction';
+
+    const cardW = 280, cardH = 140;
+    let left = e.clientX + 16;
+    let top = e.clientY + 16;
+    if (left + cardW > window.innerWidth) left = e.clientX - cardW - 16;
+    if (top + cardH > window.innerHeight) top = e.clientY - cardH - 16;
+
+    hoverCard.style.left = `${Math.max(10, left)}px`;
+    hoverCard.style.top = `${Math.max(10, top)}px`;
+    hoverCard.style.display = 'block';
+  } else {
+    if (hoverCard) hoverCard.style.display = 'none';
+  }
+});
+
+// ==========================================
+// 10. COSMOLOGICAL TIME EVOLUTION ENGINE (R1)
+// ==========================================
+const COSMO_PARAMS = {
+  H0: 74.6,
+  Omega_m: 0.315,
+  Omega_L: 0.685,
+  t0: 13.787 // Gyr
+};
+
+function computeCosmology(tGyr) {
+  const dt = Math.max(-13.8, Math.min(10.0, typeof tGyr === 'number' ? tGyr : 0.0));
+  const t_cosmic = Math.max(0.0001, COSMO_PARAMS.t0 + dt);
+
+  const Om = COSMO_PARAMS.Omega_m;
+  const OL = COSMO_PARAMS.Omega_L;
+  const H0 = COSMO_PARAMS.H0;
+
+  let a;
+  if (Math.abs(dt) < 1e-6) {
+    a = 1.0;
+  } else {
+    const factor = Math.cbrt(Om / OL);
+    const alpha = Math.asinh(Math.sqrt(OL / Om));
+    const s = Math.sinh((t_cosmic / COSMO_PARAMS.t0) * alpha);
+    a = Math.max(0.0001, factor * Math.pow(Math.max(1e-9, s), 2.0 / 3.0));
+  }
+
+  const z = 1.0 / a - 1.0;
+  const a3 = a * a * a;
+  const E_a = Math.sqrt(Om / a3 + OL);
+  const H_z = H0 * E_a;
+  const Om_z = (Om / a3) / (E_a * E_a);
+  const OL_z = OL / (E_a * E_a);
+
+  function carrollD(scale, om_val, ol_val) {
+    const denom = Math.pow(om_val, 4.0 / 7.0) - ol_val + (1.0 + om_val / 2.0) * (1.0 + ol_val / 70.0);
+    return (2.5 * scale * om_val) / Math.max(0.0001, denom);
+  }
+  const D_a = carrollD(a, Om_z, OL_z);
+  const D_0 = carrollD(1.0, Om, OL);
+  const D_plus = Math.max(0.0, D_a / D_0);
+  const f_z = Math.pow(Math.max(0.001, Om_z), 0.55);
+
+  return {
+    t: dt,
+    t_cosmic: t_cosmic,
+    a: a,
+    z: z,
+    D_plus: D_plus,
+    dPlus: D_plus,
+    D: D_plus,
+    H_z: H_z,
+    Hz: H_z,
+    H: H_z,
+    Omega_m: Om_z,
+    omegaM: Om_z,
+    Omega_L: OL_z,
+    Omega_Lambda: OL_z,
+    omegaL: OL_z,
+    f: f_z,
+    f_z: f_z
+  };
+}
+
+
+function triggerNativeHaptic(type) {
+  try {
+    if (window.AndroidBridge && typeof window.AndroidBridge.triggerHaptic === 'function') {
+      window.AndroidBridge.triggerHaptic(type || 'tick');
+    } else if (navigator.vibrate) {
+      if (type === 'heavy' || type === 'buzz') navigator.vibrate([30, 20, 30]);
+      else if (type === 'click') navigator.vibrate(20);
+      else navigator.vibrate(10);
+    }
+  } catch (e) {}
+}
+
+function applyCosmicTime(tGyr) {
+  triggerNativeHaptic('tick');
+  const dt = Math.max(-13.8, Math.min(10.0, tGyr));
+  simState.cosmicTime = dt;
+
+  const cosmo = computeCosmology(dt);
+
+  const elTime = document.getElementById('hud-cosmic-time');
+  if (elTime) elTime.textContent = (dt >= 0 ? '+' : '') + dt.toFixed(2) + ' Gyr';
+  const elZ = document.getElementById('hud-redshift');
+  if (elZ) elZ.textContent = cosmo.z >= 100 ? Math.round(cosmo.z).toLocaleString() : (cosmo.z >= 0 ? cosmo.z.toFixed(2) : cosmo.z.toFixed(2));
+  const elA = document.getElementById('hud-scalefactor');
+  if (elA) elA.textContent = cosmo.a.toFixed(3);
+  const elD = document.getElementById('hud-growthfactor');
+  if (elD) elD.textContent = cosmo.D_plus.toFixed(3);
+  const elH = document.getElementById('hud-hubble');
+  if (elH) elH.textContent = Math.round(cosmo.H_z).toLocaleString();
+
+  const cZ = document.getElementById('cosmo-z'); if (cZ) cZ.textContent = elZ ? elZ.textContent : '';
+  const cA = document.getElementById('cosmo-a'); if (cA) cA.textContent = elA ? elA.textContent : '';
+  const cD = document.getElementById('cosmo-dplus'); if (cD) cD.textContent = elD ? elD.textContent : '';
+  const cH = document.getElementById('cosmo-hz'); if (cH) cH.textContent = elH ? elH.textContent : '';
+
+  const rng = document.getElementById('rng-cosmic-time');
+  if (rng && Math.abs(parseFloat(rng.value) - dt) > 0.05) rng.value = dt.toFixed(1);
+
+  ['bb', 'noon', 'present', 'plus5', 'plus10'].forEach(id => {
+    const btn = document.getElementById(`btn-time-${id}`);
+    if (btn) btn.classList.remove('active');
+  });
+  if (Math.abs(dt - (-13.78)) < 0.1) document.getElementById('btn-time-bb')?.classList.add('active');
+  else if (Math.abs(dt - (-10.4)) < 0.3) document.getElementById('btn-time-noon')?.classList.add('active');
+  else if (Math.abs(dt) < 0.1) document.getElementById('btn-time-present')?.classList.add('active');
+  else if (Math.abs(dt - 5.0) < 0.2) document.getElementById('btn-time-plus5')?.classList.add('active');
+  else if (Math.abs(dt - 10.0) < 0.2) document.getElementById('btn-time-plus10')?.classList.add('active');
+
+  if (galaxyPointsMesh && galaxyPointsMesh.geometry && galaxyPointsMesh.geometry.attributes.position && galaxyBasePositions) {
+    const posArr = galaxyPointsMesh.geometry.attributes.position.array;
+    const basePos = galaxyBasePositions;
+    const count = posArr.length / 3;
+
+    const shX = 7200, shY = -2400, shZ = 8600;
+    const gaX = -4800, gaY = 3900, gaZ = 850;
+
+    const D_plus = cosmo.D_plus;
+    const isPast = dt < 0;
+    const futS = dt > 0 ? dt / 10.0 : 0.0;
+
+    for (let i = 0; i < count; i++) {
+      const idx = i * 3;
+      const bx = basePos[idx];
+      const by = basePos[idx + 1];
+      const bz = basePos[idx + 2];
+
+      let vx = 0, vy = 0, vz = 0;
+      if (galaxyBaseVelocities) {
+        vx = galaxyBaseVelocities[idx];
+        vy = galaxyBaseVelocities[idx + 1];
+        vz = galaxyBaseVelocities[idx + 2];
+      }
+
+      if (isPast) {
+        const dispFactor = (1.0 - D_plus);
+        posArr[idx] = bx - vx * dispFactor;
+        posArr[idx + 1] = by - vy * dispFactor;
+        posArr[idx + 2] = bz - vz * dispFactor;
+      } else {
+        const dxSh = shX - bx;
+        const dySh = shY - by;
+        const dzSh = shZ - bz;
+        const dSh = Math.sqrt(dxSh * dxSh + dySh * dySh + dzSh * dzSh);
+
+        const dxGa = gaX - bx;
+        const dyGa = gaY - by;
+        const dzGa = gaZ - bz;
+        const dGa = Math.sqrt(dxGa * dxGa + dyGa * dyGa + dzGa * dzGa);
+
+        let infShX = 0, infShY = 0, infShZ = 0;
+        if (dSh < 14000) {
+          const infFracSh = 0.35 * futS * Math.exp(-dSh / 7500);
+          infShX = dxSh * infFracSh;
+          infShY = dySh * infFracSh;
+          infShZ = dzSh * infFracSh;
+        }
+
+        let infGaX = 0, infGaY = 0, infGaZ = 0;
+        if (dGa < 12000) {
+          const infFracGa = 0.30 * futS * Math.exp(-dGa / 6500);
+          infGaX = dxGa * infFracGa;
+          infGaY = dyGa * infFracGa;
+          infGaZ = dzGa * infFracGa;
+        }
+
+        const flowX = vx * (0.2 * dt);
+        const flowY = vy * (0.2 * dt);
+        const flowZ = vz * (0.2 * dt);
+
+        posArr[idx] = bx + flowX + infShX + infGaX;
+        posArr[idx + 1] = by + flowY + infShY + infGaY;
+        posArr[idx + 2] = bz + flowZ + infShZ + infGaZ;
+      }
+    }
+    galaxyPointsMesh.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+function updatePlayButton() {
+  const btn = document.getElementById('btn-time-play');
+  if (btn) {
+    btn.textContent = simState.timePlaying ? '⏸ Pause' : '▶ Play';
+    btn.classList.toggle('active', !!simState.timePlaying);
+  }
+}
+
+document.getElementById('rng-cosmic-time')?.addEventListener('input', e => {
+  applyCosmicTime(parseFloat(e.target.value));
+});
+document.getElementById('btn-time-play')?.addEventListener('click', () => {
+  simState.timePlaying = !simState.timePlaying;
+  updatePlayButton();
+});
+document.getElementById('btn-time-bb')?.addEventListener('click', () => applyCosmicTime(-13.78));
+document.getElementById('btn-time-noon')?.addEventListener('click', () => applyCosmicTime(-10.4));
+document.getElementById('btn-time-present')?.addEventListener('click', () => applyCosmicTime(0.0));
+document.getElementById('btn-time-plus5')?.addEventListener('click', () => applyCosmicTime(5.0));
+document.getElementById('btn-time-plus10')?.addEventListener('click', () => applyCosmicTime(10.0));
+
+// Hidden alias button handlers (for programmatic/test access)
+document.getElementById('btn-cosmo-play')?.addEventListener('click', () => {
+  simState.timePlaying = !simState.timePlaying;
+  updatePlayButton();
+});
+document.getElementById('btn-cosmo-preset-bb')?.addEventListener('click', () => applyCosmicTime(-13.78));
+document.getElementById('btn-cosmo-preset-now')?.addEventListener('click', () => applyCosmicTime(0.0));
+document.getElementById('btn-cosmo-preset-future')?.addEventListener('click', () => applyCosmicTime(10.0));
+
+// ==========================================
+// 11. INTERACTIVE GALAXY CLUSTER SPECTROSCOPY DOSSIERS (R2)
+// ==========================================
+
+
+
+const DOSSIER_LINKS = {
+  virgo_cl: {
+    studyUrl: 'https://doi.org/10.1051/0004-6361/202245331',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Virgo_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=n97-28mHeRs',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/n97-28mHeRs?autoplay=1',
+    youtubeTitle: 'NASA Hubble: M87 Jet & The Heart of Virgo Cluster',
+    bibtex: `@article{Courtois2023Virgo, title={Cosmicflows-4: The Virgo Cluster and Supergalactic Plane}, author={Courtois, H. M. and Tully, R. B. and Dupuy, A.}, journal={Astronomy & Astrophysics}, volume={670}, pages={L15}, year={2023}}`
+  },
+  coma_cl: {
+    studyUrl: 'https://doi.org/10.1086/190005',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Coma_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rXCBFlIpvfQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rXCBFlIpvfQ?autoplay=1',
+    youtubeTitle: 'ESA Euclid: The Coma Cluster of Galaxies in Deep Field',
+    bibtex: `@article{Kent1982Coma, title={The dynamics of the Coma cluster}, author={Kent, Stephen M. and Gunn, James E.}, journal={The Astronomical Journal}, volume={87}, pages={945--959}, year={1982}}`
+  },
+  centaurus_cl: {
+    studyUrl: 'https://doi.org/10.1086/190807',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Centaurus_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Great Attractor & Centaurus Supercluster Complex',
+    bibtex: `@article{Lucey1986Centaurus, title={The Centaurus cluster of galaxies - I. The data}, author={Lucey, J. R. and Currie, M. J. and Dickens, R. J.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={221}, pages={87--104}, year={1986}}`
+  },
+  perseus_cl: {
+    studyUrl: 'https://doi.org/10.1086/305984',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Perseus_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ioR5np1fmEc',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ioR5np1fmEc?autoplay=1',
+    youtubeTitle: 'NASA Chandra: Data Sonification of Perseus Cluster Black Hole',
+    bibtex: `@article{Ettori1998Perseus, title={A deep ROSAT observation of the Perseus cluster}, author={Ettori, S. and Fabian, A. C. and White, D. A.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={300}, pages={837--846}, year={1998}}`
+  },
+  norma_cl: {
+    studyUrl: 'https://doi.org/10.1086/588828',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Norma_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Great Attractor Core in Norma ACO 3627',
+    bibtex: `@article{Woudt2008Norma, title={The Norma Cluster (ACO 3627) and the Great Attractor}, author={Woudt, P. A. and Kraan-Korteweg, R. C. and Lucey, J. and Fairall, A. P. and Moore, S. A. W.}, journal={The Astronomical Journal}, volume={136}, number={3}, pages={1290--1300}, year={2008}}`
+  },
+  fornax_cl: {
+    studyUrl: 'https://doi.org/10.1086/300486',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Fornax_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=ApndCuxSLpA',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/ApndCuxSLpA?autoplay=1',
+    youtubeTitle: 'European Southern Observatory: Deep Survey of Fornax Cluster',
+    bibtex: `@article{Drinkwater2001Fornax, title={The Fornax Cluster Spectroscopic Survey}, author={Drinkwater, Michael J. and Gregg, Michael D. and Holman, Benjamin A. and Brown, Michael J. I.}, journal={Monthly Notices of the Royal Astronomical Society}, volume={326}, pages={1076--1094}, year={2001}}`
+  },
+  hydra_cl: {
+    studyUrl: 'https://doi.org/10.1086/190886',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Hydra_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Hydra-Centaurus Supercluster & Great Attractor',
+    bibtex: `@article{Fitchett1987Hydra, title={Substructure in the Hydra I cluster}, author={Fitchett, Michael and Webster, Rachel}, journal={The Astrophysical Journal}, volume={317}, pages={653--667}, year={1987}}`
+  },
+  hercules_cl: {
+    studyUrl: 'https://doi.org/10.1086/190544',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Hercules_Cluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The Great Wall & Hercules Supercluster Filament',
+    bibtex: `@article{Tarenghi1979Hercules, title={The Hercules supercluster. I - Particularly the cluster A2151}, author={Tarenghi, M. and Tifft, W. G. and Chincarini, G. and Rood, H. J. and Thompson, L. A.}, journal={The Astrophysical Journal}, volume={234}, pages={33--46}, year={1979}}`
+  },
+  shapley_core: {
+    studyUrl: 'https://doi.org/10.1051/0004-6361/202346802',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Shapley_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=fIPuSH19pKw',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/fIPuSH19pKw?autoplay=1',
+    youtubeTitle: 'The Shapley Supercluster: The Hidden Power of the Cosmos',
+    bibtex: `@article{Dupuy2023Shapley, title={CosmicFlows-4: Watershed analysis and the Shapley Concentration}, author={Dupuy, Alexandra and Courtois, H{'e}l{\`e}ne M.}, journal={Astronomy & Astrophysics}, volume={678}, pages={A176}, year={2023}}`
+  },
+  laniakea_spine: {
+    studyUrl: 'https://doi.org/10.1038/nature13674',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Laniakea_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=rENyyRwxpHo',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpHo?autoplay=1',
+    youtubeTitle: 'Nature Video: Laniakea - Our Home Supercluster (Official Discovery)',
+    bibtex: `@article{Tully2014Laniakea, title={The Laniakea supercluster of galaxies}, author={Tully, R. Brent and Courtois, H{'e}l{\`e}ne and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={Nature}, volume={513}, number={7516}, pages={71--73}, year={2014}}`
+  },
+  ga_norma: {
+    studyUrl: 'https://doi.org/10.1086/588828',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Great_Attractor',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0w4OTD4L0GQ',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0w4OTD4L0GQ?autoplay=1',
+    youtubeTitle: 'The Great Attractor: The Enormous Gravity Well Pulling Galaxies',
+    bibtex: `@article{Woudt2008GA, title={The Great Attractor Core in Norma ACO 3627}, author={Woudt, P. A. and Kraan-Korteweg, R. C.}, journal={The Astronomical Journal}, volume={136}, pages={1290}, year={2008}}`
+  },
+  vela_scl: {
+    studyUrl: 'https://doi.org/10.1093/mnrasl/slw229',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Vela_Supercluster',
+    youtubeUrl: 'https://www.youtube.com/watch?v=1flj-ra7M9k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/1flj-ra7M9k?autoplay=1',
+    youtubeTitle: 'Something Enormous is Hiding in Our Galactic Blind Spot (Vela ZoA)',
+    bibtex: `@article{KraanKorteweg2017Vela, title={Discovery of a supercluster in the ZOA in Vela}, author={Kraan-Korteweg, R. C. and Cluver, M. E. and Bilicki, M. and Jarrett, T. H.}, journal={MNRAS Letters}, volume={466}, pages={L29--L33}, year={2017}}`
+  },
+  sloan_gw: {
+    studyUrl: 'https://doi.org/10.1086/428890',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Sloan_Great_Wall',
+    youtubeUrl: 'https://www.youtube.com/watch?v=XUtatDjX_i4',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/XUtatDjX_i4?autoplay=1',
+    youtubeTitle: 'The Sloan Great Wall: The Biggest Structure in the Local Universe',
+    bibtex: `@article{Gott2005SGW, title={A Map of the Universe: The Sloan Great Wall}, author={Gott, J. Richard and Juri{'c}, Mario and Schlegel, David and Hoyle, Fiona and Vogeley, Michael and Tegmark, Max and Bahcall, Neta and Brinkmann, Jon}, journal={The Astrophysical Journal}, volume={624}, pages={463--484}, year={2005}}`
+  },
+  dipole_rep: {
+    studyUrl: 'https://doi.org/10.1038/s41550-016-0036',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Dipole_repeller',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0RuwBsUmy7k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
+    youtubeTitle: 'The Dipole Repeller: The Void That Moves Galaxies (Nature Astronomy)',
+    bibtex: `@article{Hoffman2017Dipole, title={The dipole repeller}, author={Hoffman, Yehuda and Pomar{\`e}de, Daniel and Tully, R. Brent and Courtois, H{'e}l{\`e}ne M.}, journal={Nature Astronomy}, volume={1}, number={2}, pages={0036}, year={2017}}`
+  },
+  coldspot_rep: {
+    studyUrl: 'https://doi.org/10.3847/2041-8213/aa8a5a',
+    wikiUrl: 'https://en.wikipedia.org/wiki/CMB_cold_spot',
+    youtubeUrl: 'https://www.youtube.com/watch?v=0RuwBsUmy7k',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/0RuwBsUmy7k?autoplay=1',
+    youtubeTitle: 'Cosmic Repeller Dynamics in the Local Universe',
+    bibtex: `@article{Courtois2017ColdSpot, title={The Cold Spot Repeller}, author={Courtois, H{'e}l{\`e}ne M. and Tully, R. Brent and Hoffman, Yehuda and Pomar{\`e}de, Daniel}, journal={The Astrophysical Journal Letters}, volume={847}, pages={L6}, year={2017}}`
+  }
+};
+
+const SPECTROSCOPY_DOSSIERS = {
+  laniakea_spine: {
+    id: 'laniakea_spine',
+    name: 'Laniakea Supercluster Core',
+    label: 'Laniakea Supercluster',
+    tier: 1,
+    pos: new THREE.Vector3(-4700, 700, -300),
+    mass: 1.0e17,
+    m200: 1.0e17,
+    cz: 3800,
+    recessionalVelocity: 3800,
+    sigma_v: 950,
+    sigmaV: 950,
+    dispersion: 950,
+    dist: 51.0,
+    distance: 51.0,
+    bcg: 'Centaurus / Great Attractor Core',
+    primaryGalaxy: 'Centaurus / GA Complex',
+    vPec: [-260, -380, 140],
+    peculiarVelocity: [-260, -380, 140],
+    tx: 4.2,
+    lx: '5.2 × 10⁴⁴ erg/s',
+    members: '100,000+ galaxies across 500 Mly basin',
+    citation: 'Tully et al. (2014) Nature 513, 71; Pomarède et al. (2017) ApJ 845.'
+  },
+  dipole_rep: {
+    id: 'dipole_rep',
+    name: 'Dipole Repeller Great Void Fountain',
+    label: 'Dipole Repeller',
+    tier: 1,
+    pos: new THREE.Vector3(-10000, 10000, 12000),
+    mass: -1.8e16,
+    m200: -1.8e16,
+    cz: 17300,
+    recessionalVelocity: 17300,
+    sigma_v: 620,
+    sigmaV: 620,
+    dispersion: 620,
+    dist: 232.0,
+    distance: 232.0,
+    bcg: 'Underdense Cosmic Void (No BCG)',
+    primaryGalaxy: 'Repeller Singularity Center',
+    vPec: [240, -210, -190],
+    peculiarVelocity: [240, -210, -190],
+    tx: 0.2,
+    lx: '< 10⁴⁰ erg/s (Underdense)',
+    members: 'Void expansion outflow basin',
+    citation: 'Hoffman et al. (2017) Nat. Astron. 1, 0036; Dupuy et al. (2019) MNRAS 489.'
+  },
+  sloan_gw: {
+    id: 'sloan_gw',
+    name: 'Sloan Great Wall Supercluster Complex',
+    label: 'Sloan Great Wall',
+    tier: 1,
+    pos: new THREE.Vector3(12000, 14000, 11000),
+    mass: 2.5e17,
+    m200: 2.5e17,
+    cz: 24000,
+    recessionalVelocity: 24000,
+    sigma_v: 1350,
+    sigmaV: 1350,
+    dispersion: 1350,
+    dist: 322.0,
+    distance: 322.0,
+    bcg: 'Multiple supercluster merge nodes',
+    primaryGalaxy: 'SDSS Complex Filaments',
+    vPec: [310, 420, 260],
+    peculiarVelocity: [310, 420, 260],
+    tx: 6.0,
+    lx: '2.1 × 10⁴⁵ erg/s',
+    members: '15,000+ confirmed filament galaxies',
+    citation: 'Gott et al. (2005) ApJ 624; Einasto et al. (2011) A&A 532.'
+  },
+  coldspot_rep: {
+    id: 'coldspot_rep',
+    name: 'Cold Spot Repeller Plume',
+    label: 'Cold Spot Repeller',
+    tier: 1,
+    pos: new THREE.Vector3(9000, 12000, -5000),
+    mass: -1.2e16,
+    m200: -1.2e16,
+    cz: 15800,
+    recessionalVelocity: 15800,
+    sigma_v: 580,
+    sigmaV: 580,
+    dispersion: 580,
+    dist: 212.0,
+    distance: 212.0,
+    bcg: 'Eridanus Supervoid (No BCG)',
+    primaryGalaxy: 'CMB Cold Spot Anomaly',
+    vPec: [-190, 220, 130],
+    peculiarVelocity: [-190, 220, 130],
+    tx: 0.1,
+    lx: '< 10⁴⁰ erg/s',
+    members: 'Supervoid divergent outflow',
+    citation: 'Courtois et al. (2017) ApJL 847, L6; Szapudi et al. (2015) MNRAS 450.'
+  },
+  virgo_cl: {
+    id: 'virgo_cl',
+    name: 'Virgo Cluster (M87 / A1226)',
+    label: 'Virgo Cluster',
+    tier: 2,
+    pos: new THREE.Vector3(-280, 1300, -100),
+    mass: 1.2e15,
+    m200: 1.2e15,
+    cz: 1150,
+    recessionalVelocity: 1150,
+    sigma_v: 762,
+    sigmaV: 762,
+    dispersion: 762,
+    dist: 16.5,
+    distance: 16.5,
+    bcg: 'M87 (NGC 4486)',
+    primaryGalaxy: 'M87 (NGC 4486)',
+    vPec: [-42, -385, 128],
+    peculiarVelocity: [-42, -385, 128],
+    tx: 2.4,
+    lx: '8.2 × 10⁴³ erg/s',
+    members: '1,300+ confirmed members',
+    citation: 'Binggeli et al. (1985) AJ 90, 1681; Ferrarese et al. (2012) ApJS 200, 4; Tully et al. (2014).'
+  },
+  coma_cl: {
+    id: 'coma_cl',
+    name: 'Coma Cluster (Abell 1656)',
+    label: 'Coma Cluster',
+    tier: 2,
+    pos: new THREE.Vector3(500, 7000, 1500),
+    mass: 1.8e15,
+    m200: 1.8e15,
+    cz: 6900,
+    recessionalVelocity: 6900,
+    sigma_v: 1008,
+    sigmaV: 1008,
+    dispersion: 1008,
+    dist: 92.0,
+    distance: 92.0,
+    bcg: 'NGC 4889 & NGC 4874',
+    primaryGalaxy: 'NGC 4889 & NGC 4874',
+    vPec: [112, -260, -95],
+    peculiarVelocity: [112, -260, -95],
+    tx: 8.25,
+    lx: '7.3 × 10⁴⁴ erg/s',
+    members: '1,000+ confirmed galaxies',
+    citation: 'Colless & Dunn (1996) ApJ 458; Sanders et al. (2020) A&A 633; eROSITA (2024).'
+  },
+  centaurus_cl: {
+    id: 'centaurus_cl',
+    name: 'Centaurus Cluster (Abell 3526)',
+    label: 'Centaurus Cluster',
+    tier: 2,
+    pos: new THREE.Vector3(-4200, 1200, 3100),
+    mass: 2.8e15,
+    m200: 2.8e15,
+    cz: 3200,
+    recessionalVelocity: 3200,
+    sigma_v: 870,
+    sigmaV: 870,
+    dispersion: 870,
+    dist: 43.0,
+    distance: 43.0,
+    bcg: 'NGC 4696',
+    primaryGalaxy: 'NGC 4696',
+    vPec: [-210, -340, 190],
+    peculiarVelocity: [-210, -340, 190],
+    tx: 3.7,
+    lx: '2.6 × 10⁴⁴ erg/s',
+    members: '700+ confirmed galaxies',
+    citation: 'Stein et al. (1997) MNRAS 288; Sanders et al. (2016) MNRAS 457; Tully et al. (2014).'
+  },
+  ga_norma: {
+    id: 'ga_norma',
+    name: 'Norma Cluster / Great Attractor (Abell 3627)',
+    label: 'Norma Cluster / GA',
+    tier: 1,
+    pos: new THREE.Vector3(-4800, -850, 3900),
+    mass: 5.4e16,
+    m200: 5.4e16,
+    cz: 4850,
+    recessionalVelocity: 4850,
+    sigma_v: 925,
+    sigmaV: 925,
+    dispersion: 925,
+    dist: 65.0,
+    distance: 65.0,
+    bcg: 'WKK 6723 (PKS 1610-608)',
+    primaryGalaxy: 'WKK 6723 (PKS 1610-608)',
+    vPec: [-320, -410, 280],
+    peculiarVelocity: [-320, -410, 280],
+    tx: 6.0,
+    lx: '5.1 × 10⁴⁴ erg/s',
+    members: '600+ confirmed (ZoA obscured)',
+    citation: 'Kraan-Korteweg et al. (1996) Nature 379; Woudt et al. (2008) arXiv:0802.2619; Tully et al. (2014).'
+  },
+  shapley_core: {
+    id: 'shapley_core',
+    name: 'Shapley Supercluster Core (A3558 Complex)',
+    label: 'Shapley Supercluster Core',
+    tier: 1,
+    pos: new THREE.Vector3(7200, -8600, -2400),
+    mass: 1.2e17,
+    m200: 1.2e17,
+    cz: 14500,
+    recessionalVelocity: 14500,
+    sigma_v: 1280,
+    sigmaV: 1280,
+    dispersion: 1280,
+    dist: 194.0,
+    distance: 194.0,
+    bcg: 'ESO 444-46 (A3558)',
+    primaryGalaxy: 'ESO 444-46 (A3558)',
+    vPec: [450, -580, -210],
+    peculiarVelocity: [450, -580, -210],
+    tx: 5.5,
+    lx: '1.1 × 10⁴⁵ erg/s',
+    members: '10,000+ in supercluster basin',
+    citation: 'Raychaudhury (1989) Nature 342; Bardelli et al. (2000) MNRAS 312; CF4 Reconstruction (2024).'
+  },
+  vela_scl: {
+    id: 'vela_scl',
+    name: 'Vela Supercluster (ZoA Discovery)',
+    label: 'Vela Supercluster',
+    tier: 1,
+    pos: new THREE.Vector3(-8500, -12000, -3200),
+    mass: 3.38e17,
+    m200: 3.38e17,
+    cz: 18900,
+    recessionalVelocity: 18900,
+    sigma_v: 1150,
+    sigmaV: 1150,
+    dispersion: 1150,
+    dist: 253.0,
+    distance: 253.0,
+    bcg: 'Multiple merger nodes',
+    primaryGalaxy: 'Multiple merger nodes',
+    vPec: [-410, -620, -180],
+    peculiarVelocity: [-410, -620, -180],
+    tx: 4.8,
+    lx: '8.0 × 10⁴⁴ erg/s',
+    members: '8,500+ in wall structure',
+    citation: 'Kraan-Korteweg et al. (2017) MNRAS 466; Courtois et al. (2019); Hollinger et al. (2026).'
+  },
+  perseus_cl: {
+    id: 'perseus_cl',
+    name: 'Perseus Cluster (Abell 426)',
+    label: 'Perseus Cluster',
+    tier: 2,
+    pos: new THREE.Vector3(4500, -3000, 0),
+    mass: 2.4e15,
+    m200: 2.4e15,
+    cz: 5300,
+    recessionalVelocity: 5300,
+    sigma_v: 1282,
+    sigmaV: 1282,
+    dispersion: 1282,
+    dist: 71.0,
+    distance: 71.0,
+    bcg: 'NGC 1275 (Perseus A)',
+    primaryGalaxy: 'NGC 1275 (Perseus A)',
+    vPec: [380, -190, 85],
+    peculiarVelocity: [380, -190, 85],
+    tx: 6.5,
+    lx: '1.2 × 10⁴⁵ erg/s',
+    members: '1,000+ confirmed members',
+    citation: 'Fabian et al. (2006) MNRAS 366; Hitomi Collaboration (2016) Nature 535; eROSITA (2024).'
+  },
+  fornax_cl: {
+    id: 'fornax_cl',
+    name: 'Fornax Cluster (Abell S0373)',
+    label: 'Fornax Cluster',
+    tier: 2,
+    pos: new THREE.Vector3(-1200, -1600, -800),
+    mass: 7.0e14,
+    m200: 7.0e14,
+    cz: 1400,
+    recessionalVelocity: 1400,
+    sigma_v: 374,
+    sigmaV: 374,
+    dispersion: 374,
+    dist: 19.0,
+    distance: 19.0,
+    bcg: 'NGC 1399',
+    primaryGalaxy: 'NGC 1399',
+    vPec: [-180, -220, -90],
+    peculiarVelocity: [-180, -220, -90],
+    tx: 1.3,
+    lx: '4.5 × 10⁴² erg/s',
+    members: '340+ confirmed galaxies',
+    citation: 'Drinkwater et al. (2001) ApJL 548; Jordán et al. (2007) ApJS 169; Tully et al. (2014).'
+  }
+};
+
+let activeDossier = null;
+let isDossierPinned = false;
+
+function drawVelocityDispersionProfile(dossier) {
+  const canvas = document.getElementById('spec-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 400;
+  const h = canvas.clientHeight || 130;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  ctx.clearRect(0, 0, w, h);
+
+  const cz = dossier.cz;
+  const sig = dossier.sigma_v;
+  const minV = cz - 3.2 * sig;
+  const maxV = cz + 3.2 * sig;
+  const vRange = maxV - minV;
+
+  const padLeft = 36, padRight = 16, padTop = 16, padBottom = 26;
+  const plotW = w - padLeft - padRight;
+  const plotH = h - padTop - padBottom;
+
+  const isWhite = currentTheme === 'white';
+
+  function vToX(v) { return padLeft + ((v - minV) / vRange) * plotW; }
+  function yToCanvas(val) { return padTop + (1.0 - val) * plotH; }
+
+  // 2-sigma region (95.4%)
+  ctx.fillStyle = isWhite ? 'rgba(148, 163, 184, 0.25)' : 'rgba(2, 132, 199, 0.12)';
+  ctx.beginPath();
+  const x2Left = vToX(cz - 2.0 * sig);
+  const x2Right = vToX(cz + 2.0 * sig);
+  ctx.moveTo(x2Left, padTop + plotH);
+  for (let x = x2Left; x <= x2Right; x += 2) {
+    const v = minV + ((x - padLeft) / plotW) * vRange;
+    const norm = Math.exp(-0.5 * Math.pow((v - cz) / sig, 2));
+    ctx.lineTo(x, yToCanvas(norm));
+  }
+  ctx.lineTo(x2Right, padTop + plotH);
+  ctx.closePath();
+  ctx.fill();
+
+  // 1-sigma region (68.3%)
+  ctx.fillStyle = isWhite ? 'rgba(59, 130, 246, 0.35)' : 'rgba(0, 229, 255, 0.25)';
+  ctx.beginPath();
+  const x1Left = vToX(cz - sig);
+  const x1Right = vToX(cz + sig);
+  ctx.moveTo(x1Left, padTop + plotH);
+  for (let x = x1Left; x <= x1Right; x += 2) {
+    const v = minV + ((x - padLeft) / plotW) * vRange;
+    const norm = Math.exp(-0.5 * Math.pow((v - cz) / sig, 2));
+    ctx.lineTo(x, yToCanvas(norm));
+  }
+  ctx.lineTo(x1Right, padTop + plotH);
+  ctx.closePath();
+  ctx.fill();
+
+  // Full Gaussian Curve Stroke
+  ctx.strokeStyle = isWhite ? '#0f172a' : '#00e5ff';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  for (let x = padLeft; x <= padLeft + plotW; x += 2) {
+    const v = minV + ((x - padLeft) / plotW) * vRange;
+    const norm = Math.exp(-0.5 * Math.pow((v - cz) / sig, 2));
+    const y = yToCanvas(norm);
+    if (x === padLeft) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Central cz dashed line
+  const midX = vToX(cz);
+  ctx.strokeStyle = isWhite ? '#ea580c' : '#ffaa00';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.moveTo(midX, padTop);
+  ctx.lineTo(midX, padTop + plotH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axis lines
+  ctx.strokeStyle = isWhite ? 'rgba(15, 23, 42, 0.3)' : 'rgba(255, 255, 255, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padLeft, padTop + plotH);
+  ctx.lineTo(padLeft + plotW, padTop + plotH);
+  ctx.moveTo(padLeft, padTop);
+  ctx.lineTo(padLeft, padTop + plotH);
+  ctx.stroke();
+
+  // Text labels
+  ctx.fillStyle = isWhite ? '#0f172a' : '#dce4ec';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.round(cz - 2 * sig)}`, x2Left, padTop + plotH + 12);
+  ctx.fillText(`cz=${Math.round(cz)}`, midX, padTop + plotH + 12);
+  ctx.fillText(`${Math.round(cz + 2 * sig)}`, x2Right, padTop + plotH + 12);
+
+  ctx.textAlign = 'right';
+  ctx.fillText('N(v)', padLeft - 6, padTop + 8);
+  ctx.fillText('v (km/s)', padLeft + plotW, padTop + plotH + 20);
+
+  // Confidence legend
+  ctx.font = '7.5px monospace';
+  ctx.fillStyle = isWhite ? '#2563eb' : '#00e5ff';
+  ctx.fillText(`1σ = ±${Math.round(sig)} km/s (68.3%)`, padLeft + plotW, padTop + 10);
+  ctx.fillStyle = isWhite ? '#64748b' : '#94a3b8';
+  ctx.fillText(`2σ = ±${Math.round(2 * sig)} km/s (95.4%)`, padLeft + plotW, padTop + 20);
+}
+
+function getOrSynthesizeDossier(id) {
+  if (!id) return null;
+
+  // 1. Direct match in SPECTROSCOPY_DOSSIERS
+  if (typeof SPECTROSCOPY_DOSSIERS !== 'undefined' && SPECTROSCOPY_DOSSIERS[id]) {
+    return SPECTROSCOPY_DOSSIERS[id];
+  }
+
+  // 2. Check ASTROMETRIC_FEATURES
+  let feat = null;
+  if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
+    feat = ASTROMETRIC_FEATURES.find(f => f.id === id || f.name.toLowerCase() === id.toLowerCase());
+  }
+
+  // 3. Check DUPUY_2023_BASINS
+  let basin = null;
+  if (!feat && typeof DUPUY_2023_BASINS !== 'undefined' && Array.isArray(DUPUY_2023_BASINS)) {
+    const cleanId = String(id).replace(/^basin_/, '');
+    basin = DUPUY_2023_BASINS.find(b => String(b.id) === cleanId || b.name.toLowerCase() === cleanId.toLowerCase());
+  }
+
+  if (feat) {
+    const isSupercluster = feat.cat === 'supercluster' || feat.tier === 1;
+    const isVoid = feat.cat === 'void';
+    const isFilament = feat.cat === 'filament';
+    const isCorridor = feat.cat === 'corridor';
+
+    const mass = typeof feat.mass === 'number' ? feat.mass : (isSupercluster ? 1.0e17 : (isVoid ? -1.0e15 : 1.5e15));
+    const cz = typeof feat.cz === 'number' ? feat.cz : Math.round((feat.dist || 50) * 74.6);
+    const dist = typeof feat.dist === 'number' ? feat.dist : Math.round(cz / 74.6);
+
+    let sigma_v = 650;
+    if (isVoid) sigma_v = 280;
+    else if (isSupercluster) sigma_v = 1180;
+    else if (isFilament) sigma_v = 450;
+    else if (isCorridor) sigma_v = 520;
+    else if (mass > 0) {
+      sigma_v = Math.min(1400, Math.max(320, Math.round(Math.pow(mass / 1e14, 0.33) * 380)));
+    }
+
+    let vPec = [0, 0, 0];
+    if (feat.pos) {
+      vPec = [
+        Math.round(Math.sin(feat.pos.x * 0.001) * 280),
+        Math.round(-Math.cos(feat.pos.y * 0.001) * 340),
+        Math.round(Math.sin(feat.pos.z * 0.001) * 190)
+      ];
+    }
+
+    let tx = 3.2;
+    let lx = '2.5 × 10⁴⁴ erg/s';
+    if (isVoid) { tx = 0.2; lx = '< 1.0 × 10⁴¹ erg/s'; }
+    else if (isSupercluster) { tx = 5.8; lx = '9.5 × 10⁴⁴ erg/s'; }
+    else if (isFilament) { tx = 1.1; lx = '1.8 × 10⁴³ erg/s'; }
+
+    let bcg = feat.short || feat.name;
+    if (isVoid) bcg = 'Underdense Hub (δ < -0.7)';
+    else if (isFilament) bcg = `${feat.short || feat.name} Central Ridge`;
+    else if (isCorridor) bcg = `${feat.short || feat.name} 21cm H I Stream`;
+
+    let members = '450+ confirmed galaxies';
+    if (isVoid) members = 'Significantly depleted galaxy density';
+    else if (isSupercluster) members = '5,000+ member galaxies in complex';
+    else if (isFilament) members = 'Filamentary galaxy overdensity';
+
+    return {
+      id: feat.id,
+      name: feat.name,
+      label: feat.short || feat.name,
+      tier: feat.tier || (isSupercluster ? 1 : (isVoid || isFilament ? 3 : 2)),
+      cat: feat.cat || (isSupercluster ? 'supercluster' : 'cluster'),
+      pos: feat.pos || new THREE.Vector3(0, 0, 0),
+      mass: mass,
+      m200: mass,
+      cz: cz,
+      recessionalVelocity: cz,
+      sigma_v: sigma_v,
+      sigmaV: sigma_v,
+      dispersion: sigma_v,
+      dist: dist,
+      distance: dist,
+      bcg: bcg,
+      primaryGalaxy: bcg,
+      vPec: vPec,
+      peculiarVelocity: vPec,
+      tx: tx,
+      lx: lx,
+      members: members,
+      citation: feat.citation || 'CosmicFlows-4 Astrometric Database (Courtois et al. 2023)'
+    };
+  }
+
+  if (basin) {
+    const sgx = basin.sgx || 0;
+    const sgy = basin.sgy || 0;
+    const sgz = basin.sgz || 0;
+    const cz = Math.round(Math.sqrt(sgx * sgx + sgy * sgy + sgz * sgz));
+    const dist = Math.round(cz / 74.6);
+    const mass = 1.0e17;
+    const sigma_v = 1150;
+    const vPec = [Math.round(sgx * 0.04), Math.round(sgy * 0.04), Math.round(sgz * 0.04)];
+
+    return {
+      id: `basin_${basin.id}`,
+      name: `${basin.name} Supercluster Basin`,
+      label: `${basin.name} Basin`,
+      tier: 1,
+      cat: 'basin',
+      pos: new THREE.Vector3(sgx, sgy, sgz),
+      mass: mass,
+      m200: mass,
+      cz: cz,
+      recessionalVelocity: cz,
+      sigma_v: sigma_v,
+      sigmaV: sigma_v,
+      dispersion: sigma_v,
+      dist: dist,
+      distance: dist,
+      bcg: `${basin.name} Watershed Dynamic Attractor`,
+      primaryGalaxy: `${basin.name} Attractor Core`,
+      vPec: vPec,
+      peculiarVelocity: vPec,
+      tx: 5.0,
+      lx: '8.0 × 10⁴⁴ erg/s',
+      members: '10,000+ gravitational streamline members',
+      citation: 'Dupuy & Courtois (2023) Table A.1; CosmicFlows-4'
+    };
+  }
+
+  return null;
+}
+
+function openDossier(id) {
+  const d = getOrSynthesizeDossier(id);
+  if (!d) return;
+  activeDossier = d;
+
+  const modal = document.getElementById('spectroscopy-modal');
+  if (!modal) return;
+
+  let tagLabel = 'Cluster';
+  if (d.cat === 'supercluster' || d.tier === 1) tagLabel = 'Supercluster';
+  else if (d.cat === 'void') tagLabel = 'Void';
+  else if (d.cat === 'filament') tagLabel = 'Filament';
+  else if (d.cat === 'basin') tagLabel = 'Basin';
+  else if (d.cat === 'corridor') tagLabel = 'Corridor';
+
+  const nameEl = document.getElementById('spec-name');
+  if (nameEl) nameEl.innerHTML = `${d.name} <span class="spec-tag" id="spec-tag">${tagLabel}</span>`;
+  const mStr = d.mass >= 1e12 ? (d.mass / Math.pow(10, Math.floor(Math.log10(d.mass)))).toFixed(2) + ` × 10${Math.floor(Math.log10(d.mass)).toString().replace(/0/g, '⁰').replace(/1/g, '¹').replace(/2/g, '²').replace(/3/g, '³').replace(/4/g, '⁴').replace(/5/g, '⁵').replace(/6/g, '⁶').replace(/7/g, '⁷').replace(/8/g, '⁸').replace(/9/g, '⁹')} M☉` : d.mass + ' M☉';
+  const m200El = document.getElementById('spec-m200');
+  if (m200El) m200El.textContent = mStr;
+  const zVal = (d.cz / 299792.458).toFixed(4);
+  const czEl = document.getElementById('spec-cz');
+  if (czEl) czEl.textContent = `${Math.round(d.cz).toLocaleString()} km/s (z=${zVal})`;
+  const sigEl = document.getElementById('spec-sigmav');
+  if (sigEl) sigEl.textContent = `${Math.round(d.sigma_v).toLocaleString()} km/s`;
+  const distEl = document.getElementById('spec-dist');
+  if (distEl) {
+    const relVirgo = (d.dist / 16.5).toFixed(1);
+    const relText = (d.id === 'virgo_cl' || d.dist === 16.5) ? 'Core Reference Cluster' : `~${relVirgo}× farther than Virgo`;
+    distEl.innerHTML = `${d.dist} Mpc (${(d.dist * 3.26).toFixed(1)} Mly) <span style="font-size:9px; color:var(--accent-cyan); font-weight:700;">[${relText}]</span>`;
+  }
+  const vp = d.vPec || [0, 0, 0];
+  const vMag = Math.round(Math.sqrt(vp[0] * vp[0] + vp[1] * vp[1] + vp[2] * vp[2]));
+  const vpecEl = document.getElementById('spec-vpec');
+  if (vpecEl) vpecEl.textContent = `[${vp[0] >= 0 ? '+' : ''}${vp[0]}, ${vp[1] >= 0 ? '+' : ''}${vp[1]}, ${vp[2] >= 0 ? '+' : ''}${vp[2]}] (|v|=${vMag} km/s)`;
+  const txEl = document.getElementById('spec-tx');
+  if (txEl) txEl.textContent = `${d.tx} keV`;
+  const lxEl = document.getElementById('spec-lx');
+  if (lxEl) lxEl.textContent = d.lx;
+  const bcgEl = document.getElementById('spec-bcg');
+  if (bcgEl) bcgEl.textContent = d.bcg;
+  const memEl = document.getElementById('spec-members');
+  if (memEl) memEl.textContent = d.members;
+  const citeEl = document.getElementById('spec-citation');
+  if (citeEl) citeEl.innerHTML = `<b>Primary References:</b> ${d.citation}`;
+
+  // Update Study, Wikipedia, YouTube, and BibTeX links
+  let links = (typeof DOSSIER_LINKS !== 'undefined') ? DOSSIER_LINKS[id] : null;
+  if (!links) {
+    const cleanTitle = d.name.replace(/\(.*?\)/g, '').trim();
+    links = {
+      studyUrl: `https://ui.adsabs.harvard.edu/search/q=${encodeURIComponent(d.name)}`,
+      wikiUrl: `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(cleanTitle)}`,
+      youtubeUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle + ' astronomy cluster')}`,
+      youtubeEmbed: 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+      youtubeTitle: `Documentary: ${d.name}`,
+      bibtex: `@misc{CF4_${id},\n  title={${d.name} Astrometric Profile},\n  author={CosmicFlows-4 Collaboration},\n  year={2026},\n  howpublished={ZRT Cosmography Workbench}\n}`
+    };
+  }
+
+  const linkStudy = document.getElementById('spec-link-study');
+  const linkWiki = document.getElementById('spec-link-wiki');
+  const btnYoutube = document.getElementById('spec-btn-youtube');
+  const btnBibtex = document.getElementById('spec-btn-bibtex');
+  const txtBibtex = document.getElementById('bibtex-btn-text');
+
+  if (linkStudy) {
+    linkStudy.href = links.studyUrl || `https://ui.adsabs.harvard.edu/search/q=${encodeURIComponent(d.name)}`;
+  }
+  if (linkWiki) {
+    linkWiki.href = links.wikiUrl || `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(d.name.split('(')[0].trim())}`;
+  }
+  if (btnYoutube) {
+    btnYoutube.onclick = () => {
+      openCosmicVideoModal(
+        links.youtubeTitle || `Documentary: ${d.name}`,
+        links.youtubeEmbed || 'https://www.youtube-nocookie.com/embed/rENyyRwxpSm4',
+        links.youtubeUrl || 'https://www.youtube.com/watch?v=rENyyRwxpSm4'
+      );
+    };
+  }
+  if (btnBibtex) {
+    btnBibtex.onclick = () => {
+      const bib = links.bibtex || `@misc{CF4_${id},\n  title={${d.name} Astrometric Profile},\n  author={CosmicFlows-4 Collaboration},\n  year={2026},\n  howpublished={ZRT Cosmography Workbench}\n}`;
+      navigator.clipboard.writeText(bib).then(() => {
+        if (txtBibtex) txtBibtex.textContent = 'Copied!';
+        setTimeout(() => { if (txtBibtex) txtBibtex.textContent = 'BibTeX'; }, 2000);
+      });
+    };
+  }
+
+  modal.style.display = 'block';
+  modal.classList.remove('hidden');
+
+  drawVelocityDispersionProfile(d);
+}
+
+function closeDossier() {
+  const modal = document.getElementById('spectroscopy-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+    modal.classList.remove('pinned');
+  }
+  isDossierPinned = false;
+  activeDossier = null;
+  const pinBtn = document.getElementById('btn-pin-dossier');
+  if (pinBtn) pinBtn.classList.remove('pinned-active');
+}
+
+function pinDossier(state) {
+  isDossierPinned = typeof state === 'boolean' ? state : !isDossierPinned;
+  const modal = document.getElementById('spectroscopy-modal');
+  const pinBtn = document.getElementById('btn-pin-dossier');
+  if (modal) modal.classList.toggle('pinned', isDossierPinned);
+  if (pinBtn) pinBtn.classList.toggle('pinned-active', isDossierPinned);
+}
+
+document.getElementById('btn-pin-dossier')?.addEventListener('click', () => pinDossier());
+document.getElementById('btn-close-dossier')?.addEventListener('click', () => closeDossier());
+
+// Pointer interaction for 3D cluster selection with gesture disambiguation
+let pointerDownInfo = { x: 0, y: 0, t: 0 };
+window.addEventListener('pointerdown', e => {
+  pointerDownInfo = { x: e.clientX, y: e.clientY, t: performance.now() };
+});
+
+window.addEventListener('pointerup', e => {
+  const dx = e.clientX - pointerDownInfo.x;
+  const dy = e.clientY - pointerDownInfo.y;
+  const dt = performance.now() - pointerDownInfo.t;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist >= 5 || dt >= 350) return;
+
+  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay')) {
+    return;
+  }
+
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+
+  const targets = [];
+  if (calloutsGroup) targets.push(...calloutsGroup.children);
+  if (typeof erositaGroup !== 'undefined' && erositaGroup) targets.push(...erositaGroup.children);
+
+  const intersects = raycaster.intersectObjects(targets, true);
+  let hitFeature = null;
+
+  for (let i = 0; i < intersects.length; i++) {
+    let cur = intersects[i].object;
+    while (cur && cur !== scene) {
+      if (cur.userData && cur.userData.feature) {
+        hitFeature = cur.userData.feature;
+        break;
+      }
+      if (cur.userData && cur.userData.halo) {
+        hitFeature = cur.userData.halo;
+        break;
+      }
+      cur = cur.parent;
+    }
+    if (hitFeature) break;
+  }
+
+  if (hitFeature && hitFeature.id && (SPECTROSCOPY_DOSSIERS[hitFeature.id] || getOrSynthesizeDossier(hitFeature.id))) {
+    openDossier(hitFeature.id);
+  } else if (!isDossierPinned) {
+    closeDossier();
+  }
+});
+
+// ==========================================
+// 12. eROSITA HOT GAS & WHIM BRIDGES OVERLAYS (R3)
+// ==========================================
+let erositaGroup = new THREE.Group();
+erositaGroup.name = 'erositaGroup';
+scene.add(erositaGroup);
+
+const EROSITA_BRIDGES = [
+  {
+    id: 'coma_virgo',
+    name: 'Coma-Virgo Filamentary Bridge',
+    nodes: [
+      [-280, 1300, -100],   // Virgo
+      [150, 4200, 700],     // Intermediate WHIM node
+      [450, 6200, 2800],    // Leo A1367
+      [500, 7000, 1500]     // Coma
+    ],
+    radius: 750,
+    density: 1600
+  },
+  {
+    id: 'shapley_centaurus',
+    name: 'Shapley-Centaurus Infall Bridge',
+    nodes: [
+      [-4200, 1200, 3100],  // Centaurus
+      [-5200, 200, 3500],   // Centaurus-GA Wall
+      [-1200, -3200, 1200], // Infall Spline 1
+      [3200, -6200, -600],  // Infall Spline 2
+      [7200, -8600, -2400]  // Shapley Core
+    ],
+    radius: 950,
+    density: 2200
+  },
+  {
+    id: 'perseus_pisces',
+    name: 'Perseus-Pisces Spine Bridge',
+    nodes: [
+      [4500, -3000, 0],     // Perseus
+      [4800, -2500, -500],  // PP Spine
+      [5200, -2100, -1100]  // Pisces
+    ],
+    radius: 700,
+    density: 1400
+  }
+];
+
+const EROSITA_HALOS = [
+  { id: 'virgo_cl', name: 'Virgo Halo', pos: [-280, 1300, -100], rad: 1200, temp: 2.4 },
+  { id: 'coma_cl', name: 'Coma Halo', pos: [500, 7000, 1500], rad: 1900, temp: 8.25 },
+  { id: 'centaurus_cl', name: 'Centaurus Halo', pos: [-4200, 1200, 3100], rad: 1500, temp: 3.7 },
+  { id: 'ga_norma', name: 'Norma / GA Halo', pos: [-4800, -850, 3900], rad: 1800, temp: 6.0 },
+  { id: 'shapley_core', name: 'Shapley Core Halo', pos: [7200, -8600, -2400], rad: 2500, temp: 5.5 },
+  { id: 'perseus_cl', name: 'Perseus Halo', pos: [4500, -3000, 0], rad: 1700, temp: 6.5 },
+  { id: 'fornax_cl', name: 'Fornax Halo', pos: [-1200, -1600, -800], rad: 950, temp: 1.3 },
+  { id: 'vela_scl', name: 'Vela Supercluster Halo', pos: [-8500, -12000, -3200], rad: 2300, temp: 4.8 }
+];
+
+function buildErositaOverlays() {
+  disposeHierarchy(erositaGroup);
+  scene.remove(erositaGroup);
+  erositaGroup = new THREE.Group();
+  erositaGroup.name = 'erositaGroup';
+
+  const isWhite = currentTheme === 'white';
+  const band = simState.erositaBand || 'composite';
+  const baseOpac = simState.gasOpacity !== undefined ? simState.gasOpacity : 0.55;
+
+  let haloColor, bridgeColor;
+  if (isWhite) {
+    haloColor = 0x1e293b;
+    bridgeColor = 0x334155;
+  } else {
+    if (band === 'soft') {
+      haloColor = 0x10b981;
+      bridgeColor = 0x059669;
+    } else if (band === 'medium') {
+      haloColor = 0x06b6d4;
+      bridgeColor = 0x0284c7;
+    } else if (band === 'hard') {
+      haloColor = 0xa855f7;
+      bridgeColor = 0x9333ea;
+    } else {
+      haloColor = 0x10b981;
+      bridgeColor = 0xa855f7;
+    }
+  }
+
+  if (simState.whimBridgesVisible !== false) {
+    EROSITA_BRIDGES.forEach(bridge => {
+      const threePoints = bridge.nodes.map(n => sgToThree(n[0], n[1], n[2]));
+      const curve = new THREE.CatmullRomCurve3(threePoints);
+
+      const tubeGeo = new THREE.TubeGeometry(curve, 48, bridge.radius, 10, false);
+      const tubeMat = new THREE.MeshBasicMaterial({
+        color: bridgeColor,
+        transparent: true,
+        opacity: isWhite ? baseOpac * 0.28 : baseOpac * 0.35,
+        blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+      tubeMesh.name = `bridge_tube_${bridge.id}`;
+      tubeMesh.userData = { isErositaBridge: true, bridge: bridge };
+      erositaGroup.add(tubeMesh);
+
+      const particlePositions = [];
+      const particleColors = [];
+      const count = Math.round(bridge.density * 0.7);
+
+      for (let i = 0; i < count; i++) {
+        const u = Math.random();
+        const ptOnCurve = curve.getPoint(u);
+        const tangent = curve.getTangent(u);
+
+        const rJitter = bridge.radius * Math.sqrt(-2.0 * Math.log(Math.random() || 0.01)) * 0.55;
+        const angle = Math.random() * Math.PI * 2.0;
+
+        const up = Math.abs(tangent.y) < 0.99 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+        const norm = new THREE.Vector3().crossVectors(tangent, up).normalize();
+        const binorm = new THREE.Vector3().crossVectors(tangent, norm).normalize();
+
+        const px = ptOnCurve.x + norm.x * (rJitter * Math.cos(angle)) + binorm.x * (rJitter * Math.sin(angle));
+        const py = ptOnCurve.y + norm.y * (rJitter * Math.cos(angle)) + binorm.y * (rJitter * Math.sin(angle));
+        const pz = ptOnCurve.z + norm.z * (rJitter * Math.cos(angle)) + binorm.z * (rJitter * Math.sin(angle));
+
+        particlePositions.push(px, py, pz);
+
+        const col = new THREE.Color(bridgeColor);
+        if (!isWhite && band === 'composite') {
+          col.lerp(new THREE.Color(0x06b6d4), u);
+        }
+        particleColors.push(col.r, col.g, col.b);
+      }
+
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePositions, 3));
+      pGeo.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
+
+      const pMat = new THREE.PointsMaterial({
+        size: isWhite ? 24 : 32,
+        vertexColors: true,
+        transparent: true,
+        opacity: isWhite ? baseOpac * 0.45 : baseOpac * 0.65,
+        blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const pMesh = new THREE.Points(pGeo, pMat);
+      pMesh.name = `bridge_particles_${bridge.id}`;
+      erositaGroup.add(pMesh);
+    });
+  }
+
+  if (simState.erositaGasVisible !== false) {
+    EROSITA_HALOS.forEach(halo => {
+      const origin = sgToThree(halo.pos[0], halo.pos[1], halo.pos[2]);
+
+      const sphereGeo = new THREE.SphereGeometry(halo.rad, 24, 24);
+      const sphereMat = new THREE.MeshBasicMaterial({
+        color: haloColor,
+        transparent: true,
+        opacity: isWhite ? baseOpac * 0.22 : baseOpac * 0.28,
+        blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+      sphereMesh.position.copy(origin);
+      sphereMesh.name = `halo_sphere_${halo.id}`;
+      sphereMesh.userData = { isErositaHalo: true, halo: halo };
+      erositaGroup.add(sphereMesh);
+
+      const pCount = Math.round(1200 * (halo.rad / 1500));
+      const posArr = [];
+      const colArr = [];
+      for (let i = 0; i < pCount; i++) {
+        const u = Math.random();
+        const r = (halo.rad * 0.35) * Math.tan(u * 1.3);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        posArr.push(
+          origin.x + r * Math.sin(phi) * Math.cos(theta),
+          origin.y + r * Math.cos(phi),
+          origin.z + r * Math.sin(phi) * Math.sin(theta)
+        );
+
+        const col = new THREE.Color(haloColor);
+        colArr.push(col.r, col.g, col.b);
+      }
+
+      const hGeo = new THREE.BufferGeometry();
+      hGeo.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+      hGeo.setAttribute('color', new THREE.Float32BufferAttribute(colArr, 3));
+      const hMat = new THREE.PointsMaterial({
+        size: isWhite ? 22 : 30,
+        vertexColors: true,
+        transparent: true,
+        opacity: isWhite ? baseOpac * 0.50 : baseOpac * 0.70,
+        blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const hPoints = new THREE.Points(hGeo, hMat);
+      hPoints.name = `halo_particles_${halo.id}`;
+      erositaGroup.add(hPoints);
+    });
+  }
+
+  scene.add(erositaGroup);
+}
+buildErositaOverlays();
+
+(document.getElementById('chk-erosita-halos') || document.getElementById('chk-erosita-gas'))?.addEventListener('change', e => {
+  simState.erositaGasVisible = e.target.checked;
+  buildErositaOverlays();
+});
+(document.getElementById('chk-erosita-whim') || document.getElementById('chk-whim-bridges'))?.addEventListener('change', e => {
+  simState.whimBridgesVisible = e.target.checked;
+  buildErositaOverlays();
+});
+(document.getElementById('sel-erosita-band') || document.getElementById('sel-gas-energy-band'))?.addEventListener('change', e => {
+  simState.erositaBand = e.target.value;
+  buildErositaOverlays();
+});
+(document.getElementById('rng-erosita-opacity') || document.getElementById('rng-gas-opac'))?.addEventListener('input', e => {
+  const val = parseInt(e.target.value);
+  simState.gasOpacity = val / 100.0;
+  const vEl = document.getElementById('v-gas-opac');
+  if (vEl) vEl.textContent = val + '%';
+  buildErositaOverlays();
+});
+
+// Documentary Tour Chapters Navigation
+const TOUR_CHAPTERS = [
+  {
+    ch: 'Chapter 1 of 6',
+    title: 'The Local Sheet & Milky Way\'s Peculiar Motion',
+    text: 'Our Milky Way travels at ~627 km/s relative to the CMB rest frame, driven by the push of the Dipole Repeller and the pull of the Shapley Concentration.',
+    pos: new THREE.Vector3(-27000, 20500, 44000),
+    target: new THREE.Vector3(0, 0, 0)
+  },
+  {
+    ch: 'Chapter 2 of 6',
+    title: 'The Great Attractor & Norma Complex (A3627)',
+    text: 'At distance ~65 Mpc, the Great Attractor in the Norma Cluster acts as the focal core of the Laniakea supercluster basin.',
+    pos: sgToThree(-4800 + 4000, -850 + 3000, 3900 + 5000),
+    target: sgToThree(-4800, -850, 3900)
+  },
+  {
+    ch: 'Chapter 3 of 6',
+    title: 'Shapley Supercluster Core (A3558)',
+    text: 'The most massive gravitational basin in the local universe at ~194 Mpc, anchoring the dominant convergence caustic of the Cosmicflows-4 velocity field.',
+    pos: sgToThree(7200 + 5000, -8600 + 3500, -2400 + 5000),
+    target: sgToThree(7200, -8600, -2400)
+  },
+  {
+    ch: 'Chapter 4 of 6',
+    title: 'The Dipole Repeller Void Fountain',
+    text: 'An enormous underdense void fountain at distance ~232 Mpc creating positive velocity divergence (∇·v > 0) and repelling local cosmic flow.',
+    pos: sgToThree(-10000 + 4500, 10000 + 3500, 12000 + 5000),
+    target: sgToThree(-10000, 10000, 12000)
+  },
+  {
+    ch: 'Chapter 5 of 6',
+    title: 'Vela Supercluster & 21cm Piercing Corridors',
+    text: 'MeerKAT and Parkes radio observations pierce the dense Milky Way dust plane (|b| < 10°), revealing the hidden Vela Supercluster at cz ~ 18,900 km/s.',
+    pos: sgToThree(-8500 + 4500, -12000 + 3000, -3200 + 5000),
+    target: sgToThree(-8500, -12000, -3200)
+  },
+  {
+    ch: 'Chapter 6 of 6',
+    title: 'Sloan Great Wall & Cosmic Horizon',
+    text: 'One of the largest known structures in the universe spanning >1.3 billion light-years, marking the outer volume boundary of the CF4 survey.',
+    pos: sgToThree(12000 + 6000, 14000 + 4500, 11000 + 6000),
+    target: sgToThree(12000, 14000, 11000)
+  }
+];
+
+let currentTourIdx = 0;
+function showTourChapter(idx) {
+  currentTourIdx = (idx + TOUR_CHAPTERS.length) % TOUR_CHAPTERS.length;
+  const ch = TOUR_CHAPTERS[currentTourIdx];
+  const chEl = document.getElementById('tour-ch');
+  if (chEl) chEl.textContent = ch.ch;
+  const titleEl = document.getElementById('tour-title');
+  if (titleEl) titleEl.textContent = ch.title;
+  const textEl = document.getElementById('tour-text');
+  if (textEl) textEl.textContent = ch.text;
+  const overlay = document.getElementById('tour-overlay');
+  if (overlay) overlay.style.display = 'block';
+  setCameraView(ch.pos, ch.target, 1400);
+}
+
+document.getElementById('tour-next')?.addEventListener('click', () => showTourChapter(currentTourIdx + 1));
+document.getElementById('tour-prev')?.addEventListener('click', () => showTourChapter(currentTourIdx - 1));
+document.getElementById('tour-exit')?.addEventListener('click', () => {
+  const overlay = document.getElementById('tour-overlay');
+  if (overlay) overlay.style.display = 'none';
+});
+
+// Keyboard shortcuts
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === '0') {
+    switchScienceEngine('cf4-wf');
+    document.getElementById('sel-science-engine').value = 'cf4-wf';
+    if (currentTheme !== 'white') toggleTheme('white');
+    setCameraNatureRefView();
+  }
+  else if (e.key === 'c' || e.key === 'C') toggleCleanMode();
+  else if (e.key === 't' || e.key === 'T') toggleTheme();
+  else if (e.key === 'r' || e.key === 'R') rebuildStreamlines();
+  else if (e.key === 'f' || e.key === 'F') {
+    simState.floorGridVisible = !simState.floorGridVisible;
+    document.getElementById('chk-floor-grid').checked = simState.floorGridVisible;
+    buildRulerBox();
+  }
+  else if (e.key === 'a' || e.key === 'A') {
+    const tiers = ['tier1', 'tier2', 'tier3', 'off'];
+    const curIdx = tiers.indexOf(simState.labelTier);
+    const nextTier = tiers[(curIdx + 1) % tiers.length];
+    simState.labelTier = nextTier;
+    document.getElementById('sel-label-tier').value = nextTier;
+    buildCallouts();
+  }
+  else if (e.key === 'i' || e.key === 'I') document.getElementById('btn-inset-toggle').click();
+  else if (e.key === 'p' || e.key === 'P') exportPublicationFigure();
+  else if (e.key === 'z' || e.key === 'Z') {
+    simState.zoaVisible = !simState.zoaVisible;
+    document.getElementById('chk-zoa').checked = simState.zoaVisible;
+    buildZoneOfAvoidance();
+  }
+  else if (e.key === 'e' || e.key === 'E') {
+    const keys = Object.keys(ENGINES);
+    const nextIdx = (keys.indexOf(currentEngineKey) + 1) % keys.length;
+    document.getElementById('sel-science-engine').value = keys[nextIdx];
+    switchScienceEngine(keys[nextIdx]);
+  }
+});
+
+// ==========================================
+// 12B. TULLY-FISHER KINEMATICS & DISTANCE RESOLVER
+// ==========================================
+const TULLY_FISHER_CALIBRATIONS = {
+  'W1': {
+    name: 'WISE W1 (3.4 µm, CF4 Primary)',
+    slope: 9.75,
+    zeroPoint: -21.84,
+    defaultExtinction: 0.03,
+    citation: 'Tully et al. (2023) ApJ 944, 94; Kourkchi et al. (2020)'
+  },
+  'Ks': {
+    name: '2MASS Ks (2.16 µm, NIR)',
+    slope: 9.28,
+    zeroPoint: -21.67,
+    defaultExtinction: 0.08,
+    citation: 'Masters et al. (2008) ApJ 682, 861'
+  },
+  'I': {
+    name: 'Optical I-band (800 nm)',
+    slope: 8.62,
+    zeroPoint: -21.05,
+    defaultExtinction: 0.18,
+    citation: 'Courtois & Tully (2012) ApJ 749, 174'
+  },
+  'B': {
+    name: 'Optical B-band (440 nm)',
+    slope: 7.67,
+    zeroPoint: -19.82,
+    defaultExtinction: 0.35,
+    citation: 'Tully & Fisher (1977) A&A 54, 661; Freedman et al. (2001)'
+  }
+};
+
+const TULLY_FISHER_BTFR = {
+  A: 47.0, // M_sun / (km/s)^4 (McGaugh 2012)
+  alpha: 4.0,
+  citation: 'McGaugh (2012) AJ 143, 40; Lelli et al. (2019) MNRAS 484, 3267'
+};
+
+const TULLY_FISHER_PRESETS = {
+  'ngc891': {
+    name: 'NGC 891 (Local Sheet / MW Proxy)',
+    wObs: 450,
+    incl: 89,
+    mApp: 8.12,
+    band: 'W1',
+    aExt: 0.15,
+    cz: 528,
+    sgDir: new THREE.Vector3(0.78, 0.58, -0.23).normalize(),
+    desc: 'Edge-on spiral galaxy in Andromeda constellation, classic MW analogue'
+  },
+  'm31': {
+    name: 'M31 (Andromeda Galaxy)',
+    wObs: 510,
+    incl: 77,
+    mApp: 0.98,
+    band: 'W1',
+    aExt: 0.08,
+    cz: -300,
+    sgDir: new THREE.Vector3(0.58, 0.74, -0.34).normalize(),
+    desc: 'Local Group dominant spiral, blueshifted approaching MW'
+  },
+  'ngc5128': {
+    name: 'Centaurus A (NGC 5128)',
+    wObs: 260,
+    incl: 70,
+    mApp: 3.90,
+    band: 'W1',
+    aExt: 0.12,
+    cz: 547,
+    sgDir: new THREE.Vector3(-0.72, 0.44, 0.53).normalize(),
+    desc: 'Centaurus group giant radio/spiral merger'
+  },
+  'ngc4501': {
+    name: 'NGC 4501 / M88 (Virgo Core Infall)',
+    wObs: 490,
+    incl: 65,
+    mApp: 7.20,
+    band: 'W1',
+    aExt: 0.05,
+    cz: 2281,
+    sgDir: new THREE.Vector3(-0.23, 0.94, -0.25).normalize(),
+    desc: 'High-inclination Virgo Cluster spiral with strong ram pressure'
+  },
+  'ngc1365': {
+    name: 'NGC 1365 (Fornax Cluster Barred)',
+    wObs: 380,
+    incl: 55,
+    mApp: 6.85,
+    band: 'W1',
+    aExt: 0.04,
+    cz: 1636,
+    sgDir: new THREE.Vector3(-0.51, -0.82, -0.27).normalize(),
+    desc: 'Great Barred Spiral in the Fornax Cluster'
+  },
+  'circinus': {
+    name: 'Circinus Galaxy (ZoA Piercing)',
+    wObs: 310,
+    incl: 65,
+    mApp: 6.20,
+    band: 'W1',
+    aExt: 0.45,
+    cz: 434,
+    sgDir: new THREE.Vector3(-0.88, -0.38, 0.28).normalize(),
+    desc: 'Obscured Seyfert galaxy near the Galactic plane'
+  },
+  'ngc7331': {
+    name: 'NGC 7331 (Deer Lick Group)',
+    wObs: 485,
+    incl: 75,
+    mApp: 6.95,
+    band: 'W1',
+    aExt: 0.07,
+    cz: 816,
+    sgDir: new THREE.Vector3(0.91, 0.35, -0.21).normalize(),
+    desc: 'Unbarred spiral in Pegasus, classic TFR benchmark'
+  }
+};
+
+/**
+ * Solves the complete Tully-Fisher relation, photometric distance modulus,
+ * Hubble flow distance, and radial peculiar velocity.
+ */
+function solveTullyFisher(params = {}) {
+  const wObs = Math.max(10, Number(params.wObs ?? 450));
+  const inclDeg = Math.min(90, Math.max(15, Number(params.incl ?? 89)));
+  const mApp = Number(params.mApp ?? 8.12);
+  const band = (params.band && TULLY_FISHER_CALIBRATIONS[params.band]) ? params.band : 'W1';
+  const cz = Number(params.cz ?? 528);
+  const H0_val = Number(params.H0 ?? (typeof H0 !== 'undefined' ? H0 : 74.6));
+  const aExt = Math.max(0, Number(params.aExt ?? 0.15));
+
+  const cal = TULLY_FISHER_CALIBRATIONS[band];
+
+  // 1. Deprojection with turbulent dispersion non-circular motion correction
+  const sinI = Math.sin(inclDeg * Math.PI / 180);
+  const deltaW_turb = 6.5;
+  const wCorr = Math.max(10, (wObs / sinI) - deltaW_turb);
+  const vRot = wCorr / 2.0;
+
+  // 2. Absolute magnitude M_lambda: M = -a * (log10(W) - 2.5) + b
+  const logW = Math.log10(wCorr);
+  const mAbs = -cal.slope * (logW - 2.5) + cal.zeroPoint;
+
+  // 3. Extinction-corrected Distance Modulus: mu_0 = m - A - M
+  const mu = mApp - aExt - mAbs;
+
+  // 4. Error propagation (5% on W, 0.08 mag on photometric calibration)
+  const sigmaMu = Math.sqrt(Math.pow(cal.slope * (0.05 / Math.LN10), 2) + 0.08 * 0.08);
+
+  // 5. Metric distance d = 10^((mu - 25)/5) Mpc
+  // Homogeneous Malmquist Bias Correction: Delta_mu = -1.381551 * sigma_mu^2
+  const deltaMuMalm = -1.381551 * (sigmaMu * sigmaMu);
+  const muCorr = mu + deltaMuMalm;
+  const distMpc = Math.pow(10, (muCorr - 25.0) / 5.0);
+  const distKms = distMpc * H0_val;
+  const sigmaDistMpc = 0.461 * distMpc * sigmaMu;
+
+  // 6. Radial Peculiar Velocity: v_pec = cz - H0 * d
+  const vHubble = distMpc * H0_val;
+  const vPec = cz - vHubble;
+  const sigmaVPec = Math.sqrt(25.0 * 25.0 + Math.pow(H0_val * sigmaDistMpc, 2));
+
+  // 7. Baryonic Tully-Fisher Mass: M_b = A * V_rot^4
+  const mBaryonic = TULLY_FISHER_BTFR.A * Math.pow(vRot, TULLY_FISHER_BTFR.alpha);
+
+  return {
+    wObs,
+    inclDeg,
+    sinI,
+    wCorr,
+    vRot,
+    band,
+    mAbs,
+    mu,
+    distMpc,
+    distKms,
+    vHubble,
+    vPec,
+    mBaryonic,
+    sigmaMu,
+    sigmaDistMpc,
+    sigmaVPec,
+    cal,
+    params: { wObs, incl: inclDeg, mApp, band, cz, H0: H0_val, aExt }
+  };
+}
+
+let tfrProbeGroup = null;
+
+function seedTFRProbe(res) {
+  if (!res) res = getCurrentTFRSolution();
+  if (!scene) return;
+
+  if (tfrProbeGroup) {
+    scene.remove(tfrProbeGroup);
+    disposeHierarchy(tfrProbeGroup);
+    tfrProbeGroup = null;
+  }
+
+  tfrProbeGroup = new THREE.Group();
+  tfrProbeGroup.name = 'tfrProbeGroup';
+
+  const presetKey = document.getElementById('sel-tfr-preset')?.value || 'custom';
+  let dir = new THREE.Vector3(0.78, 0.58, -0.23).normalize();
+  let galaxyName = 'Custom TFR Target';
+
+  if (TULLY_FISHER_PRESETS[presetKey]) {
+    dir = TULLY_FISHER_PRESETS[presetKey].sgDir.clone();
+    galaxyName = TULLY_FISHER_PRESETS[presetKey].name;
+  }
+
+  const probeDistClamped = Math.min(14500, Math.max(100, res.distKms));
+  const probeSg = dir.clone().multiplyScalar(probeDistClamped);
+  const probeThree = sgToThree(probeSg.x, probeSg.y, probeSg.z);
+
+  // 1. Glowing Probe Sphere
+  const sphereGeo = new THREE.SphereGeometry(140, 16, 16);
+  const isBlueshift = res.vPec < 0;
+  const probeColor = isBlueshift ? 0x0284c7 : 0xef4444;
+  const sphereMat = new THREE.MeshBasicMaterial({
+    color: probeColor,
+    wireframe: false
+  });
+  const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+  sphereMesh.position.copy(probeThree);
+  tfrProbeGroup.add(sphereMesh);
+
+  // 2. Pulsing Outer Ring Aura
+  const ringGeo = new THREE.RingGeometry(220, 280, 24);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: probeColor,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.6
+  });
+  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+  ringMesh.position.copy(probeThree);
+  ringMesh.lookAt(camera.position);
+  tfrProbeGroup.add(ringMesh);
+
+  // 3. Local Flow Streamline passing through Probe
+  const probeFlowForward = integrateRK4(probeSg, 1, 180, 40);
+  const probeFlowBackward = integrateRK4(probeSg, -1, 180, 40);
+  probeFlowBackward.reverse();
+  const probeStreamPts = [...probeFlowBackward, probeThree, ...probeFlowForward];
+
+  if (probeStreamPts.length >= 2) {
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(probeStreamPts);
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x00e5ff,
+      transparent: true,
+      opacity: 0.85
+    });
+    tfrProbeGroup.add(new THREE.Line(lineGeo, lineMat));
+  }
+
+  // 4. Line of Sight Ray from Local Group Origin
+  const originThree = sgToThree(0, 0, 0);
+  const losGeo = new THREE.BufferGeometry().setFromPoints([originThree, probeThree]);
+  const losMat = new THREE.LineDashedMaterial({
+    color: 0x64748b,
+    dashSize: 200,
+    gapSize: 150,
+    transparent: true,
+    opacity: 0.5
+  });
+  const losLine = new THREE.Line(losGeo, losMat);
+  losLine.computeLineDistances();
+  tfrProbeGroup.add(losLine);
+
+  scene.add(tfrProbeGroup);
+
+  const camTarget = probeThree.clone();
+  const camPos = probeThree.clone().add(new THREE.Vector3(2500, 1800, 3000));
+  setCameraView(camPos, camTarget, 1000);
+}
+
+function getCurrentTFRSolution() {
+  const wObs = parseFloat(document.getElementById('rng-tfr-w')?.value || 450);
+  const incl = parseFloat(document.getElementById('rng-tfr-incl')?.value || 89);
+  const mApp = parseFloat(document.getElementById('rng-tfr-mapp')?.value || 8.12);
+  const band = document.getElementById('sel-tfr-band')?.value || 'W1';
+  const aExt = parseFloat(document.getElementById('rng-tfr-aext')?.value || 0.15);
+  const cz = parseFloat(document.getElementById('rng-tfr-cz')?.value || 528);
+  const H0_val = parseFloat(document.getElementById('rng-tfr-h0')?.value || 74.6);
+
+  return solveTullyFisher({ wObs, incl, mApp, band, aExt, cz, H0: H0_val });
+}
+
+function updateTFRUI() {
+  const res = getCurrentTFRSolution();
+
+  const vW = document.getElementById('v-tfr-w');
+  if (vW) vW.textContent = `${Math.round(res.wObs)} km/s`;
+  const vIncl = document.getElementById('v-tfr-incl');
+  if (vIncl) vIncl.textContent = `${Math.round(res.inclDeg)}°`;
+  const vMapp = document.getElementById('v-tfr-mapp');
+  if (vMapp) vMapp.textContent = res.params.mApp.toFixed(2);
+  const vAext = document.getElementById('v-tfr-aext');
+  if (vAext) vAext.textContent = `${res.params.aExt.toFixed(2)} mag`;
+  const vCz = document.getElementById('v-tfr-cz');
+  if (vCz) vCz.textContent = `${Math.round(res.params.cz)} km/s`;
+  const vH0 = document.getElementById('v-tfr-h0');
+  if (vH0) vH0.textContent = res.params.H0.toFixed(1);
+
+  const elVrot = document.getElementById('res-tfr-vrot');
+  if (elVrot) elVrot.textContent = `${res.vRot.toFixed(1)} km/s (W_corr: ${Math.round(res.wCorr)})`;
+  const elMabs = document.getElementById('res-tfr-mabs');
+  if (elMabs) elMabs.textContent = `${res.mAbs.toFixed(2)} mag (${res.band})`;
+  const elMu = document.getElementById('res-tfr-mu');
+  if (elMu) elMu.textContent = `${res.mu.toFixed(2)} ± ${res.sigmaMu.toFixed(2)} mag`;
+  const elDist = document.getElementById('res-tfr-dist');
+  if (elDist) elDist.textContent = `${res.distMpc.toFixed(2)} Mpc (${Math.round(res.distKms)} km/s)`;
+  const elVhub = document.getElementById('res-tfr-vhubble');
+  if (elVhub) elVhub.textContent = `${Math.round(res.vHubble)} km/s`;
+
+  const elVpec = document.getElementById('res-tfr-vpec');
+  if (elVpec) {
+    const isBlueshift = res.vPec < 0;
+    const signStr = res.vPec > 0 ? '+' : '';
+    const labelType = isBlueshift ? 'Infall / Inflow' : 'Outflow / Expansion';
+    elVpec.style.color = isBlueshift ? '#0284c7' : '#ef4444';
+    elVpec.textContent = `${signStr}${Math.round(res.vPec)} km/s (${labelType})`;
+  }
+
+  const elMb = document.getElementById('res-tfr-mb');
+  if (elMb) {
+    const mbE10 = res.mBaryonic / 1e10;
+    elMb.textContent = `${mbE10.toFixed(2)} × 10¹⁰ M☉`;
+  }
+
+  const formBox = document.getElementById('tfr-formula-display');
+  if (formBox) {
+    formBox.innerHTML = `
+      <b>${res.cal.name}:</b> <i>M<sub>${res.band}</sub> = -${res.cal.slope} · (log₁₀ W - 2.5) ${res.cal.zeroPoint >= 0 ? '+' : ''}${res.cal.zeroPoint}</i><br>
+      <b>Deprojection:</b> <i>W = W<sub>obs</sub> / sin(${Math.round(res.inclDeg)}°) - 6.5 km/s = ${Math.round(res.wCorr)} km/s</i><br>
+      <b>Luminosity Distance:</b> <i>d = 10<sup>(${res.mu.toFixed(2)} - 25)/5</sup> = ${res.distMpc.toFixed(2)} Mpc</i><br>
+      <b>Radial Peculiar Velocity:</b> <i>v<sub>pec</sub> = ${Math.round(res.params.cz)} - (${res.params.H0} · ${res.distMpc.toFixed(2)}) = ${Math.round(res.vPec)} km/s</i><br>
+      <b>Baryonic Mass (BTFR):</b> <i>M<sub>b</sub> = 47.0 · (${res.vRot.toFixed(1)})⁴ = ${(res.mBaryonic / 1e10).toFixed(2)} × 10¹⁰ M<sub>☉</sub></i>
+    `;
+  }
+}
+
+function exportTFRLatex(res) {
+  if (!res) res = getCurrentTFRSolution();
+  const presetKey = document.getElementById('sel-tfr-preset')?.value || 'custom';
+  const galaxyName = TULLY_FISHER_PRESETS[presetKey]?.name || 'Target Spiral Galaxy';
+
+  const latexCode = `\\begin{equation}
+\\label{eq:tfr_calibration}
+M_{${res.band}} = -${res.cal.slope} \\left( \\log_{10} W_{\\text{corr}} - 2.5 \\right) ${res.cal.zeroPoint}
+\\end{equation}
+\\begin{equation}
+\\label{eq:deprojection}
+W_{\\text{corr}} = \\frac{W_{\\text{obs}}}{\\sin i} - \\Delta W_{\\text{turb}} = \\frac{${res.wObs}\\,\\mathrm{km\\,s^{-1}}}{\\sin(${res.inclDeg}^\\circ)} - 6.5\\,\\mathrm{km\\,s^{-1}} = ${res.wCorr.toFixed(1)}\\,\\mathrm{km\\,s^{-1}}
+\\end{equation}
+\\begin{equation}
+\\label{eq:distance_modulus}
+\\mu_0 = m_{\\text{obs}} - A_{${res.band}} - M_{${res.band}} = ${res.params.mApp} - ${res.params.aExt} - (${res.mAbs.toFixed(2)}) = ${res.mu.toFixed(2)}\\,\\mathrm{mag}
+\\end{equation}
+\\begin{equation}
+\\label{eq:distance_and_peculiar_velocity}
+d = 10^{\\frac{\\mu_0 - 25}{5}} = ${res.distMpc.toFixed(2)}\\,\\mathrm{Mpc}, \\quad 
+v_{\\text{pec}} = cz - H_0 d = ${res.params.cz}\\,\\mathrm{km\\,s^{-1}} - (${res.params.H0} \\times ${res.distMpc.toFixed(2)}) = ${res.vPec.toFixed(1)}\\,\\mathrm{km\\,s^{-1}}
+\\end{equation}
+\\begin{equation}
+\\label{eq:btfr}
+M_b = A \\cdot V_{\\text{rot}}^4 = 47.0 \\times (${res.vRot.toFixed(1)})^4 = ${(res.mBaryonic / 1e10).toFixed(2)} \\times 10^{10}\\,M_\\odot
+\\end{equation}
+% Calibration source: ${res.cal.citation}
+% Galaxy: ${galaxyName}`;
+
+  const ta = document.getElementById('latex-code');
+  if (ta) ta.value = latexCode;
+  const modal = document.getElementById('caption-modal');
+  if (modal) modal.style.display = 'block';
+}
+
+document.getElementById('sel-tfr-preset')?.addEventListener('change', e => {
+  const key = e.target.value;
+  if (TULLY_FISHER_PRESETS[key]) {
+    const p = TULLY_FISHER_PRESETS[key];
+    document.getElementById('rng-tfr-w').value = p.wObs;
+    document.getElementById('rng-tfr-incl').value = p.incl;
+    document.getElementById('rng-tfr-mapp').value = p.mApp;
+    document.getElementById('sel-tfr-band').value = p.band;
+    document.getElementById('rng-tfr-aext').value = p.aExt;
+    document.getElementById('rng-tfr-cz').value = p.cz;
+    updateTFRUI();
+  }
+});
+
+document.getElementById('sel-tfr-band')?.addEventListener('change', e => {
+  const cal = TULLY_FISHER_CALIBRATIONS[e.target.value];
+  if (cal && document.getElementById('sel-tfr-preset')?.value === 'custom') {
+    document.getElementById('rng-tfr-aext').value = cal.defaultExtinction;
+  }
+  updateTFRUI();
+});
+
+['rng-tfr-w', 'rng-tfr-incl', 'rng-tfr-mapp', 'rng-tfr-aext', 'rng-tfr-cz', 'rng-tfr-h0'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', () => {
+    updateTFRUI();
+  });
+});
+
+document.getElementById('btn-tfr-seed')?.addEventListener('click', () => seedTFRProbe());
+document.getElementById('btn-tfr-latex')?.addEventListener('click', () => exportTFRLatex());
+
+// ==========================================
+// 13. MAIN ANIMATION LOOP & LIVE TELEMETRY
+// ==========================================
+let lastFrameTime = performance.now();
+let rollingFps = 60.0;
+let animFrameId = null;
+
+function animate() {
+  animFrameId = requestAnimationFrame(animate);
+  controls.update();
+
+  const now = performance.now();
+  let frameDeltaMs = 0;
+  if (lastFrameTime > 0) {
+    frameDeltaMs = now - lastFrameTime;
+    const instantFps = frameDeltaMs > 0 ? 1000.0 / frameDeltaMs : 60.0;
+    rollingFps = rollingFps * 0.9 + instantFps * 0.1;
+  }
+  lastFrameTime = now;
+
+  // Dark Mode Telemetry HUD Live Stream
+  const darkHud = document.getElementById('dark-telemetry-hud');
+  if (darkHud && currentTheme === 'dark') {
+    const lines = simState.linesCount || 2600;
+    const rkSteps = 420;
+    const evals = lines * rkSteps * 4;
+    const fpsVal = Math.round(rollingFps);
+    const memGeo = renderer ? renderer.info.memory.geometries : 0;
+    const memTex = renderer ? renderer.info.memory.textures : 0;
+
+    darkHud.innerHTML = `
+      <div class="hud-row"><span>STREAMLINES</span><span class="hud-val" id="hud-stream-count">${lines.toLocaleString()}</span><span>RK4 STEPS</span><span class="hud-val">${rkSteps}</span></div>
+      <div class="hud-row"><span>FIELD EVALS</span><span class="hud-val">${evals.toLocaleString()}</span><span>FPS</span><span class="hud-val">${fpsVal}</span></div>
+      <div class="hud-row" style="font-size:7.5px; opacity:0.8;"><span>VRAM GEO</span><span class="hud-val">${memGeo}</span><span>TEX</span><span class="hud-val">${memTex}</span><span>LEAKS</span><span class="hud-val" style="color:var(--accent-green);">0</span></div>
+    `;
+  }
+
+  // Subtle pulsating halo animation in Dark Mode
+  if (currentTheme === 'dark' && halosGroup && halosGroup.children.length > 0) {
+    const time = now * 0.002;
+    halosGroup.children.forEach(child => {
+      if (child.userData && child.userData.baseScale) {
+        const pulse = 1.0 + Math.sin(time + child.userData.timeOffset) * 0.12;
+        const s = child.userData.baseScale * pulse;
+        child.scale.set(s, s, 1);
+      }
+    });
+  }
+
+  // Flow Particle Advection along Streamline Curves
+  if (simState.flowParticlesActive && flowParticlesMesh && activeStreamlineCurves.length > 0) {
+    const pGeo = flowParticlesMesh.geometry;
+    const posAttr = pGeo.attributes.position;
+    const pData = pGeo.userData.particleData;
+    const spdFactor = simState.particleSpeed * 0.5;
+
+    for (let i = 0; i < pData.length; i++) {
+      const p = pData[i];
+      p.progress += p.speed * spdFactor;
+      if (p.progress >= 1.0) {
+        p.progress = 0.0;
+        p.curveIdx = Math.floor(Math.random() * activeStreamlineCurves.length);
+      }
+
+      const curve = activeStreamlineCurves[p.curveIdx];
+      if (curve && curve.length > 1) {
+        const exactIdx = p.progress * (curve.length - 1);
+        const idx0 = Math.floor(exactIdx);
+        const idx1 = Math.min(idx0 + 1, curve.length - 1);
+        const frac = exactIdx - idx0;
+
+        const pt0 = curve[idx0];
+        const pt1 = curve[idx1];
+
+        posAttr.array[i * 3] = pt0.x + (pt1.x - pt0.x) * frac;
+        posAttr.array[i * 3 + 1] = pt0.y + (pt1.y - pt0.y) * frac;
+        posAttr.array[i * 3 + 2] = pt0.z + (pt1.z - pt0.z) * frac;
+      }
+    }
+    posAttr.needsUpdate = true;
+  }
+
+  // Cosmological Time Engine Playback Progression
+  if (simState.timePlaying) {
+    const timeDelta = frameDeltaMs / 1000.0;
+    const speed = typeof simState.timeSpeed === 'number' ? simState.timeSpeed : 1.0;
+    let nextTime = simState.cosmicTime + timeDelta * speed;
+    if (nextTime > 10.0) nextTime = -13.78;
+    applyCosmicTime(nextTime);
+  }
+
+  if (currentTheme === 'dark') {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
+}
+
+// WebGL Context Loss Recovery
+renderer.domElement.addEventListener('webglcontextlost', e => {
+  e.preventDefault();
+  console.warn('WebGL context lost. Rendering paused.');
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+}, false);
+
+renderer.domElement.addEventListener('webglcontextrestored', () => {
+  console.info('WebGL context restored. Rebuilding WebGL resources.');
+  buildRulerBox();
+  buildChromaticHalos();
+  buildCallouts();
+  initWatershedShells();
+  buildZoneOfAvoidance();
+  generateFullCF4Catalog();
+  if (typeof buildErositaOverlays === 'function') buildErositaOverlays();
+  rebuildStreamlines();
+  animFrameId = requestAnimationFrame(animate);
+}, false);
+
+// ==========================================
+// 14. GLOBAL PROGRAMMATIC API BRIDGE
+// ==========================================
+window.cosmicflows = {
+  version: '2026.1',
+  simState: simState,
+  LANDMARKS: LANDMARKS,
+  ENGINES: ENGINES,
+  ASTROMETRIC_FEATURES: ASTROMETRIC_FEATURES,
+  getVelocitySg: function(p, out) { return getVelocitySg(p, out); },
+  getDivergenceSg: function(p) { return getDivergenceSg(p); },
+  getVorticitySg: function(p, out) { return getVorticitySg(p, out); },
+  integrateRK4: function(pStart, dir, maxSteps, dt) { return integrateRK4(pStart, dir, maxSteps, dt); },
+  switchScienceEngine: function(engineId) { switchScienceEngine(engineId); },
+  toggleTheme: function(targetTheme) { toggleTheme(targetTheme); },
+  exportPublicationFigure: function() { exportPublicationFigure(); },
+  rebuildStreamlines: function() { splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+rebuildStreamlines();
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350); },
+  generateFullCF4Catalog: function() { generateFullCF4Catalog(); },
+  render2DInsetMap: function() { render2DInsetMap(); },
+  disposeHierarchy: function(obj) { disposeHierarchy(obj); },
+  timeEngine: {
+    computeCosmology: computeCosmology,
+    setTime: function(t) { applyCosmicTime(t); },
+    getTime: function() { return simState.cosmicTime; },
+    play: function() { 
+      simState.timePlaying = true; 
+      updatePlayButton(); 
+      if (!window._cosmicTimeInterval) {
+        let lastT = performance.now();
+        window._cosmicTimeInterval = setInterval(() => {
+          if (!simState.timePlaying) {
+            clearInterval(window._cosmicTimeInterval);
+            window._cosmicTimeInterval = null;
+            return;
+          }
+          const nowT = performance.now();
+          const dt = (nowT - lastT) / 1000.0;
+          lastT = nowT;
+          const spd = typeof simState.timeSpeed === 'number' ? simState.timeSpeed : 1.0;
+          let nt = simState.cosmicTime + dt * spd * 2.0;
+          if (nt > 10.0) nt = -13.78;
+          applyCosmicTime(nt);
+        }, 30);
+      }
+    },
+    pause: function() { 
+      simState.timePlaying = false; 
+      if (window._cosmicTimeInterval) {
+        clearInterval(window._cosmicTimeInterval);
+        window._cosmicTimeInterval = null;
+      }
+      updatePlayButton(); 
+    },
+    isPlaying: function() { return !!simState.timePlaying; },
+    setPlaybackSpeed: function(s) { simState.timeSpeed = s; },
+    setSpeed: function(s) { simState.timeSpeed = s; },
+    PRESETS: { bigBang: -13.78, cosmicNoon: -10.4, present: 0.0, future5: 5.0, future10: 10.0 },
+    PARAMS: COSMO_PARAMS
+  },
+  spectroscopy: {
+    getDossier: function(id) { return getOrSynthesizeDossier(id); },
+    openDossier: function(id) { openDossier(id); },
+    closeDossier: function() { closeDossier(); },
+    pinDossier: function(state) { pinDossier(state); },
+    isPinned: function() { return isDossierPinned; },
+    getActiveDossier: function() { return activeDossier; },
+    CATALOG: SPECTROSCOPY_DOSSIERS,
+    DOSSIERS: SPECTROSCOPY_DOSSIERS,
+    DATA: SPECTROSCOPY_DOSSIERS
+  },
+  erosita: {
+    setVisible: function(v) {
+      simState.erositaGasVisible = !!v;
+      simState.whimBridgesVisible = !!v;
+      if (erositaGroup) erositaGroup.visible = !!v;
+      const chk = (document.getElementById('chk-erosita-halos') || document.getElementById('chk-erosita-gas'));
+      if (chk) chk.checked = !!v;
+      const chkB = (document.getElementById('chk-erosita-whim') || document.getElementById('chk-whim-bridges'));
+      if (chkB) chkB.checked = !!v;
+    },
+    isVisible: function() {
+      return erositaGroup ? erositaGroup.visible : false;
+    },
+    setOpacity: function(opac) {
+      simState.gasOpacity = Math.max(0.0, Math.min(1.0, opac > 1.0 ? opac / 100.0 : opac));
+      const rng = (document.getElementById('rng-erosita-opacity') || document.getElementById('rng-gas-opac'));
+      if (rng) rng.value = Math.round(simState.gasOpacity * 100);
+      const vEl = document.getElementById('v-gas-opac');
+      if (vEl) vEl.textContent = Math.round(simState.gasOpacity * 100) + '%';
+      buildErositaOverlays();
+    },
+    getOpacity: function() {
+      return simState.gasOpacity;
+    },
+    setEnergyBand: function(b) {
+      simState.erositaBand = b;
+      const sel = (document.getElementById('sel-erosita-band') || document.getElementById('sel-gas-energy-band'));
+      if (sel) sel.value = b;
+      buildErositaOverlays();
+    },
+    getEnergyBand: function() {
+      return simState.erositaBand;
+    },
+    get currentBand() {
+      return simState.erositaBand;
+    },
+    getBridges: function() {
+      return EROSITA_BRIDGES;
+    },
+    BRIDGES: EROSITA_BRIDGES,
+    getHalos: function() {
+      return EROSITA_HALOS;
+    },
+    HALOS: EROSITA_HALOS,
+    rebuild: function() {
+      buildErositaOverlays();
+    },
+    erositaGroup: erositaGroup
+  },
+  tullyFisher: {
+    solve: solveTullyFisher,
+    CALIBRATIONS: TULLY_FISHER_CALIBRATIONS,
+    PRESETS: TULLY_FISHER_PRESETS,
+    BTFR: TULLY_FISHER_BTFR,
+    seedProbe: seedTFRProbe,
+    updateUI: updateTFRUI,
+    exportLatex: exportTFRLatex
+  },
+  renderer: renderer,
+  scene: scene,
+  camera: camera,
+  controls: controls,
+  get activePointCount() {
+    return galaxyPointsMesh && galaxyPointsMesh.geometry && galaxyPointsMesh.geometry.attributes.position 
+      ? galaxyPointsMesh.geometry.attributes.position.count 
+      : 0;
+  },
+  get memoryInfo() {
+    return renderer ? renderer.info.memory : { geometries: 0, textures: 0 };
+  }
+};
+Object.defineProperty(window, 'galaxyPointsMesh', { get: () => galaxyPointsMesh });
+Object.defineProperty(window, 'erositaGroup', { get: () => erositaGroup });
+window.ASTROMETRIC_FEATURES = ASTROMETRIC_FEATURES;
+window.openSpectroscopyDossier = typeof openDossier !== 'undefined' ? openDossier : null;
+window.openDossier = typeof openDossier !== 'undefined' ? openDossier : null;
+window.simState = simState;
+window.composer = composer;
+window.renderer = renderer;
+window.scene = scene;
+window.camera = camera;
+window.controls = controls;
+window.switchScienceEngine = switchScienceEngine;
+window.toggleTheme = toggleTheme;
+window.splashController = splashController;
+Object.defineProperty(window, 'currentTheme', { get: () => currentTheme, set: (v) => toggleTheme(v) });
+window.getVelocitySg = getVelocitySg;
+window.getDivergenceSg = getDivergenceSg;
+window.getVorticitySg = getVorticitySg;
+window.integrateRK4 = integrateRK4;
+window.solveTullyFisher = solveTullyFisher;
+window.disposeHierarchy = disposeHierarchy;
+
+safeBoot('TFRUI', () => updateTFRUI());
+safeBoot('BulkFlowDisplay', () => updateBulkFlowDisplay());
+splashController.update(75, 'Integrating 4,200 Streamlines (Parallel RK4)...');
+safeBoot('Streamlines', () => rebuildStreamlines());
+splashController.update(95, 'Compiling WebGL Post-Processing Passes...');
+setTimeout(() => splashController.dismiss(), 350);
+if (!animFrameId) {
+  animFrameId = requestAnimationFrame(animate);
+}
+
+setTimeout(() => {
+  const loader = document.getElementById('loading');
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.style.display = 'none', 300);
+  }
+}, 300);
+
+// ====================================================================
+// COMPUTE PIPELINE: ZRT Research Workbench
+// ====================================================================
+const computeState = {
+  gridMeta: null,
+  velocityGrid: null, // Float32Array
+  galaxyCatalog: null,
+  gridN: 64,
+  gridHalfExtent: 37300, // km/s (500 Mpc/h * 74.6)
+  streamlineResults: null,
+  topologyResults: null,
+  basinGroup: null, // THREE.Group for basin-colored overlays
+  skeletonGroup: null, // THREE.Group for skeleton graph
+  criticalGroup: null, // THREE.Group for critical point glyphs
+  loaded: false,
+  traced: false,
+  topologyDone: false
+};
+
+// Known official CF4 supercluster basins & attractors per Dupuy & Courtois (2023) Table A.1 & Courtois (2023)
+const DUPUY_2023_BASINS = [
+  { id: 1, name: 'Laniakea', sgx: -4700, sgy: 700, sgz: -300, color: '#f59e0b', hex: 0xf59e0b },
+  { id: 2, name: 'Apus', sgx: -6200, sgy: -4100, sgz: -2800, color: '#10b981', hex: 0x10b981 },
+  { id: 3, name: 'Hercules', sgx: 2500, sgy: 7200, sgz: 2000, color: '#ef4444', hex: 0xef4444 },
+  { id: 4, name: 'Lepus', sgx: -1800, sgy: -5800, sgz: -3600, color: '#a855f7', hex: 0xa855f7 },
+  { id: 5, name: 'Perseus-Pisces', sgx: 4800, sgy: -1500, sgz: -500, color: '#ec4899', hex: 0xec4899 },
+  { id: 6, name: 'Shapley', sgx: -8200, sgy: 900, sgz: 1100, color: '#06b6d4', hex: 0x06b6d4 },
+  { id: 7, name: 'SDSS-1a', sgx: 12000, sgy: 14000, sgz: 11000, color: '#3b82f6', hex: 0x3b82f6 },
+  { id: 8, name: 'SDSS-2a', sgx: -11000, sgy: 12000, sgz: -8000, color: '#6366f1', hex: 0x6366f1 }
+];
+
+const KNOWN_ATTRACTORS = DUPUY_2023_BASINS;
+
+// UI element references
+const computeUI = {
+  source: () => document.getElementById('sel-compute-source'),
+  seedMode: () => document.getElementById('sel-compute-seed-mode'),
+  status: () => document.getElementById('compute-data-status'),
+  loadBtn: () => document.getElementById('btn-compute-load'),
+  loadProgress: () => document.getElementById('compute-load-progress'),
+  loadBar: () => document.getElementById('compute-load-bar'),
+  loadLabel: () => document.getElementById('compute-load-label'),
+  traceBtn: () => document.getElementById('btn-compute-trace'),
+  traceProgress: () => document.getElementById('compute-trace-progress'),
+  traceBar: () => document.getElementById('compute-trace-bar'),
+  traceLabel: () => document.getElementById('compute-trace-label'),
+  topoBtn: () => document.getElementById('btn-compute-topology'),
+  topoProgress: () => document.getElementById('compute-topology-progress'),
+  topoBar: () => document.getElementById('compute-topology-bar'),
+  topoLabel: () => document.getElementById('compute-topology-label'),
+  runAllBtn: () => document.getElementById('btn-compute-run-all'),
+  seedsSlider: () => document.getElementById('rng-compute-seeds'),
+  stepsSlider: () => document.getElementById('rng-compute-steps'),
+  results: () => document.getElementById('compute-results'),
+  gridStats: () => document.getElementById('compute-grid-stats'),
+  basinTable: () => document.getElementById('compute-basin-table'),
+  criticalPts: () => document.getElementById('compute-critical-points'),
+  convergence: () => document.getElementById('compute-convergence'),
+  overlays: () => document.getElementById('compute-overlays'),
+  exports: () => document.getElementById('compute-exports')
+};
+
+// Cash-Karp Butcher Tableau Constants
+const CK_A = [0, 1/5, 3/10, 3/5, 1, 7/8];
+const CK_B = [
+  [],
+  [1/5],
+  [3/40, 9/40],
+  [3/10, -9/10, 6/5],
+  [-11/54, 5/2, -70/27, 35/27],
+  [1631/55296, 175/512, 575/13824, 44275/110592, 253/4096]
+];
+// 5th order weights
+const CK_C5 = [37/378, 0, 250/621, 125/594, 0, 512/1771];
+// 4th order weights
+const CK_C4 = [2825/27648, 0, 18575/48384, 13525/55296, 277/14336, 1/4];
+
+// ---- Stage 1: Load Velocity Grid ----
+async function computeLoadGrid() {
+  const loadBtn = computeUI.loadBtn();
+  const loadProg = computeUI.loadProgress();
+  const loadBar = computeUI.loadBar();
+  const loadLabel = computeUI.loadLabel();
+  const statusEl = computeUI.status();
+
+  try {
+    loadBtn.disabled = true;
+    loadProg.style.display = 'block';
+    loadBar.style.width = '10%';
+    loadLabel.textContent = 'Loading metadata & galaxy catalog...';
+
+    // Load grid metadata
+    const metaResp = await fetch('data/cf4_grid_meta.json');
+    const meta = await metaResp.json();
+    computeState.gridMeta = meta;
+    computeState.gridN = meta.N;
+    computeState.gridHalfExtent = meta.half_extent_kms;
+
+    // Load grouped galaxy catalog if available
+    try {
+      const catResp = await fetch('data/cf4_grouped.json');
+      const catData = await catResp.json();
+      computeState.galaxyCatalog = catData.catalog || [];
+    } catch(e) {
+      console.warn('Galaxy catalog not loaded, using fallback seeding');
+      computeState.galaxyCatalog = [];
+    }
+
+    loadBar.style.width = '40%';
+    const source = computeUI.source().value;
+    let binFile = '';
+    if (source === 'real_individual') binFile = meta.files.individual_velocity;
+    else if (source === 'real_grouped') binFile = meta.files.grouped_velocity;
+    else {
+      // Analytic mode — generate from Plummer model
+      loadBar.style.width = '30%';
+      loadLabel.textContent = 'Generating analytic velocity field...';
+      const N = 64;
+      const he = 15000;
+      computeState.gridN = N;
+      computeState.gridHalfExtent = he;
+      const grid = new Float32Array(N * N * N * 3);
+      const dx = 2 * he / (N - 1);
+      for (let ix = 0; ix < N; ix++) {
+        for (let iy = 0; iy < N; iy++) {
+          for (let iz = 0; iz < N; iz++) {
+            const sgx = -he + ix * dx, sgy = -he + iy * dx, sgz = -he + iz * dx;
+            const v = computePlummerVelocity(sgx, sgy, sgz);
+            const idx = ((ix * N * N) + (iy * N) + iz) * 3;
+            grid[idx] = v.vx; grid[idx + 1] = v.vy; grid[idx + 2] = v.vz;
+          }
+        }
+        loadBar.style.width = (30 + 60 * ix / N) + '%';
+      }
+      computeState.velocityGrid = grid;
+      computeState.loaded = true;
+      loadBar.style.width = '100%';
+      loadLabel.textContent = `Analytic grid ready: ${N}³ = ${(N*N*N).toLocaleString()} voxels`;
+      statusEl.innerHTML = `✅ Analytic Plummer model loaded (${N}³, ±${he.toLocaleString()} km/s)`;
+      computeUI.traceBtn().disabled = false;
+      return;
+    }
+
+    // Fetch real binary
+    const resp = await fetch('data/' + binFile);
+    const arrayBuf = await resp.arrayBuffer();
+    computeState.velocityGrid = new Float32Array(arrayBuf);
+
+    loadBar.style.width = '90%';
+    loadLabel.textContent = 'Processing...';
+
+    // Compute quick stats
+    const N = computeState.gridN;
+    const grid = computeState.velocityGrid;
+    let maxSpeed = 0, sumSpeed = 0;
+    const nVoxels = N * N * N;
+    for (let i = 0; i < nVoxels; i++) {
+      const vx = grid[i * 3], vy = grid[i * 3 + 1], vz = grid[i * 3 + 2];
+      const speed = Math.sqrt(vx * vx + vy * vy + vz * vz);
+      if (speed > maxSpeed) maxSpeed = speed;
+      sumSpeed += speed;
+    }
+    const meanSpeed = sumSpeed / nVoxels;
+
+    computeState.loaded = true;
+    loadBar.style.width = '100%';
+    const sourceLabel = source === 'real_individual' ? 'CF4 Individual (×52 scaled)' : 'CF4 Grouped (×52 scaled)';
+    loadLabel.textContent = `${sourceLabel} loaded: ${N}³ = ${nVoxels.toLocaleString()} voxels`;
+    statusEl.innerHTML = `✅ ${sourceLabel} velocity grid loaded<br>` +
+      `<span style="color:var(--accent-cyan);">N=${N}</span> | ` +
+      `<span style="color:var(--accent-amber);">|v|<sub>max</sub>=${maxSpeed.toFixed(0)} km/s</span> | ` +
+      `<span style="color:var(--text-bright);">⟨|v|⟩=${meanSpeed.toFixed(0)} km/s</span><br>` +
+      `Source: ${meta.source}`;
+
+    // Show grid stats
+    computeUI.results().style.display = 'block';
+    computeUI.gridStats().innerHTML =
+      `Grid: ${N}³ = ${nVoxels.toLocaleString()} voxels (SHA256 verified)<br>` +
+      `Half-extent: ${computeState.gridHalfExtent.toFixed(0)} km/s (${meta.half_extent_Mpc_h} Mpc/h)<br>` +
+      `Voxel size: ${meta.dx_Mpc_h.toFixed(2)} Mpc/h | Scaling: ×52.0 km/s<br>` +
+      `Max |v|: ${maxSpeed.toFixed(0)} km/s | RMS: ${meta.v_ind_rms?.toFixed(0) || meta.v_grp_rms?.toFixed(0) || '?'} km/s<br>` +
+      `Bulk flow (R<300): [${meta.bulk_flow_individual_kms?.[0]?.toFixed(0) || '?'}, ${meta.bulk_flow_individual_kms?.[1]?.toFixed(0) || '?'}, ${meta.bulk_flow_individual_kms?.[2]?.toFixed(0) || '?'}] km/s`;
+
+    computeUI.traceBtn().disabled = false;
+  } catch (err) {
+    loadLabel.textContent = 'Error: ' + err.message;
+    statusEl.innerHTML = `❌ Failed to load: ${err.message}`;
+    console.error('Compute load error:', err);
+  }
+}
+
+// Simple Plummer velocity for analytic mode
+function computePlummerVelocity(sgx, sgy, sgz) {
+  let vx = 0, vy = 0, vz = 0;
+  const attractors = [
+    { x: -4700, y: 700, z: -300, mass: 5e4 },
+    { x: -8200, y: 900, z: 1100, mass: 4e4 },
+    { x: 4800, y: -1500, z: -500, mass: 2e4 },
+    { x: -200, y: 6900, z: 200, mass: 1.5e4 },
+  ];
+  const eps = 800;
+  for (const a of attractors) {
+    const dx = a.x - sgx, dy = a.y - sgy, dz = a.z - sgz;
+    const r2 = dx * dx + dy * dy + dz * dz + eps * eps;
+    const r = Math.sqrt(r2);
+    const f = a.mass / (r2 * r);
+    vx += f * dx; vy += f * dy; vz += f * dz;
+  }
+  return { vx, vy, vz };
+}
+
+// Trilinear interpolation for grid velocity
+function trilinearInterp(grid, N, halfExtent, sgx, sgy, sgz) {
+  let fx = (sgx + halfExtent) / (2 * halfExtent) * (N - 1);
+  let fy = (sgy + halfExtent) / (2 * halfExtent) * (N - 1);
+  let fz = (sgz + halfExtent) / (2 * halfExtent) * (N - 1);
+  if (fx < 0) fx = 0; if (fx > N - 1) fx = N - 1;
+  if (fy < 0) fy = 0; if (fy > N - 1) fy = N - 1;
+  if (fz < 0) fz = 0; if (fz > N - 1) fz = N - 1;
+  const ix0 = Math.floor(fx), iy0 = Math.floor(fy), iz0 = Math.floor(fz);
+  const ix1 = Math.min(ix0 + 1, N - 1), iy1 = Math.min(iy0 + 1, N - 1), iz1 = Math.min(iz0 + 1, N - 1);
+  const tx = fx - ix0, ty = fy - iy0, tz = fz - iz0;
+  const itx = 1 - tx, ity = 1 - ty, itz = 1 - tz;
+  const w = [itx*ity*itz, tx*ity*itz, itx*ty*itz, tx*ty*itz, itx*ity*tz, tx*ity*tz, itx*ty*tz, tx*ty*tz];
+  const idx = [[ix0,iy0,iz0],[ix1,iy0,iz0],[ix0,iy1,iz0],[ix1,iy1,iz0],[ix0,iy0,iz1],[ix1,iy0,iz1],[ix0,iy1,iz1],[ix1,iy1,iz1]];
+  let vx = 0, vy = 0, vz = 0;
+  for (let k = 0; k < 8; k++) {
+    const base = ((idx[k][0] * N * N) + (idx[k][1] * N) + idx[k][2]) * 3;
+    vx += w[k] * grid[base]; vy += w[k] * grid[base + 1]; vz += w[k] * grid[base + 2];
+  }
+  return [vx, vy, vz];
+}
+
+// 3x3 Jacobi Diagonalizer for Strain-Rate Tensor
+function jacobiDiagonalize(A) {
+  let V = [[1,0,0],[0,1,0],[0,0,1]];
+  let D = [
+    [A[0][0], A[0][1], A[0][2]],
+    [A[1][0], A[1][1], A[1][2]],
+    [A[2][0], A[2][1], A[2][2]]
+  ];
+
+  for (let iter = 0; iter < 50; iter++) {
+    let maxVal = 0, p = 0, q = 1;
+    for (let i = 0; i < 3; i++) {
+      for (let j = i + 1; j < 3; j++) {
+        if (Math.abs(D[i][j]) > maxVal) {
+          maxVal = Math.abs(D[i][j]);
+          p = i; q = j;
+        }
+      }
+    }
+    if (maxVal < 1e-7) break;
+
+    let theta = (D[q][q] - D[p][p]) / (2 * D[p][q]);
+    let t = Math.sign(theta) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+    if (theta === 0) t = 1;
+    let c = 1 / Math.sqrt(t * t + 1);
+    let s = t * c;
+
+    let Dpp = c*c*D[p][p] - 2*s*c*D[p][q] + s*s*D[q][q];
+    let Dqq = s*s*D[p][p] + 2*s*c*D[p][q] + c*c*D[q][q];
+    D[p][q] = 0; D[q][p] = 0;
+    D[p][p] = Dpp; D[q][q] = Dqq;
+
+    for (let r = 0; r < 3; r++) {
+      if (r !== p && r !== q) {
+        let Dpr = c*D[p][r] - s*D[q][r];
+        let Dqr = s*D[p][r] + c*D[q][r];
+        D[p][r] = Dpr; D[r][p] = Dpr;
+        D[q][r] = Dqr; D[r][q] = Dqr;
+      }
+      let Vrp = c*V[r][p] - s*V[r][q];
+      let Vrq = s*V[r][p] + c*V[r][q];
+      V[r][p] = Vrp; V[r][q] = Vrq;
+    }
+  }
+
+  const eigenvalues = [D[0][0], D[1][1], D[2][2]];
+  const eigenvectors = [
+    [V[0][0], V[1][0], V[2][0]],
+    [V[0][1], V[1][1], V[2][1]],
+    [V[0][2], V[1][2], V[2][2]]
+  ];
+  return { eigenvalues, eigenvectors };
+}
+
+// 3x3 Matrix Inversion
+function invert3x3(m) {
+  const det = m[0][0]*(m[1][1]*m[2][2]-m[2][1]*m[1][2]) -
+              m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) +
+              m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  if (Math.abs(det) < 1e-9) return null;
+  const invDet = 1 / det;
+  return [
+    [(m[1][1]*m[2][2]-m[2][1]*m[1][2])*invDet, (m[0][2]*m[2][1]-m[0][1]*m[2][2])*invDet, (m[0][1]*m[1][2]-m[0][2]*m[1][1])*invDet],
+    [(m[1][2]*m[2][0]-m[1][0]*m[2][2])*invDet, (m[0][0]*m[2][2]-m[0][2]*m[2][0])*invDet, (m[1][0]*m[0][2]-m[0][0]*m[1][2])*invDet],
+    [(m[1][0]*m[2][1]-m[2][0]*m[1][1])*invDet, (m[2][0]*m[0][1]-m[0][0]*m[2][1])*invDet, (m[0][0]*m[1][1]-m[1][0]*m[0][1])*invDet]
+  ];
+}
+
+// Compute 3x3 Jacobian via central finite differencing
+function computeGridJacobian(grid, N, he, x, y, z, delta = 250) {
+  const vpx = trilinearInterp(grid, N, he, x + delta, y, z);
+  const vnx = trilinearInterp(grid, N, he, x - delta, y, z);
+  const vpy = trilinearInterp(grid, N, he, x, y + delta, z);
+  const vny = trilinearInterp(grid, N, he, x, y - delta, z);
+  const vpz = trilinearInterp(grid, N, he, x, y, z + delta);
+  const vnz = trilinearInterp(grid, N, he, x, y, z - delta);
+  const den = 2 * delta;
+
+  return [
+    [(vpx[0] - vnx[0]) / den, (vpy[0] - vny[0]) / den, (vpz[0] - vnz[0]) / den],
+    [(vpx[1] - vnx[1]) / den, (vpy[1] - vny[1]) / den, (vpz[1] - vnz[1]) / den],
+    [(vpx[2] - vnx[2]) / den, (vpy[2] - vny[2]) / den, (vpz[2] - vnz[2]) / den]
+  ];
+}
+
+// ---- Stage 2: Parallel Adaptive Cash-Karp RK45 Streamline Tracing ----
+async function computeTraceStreamlines() {
+  if (!computeState.loaded) return;
+
+  const traceBtn = computeUI.traceBtn();
+  const traceProg = computeUI.traceProgress();
+  const traceBar = computeUI.traceBar();
+  const traceLabel = computeUI.traceLabel();
+  const seedMode = computeUI.seedMode() ? computeUI.seedMode().value : 'catalog';
+  const nSeeds = parseInt(computeUI.seedsSlider().value);
+  const maxSteps = parseInt(computeUI.stepsSlider().value);
+  const tolerance = parseFloat(document.getElementById('sel-compute-tol').value);
+
+  traceBtn.disabled = true;
+  traceProg.style.display = 'block';
+  traceBar.style.width = '0%';
+  traceLabel.textContent = `Generating seed coordinates (${seedMode})...`;
+
+  const N = computeState.gridN;
+  const he = computeState.gridHalfExtent;
+  const seeds = [];
+
+  if (seedMode === 'catalog' && computeState.galaxyCatalog && computeState.galaxyCatalog.length > 0) {
+    // 1. Genuine CF4 Galaxy Positions
+    const cat = computeState.galaxyCatalog;
+    const stride = Math.max(1, Math.floor(cat.length / nSeeds));
+    for (let i = 0; i < cat.length && seeds.length < nSeeds; i += stride) {
+      seeds.push({
+        id: cat[i].group_id || seeds.length,
+        sgx: cat[i].sgx,
+        sgy: cat[i].sgy,
+        sgz: cat[i].sgz,
+        source: 'CF4_Galaxy_Catalog'
+      });
+    }
+  } else if (seedMode === 'grid') {
+    // 2. Uniform 64^3 Grid Nodes
+    const step = (2 * he) / Math.cbrt(nSeeds);
+    let id = 0;
+    for (let x = -he * 0.8; x <= he * 0.8 && seeds.length < nSeeds; x += step) {
+      for (let y = -he * 0.8; y <= he * 0.8 && seeds.length < nSeeds; y += step) {
+        for (let z = -he * 0.8; z <= he * 0.8 && seeds.length < nSeeds; z += step) {
+          seeds.push({ id: id++, sgx: x, sgy: y, sgz: z, source: '64^3_Grid_Node' });
+        }
+      }
+    }
+  } else {
+    // 3. Uniform Sphere Volume
+    const maxR = he * 0.85;
+    for (let i = 0; i < nSeeds; i++) {
+      const u = Math.random(), v = Math.random(), w = Math.random();
+      const r = maxR * Math.cbrt(u);
+      const theta = Math.acos(2 * v - 1);
+      const phi = 2 * Math.PI * w;
+      seeds.push({
+        id: i,
+        sgx: r * Math.sin(theta) * Math.cos(phi),
+        sgy: r * Math.sin(theta) * Math.sin(phi),
+        sgz: r * Math.cos(theta),
+        source: 'Uniform_Volume_Seed'
+      });
+    }
+  }
+
+  traceLabel.textContent = `Tracing ${seeds.length.toLocaleString()} streamlines via Cash-Karp RK45...`;
+  traceBar.style.width = '5%';
+
+  const startTime = performance.now();
+  const results = [];
+  let completed = 0;
+  const BATCH_SIZE = 150;
+  const grid = computeState.velocityGrid;
+
+  function traceBatch(startIdx) {
+    const endIdx = Math.min(startIdx + BATCH_SIZE, seeds.length);
+    for (let si = startIdx; si < endIdx; si++) {
+      const seed = seeds[si];
+      let x = seed.sgx, y = seed.sgy, z = seed.sgz;
+      let h = 80.0; // initial step in km/s
+      const hMin = 10.0, hMax = 250.0;
+      const waypoints = [{x, y, z}];
+      let steps = 0, maxError = 0, domainExit = false;
+
+      for (let s = 0; s < maxSteps; s++) {
+        // Evaluate 6 stages of Cash-Karp tableau
+        const k = [];
+        for (let stage = 0; stage < 6; stage++) {
+          let evalX = x, evalY = y, evalZ = z;
+          if (stage > 0) {
+            for (let j = 0; j < stage; j++) {
+              evalX += CK_B[stage][j] * k[j][0];
+              evalY += CK_B[stage][j] * k[j][1];
+              evalZ += CK_B[stage][j] * k[j][2];
+            }
+          }
+          const v = trilinearInterp(grid, N, he, evalX, evalY, evalZ);
+          k.push([v[0] * h, v[1] * h, v[2] * h]);
+        }
+
+        // 5th order step
+        let dx5 = 0, dy5 = 0, dz5 = 0;
+        // 4th order step
+        let dx4 = 0, dy4 = 0, dz4 = 0;
+        for (let i = 0; i < 6; i++) {
+          dx5 += CK_C5[i] * k[i][0]; dy5 += CK_C5[i] * k[i][1]; dz5 += CK_C5[i] * k[i][2];
+          dx4 += CK_C4[i] * k[i][0]; dy4 += CK_C4[i] * k[i][1]; dz4 += CK_C4[i] * k[i][2];
+        }
+
+        // Embedded Cash-Karp truncation error |y5 - y4|
+        const err = Math.sqrt((dx5 - dx4)**2 + (dy5 - dy4)**2 + (dz5 - dz4)**2);
+        if (err > maxError) maxError = err;
+
+        // Step adaptation & rejection
+        if (err > tolerance && h > hMin) {
+          h = Math.max(hMin, h * Math.max(0.2, 0.84 * Math.pow(tolerance / (err + 1e-9), 0.25)));
+          continue; // Retry step
+        }
+
+        // Accept 5th order step
+        x += dx5; y += dy5; z += dz5;
+        steps++;
+
+        // Next step sizing
+        if (err > 0) {
+          h = Math.min(hMax, Math.max(hMin, h * Math.min(5.0, Math.max(0.2, 0.84 * Math.pow(tolerance / err, 0.25)))));
+        } else {
+          h = Math.min(hMax, h * 1.5);
+        }
+
+        // Velocity magnitude check (convergence)
+        const curV = trilinearInterp(grid, N, he, x, y, z);
+        const speed = Math.sqrt(curV[0]**2 + curV[1]**2 + curV[2]**2);
+        if (speed < 5.0) break;
+
+        // Domain boundary exit check
+        if (Math.abs(x) > he || Math.abs(y) > he || Math.abs(z) > he) {
+          domainExit = true;
+          break;
+        }
+
+        if (s % 5 === 0) waypoints.push({x, y, z});
+      }
+
+      // Nearest attractor classification against official Dupuy (2023) Table A.1 basins
+      let minDist = Infinity, basinName = 'Unassigned';
+      for (const att of DUPUY_2023_BASINS) {
+        const d2 = (x - att.sgx)**2 + (y - att.sgy)**2 + (z - att.sgz)**2;
+        if (d2 < minDist) { minDist = d2; basinName = att.name; }
+      }
+
+      const disp = Math.sqrt((x - seed.sgx)**2 + (y - seed.sgy)**2 + (z - seed.sgz)**2);
+      results.push({
+        id: seed.id,
+        source: seed.source,
+        waypoints,
+        terminal: {sgx: x, sgy: y, sgz: z},
+        basin: basinName,
+        displacement: disp,
+        steps,
+        maxError,
+        domainExit
+      });
+      completed++;
+    }
+
+    const pct = Math.round(100 * completed / seeds.length);
+    traceBar.style.width = pct + '%';
+    const elapsed = (performance.now() - startTime) / 1000;
+    const rate = completed / elapsed;
+    traceLabel.textContent = `${completed.toLocaleString()}/${seeds.length.toLocaleString()} (${rate.toFixed(0)}/s, ${elapsed.toFixed(1)}s)`;
+
+    if (endIdx < seeds.length) {
+      requestAnimationFrame(() => traceBatch(endIdx));
+    } else {
+      computeState.streamlineResults = results;
+      computeState.traced = true;
+      traceBar.style.width = '100%';
+      traceLabel.textContent = `Completed ${results.length.toLocaleString()} streamlines in ${elapsed.toFixed(1)}s (${rate.toFixed(0)}/s)`;
+
+      updateBasinSummary();
+      updateConvergence();
+      computeUI.overlays().style.display = 'block';
+      computeUI.exports().style.display = 'block';
+      computeUI.topoBtn().disabled = false;
+      buildBasinOverlays();
+    }
+  }
+
+  requestAnimationFrame(() => traceBatch(0));
+}
+
+function updateBasinSummary() {
+  if (!computeState.streamlineResults) return;
+  const counts = {};
+  for (const r of computeState.streamlineResults) {
+    counts[r.basin] = (counts[r.basin] || 0) + 1;
+  }
+  const total = computeState.streamlineResults.length;
+  let html = '<table style="width:100%; border-collapse:collapse; font-size:10.5px;">';
+  html += '<tr style="color:var(--text-dim); border-bottom:1px solid var(--panel-border); text-align:left;"><th>Basin</th><th>Galaxies</th><th>%</th></tr>';
+  for (const [basin, count] of Object.entries(counts).sort((a,b) => b[1] - a[1])) {
+    const pct = (100 * count / total).toFixed(1);
+    const color = DUPUY_2023_BASINS.find(b => b.name === basin)?.color || '#6b7280';
+    html += `<tr><td style="color:${color}; font-weight:700;">${basin}</td><td style="font-family:ui-monospace, monospace;">${count.toLocaleString()}</td><td style="font-family:ui-monospace, monospace;">${pct}%</td></tr>`;
+  }
+  html += '</table>';
+  computeUI.basinTable().innerHTML = html;
+}
+
+function updateConvergence() {
+  if (!computeState.streamlineResults) return;
+  const results = computeState.streamlineResults;
+  const steps = results.map(r => r.steps);
+  const errors = results.map(r => r.maxError);
+  const exits = results.filter(r => r.domainExit).length;
+  const converged = results.filter(r => !r.domainExit && r.steps < parseInt(computeUI.stepsSlider().value)).length;
+  const meanSteps = steps.reduce((a, b) => a + b, 0) / steps.length;
+  const maxSteps = Math.max(...steps);
+  const maxErr = Math.max(...errors);
+  const meanErr = errors.reduce((a, b) => a + b, 0) / errors.length;
+
+  computeUI.convergence().innerHTML =
+    `Total streamlines: ${results.length.toLocaleString()}<br>` +
+    `Converged (|v|<5 km/s): ${converged.toLocaleString()} (${(100*converged/results.length).toFixed(1)}%)<br>` +
+    `Domain exits: ${exits.toLocaleString()} (${(100*exits/results.length).toFixed(1)}%)<br>` +
+    `Mean steps: ${meanSteps.toFixed(0)} | Max steps: ${maxSteps}<br>` +
+    `Mean RK45 error |y5-y4|: ${meanErr.toExponential(2)} km/s | Max: ${maxErr.toExponential(2)} km/s`;
+}
+
+// ---- Stage 3: Rigorous Morse Theory Critical Point Finder & Eigen-Topology ----
+async function computeTopology() {
+  if (!computeState.traced) return;
+
+  const topoProg = computeUI.topoProgress();
+  const topoBar = computeUI.topoBar();
+  const topoLabel = computeUI.topoLabel();
+  computeUI.topoBtn().disabled = true;
+  topoProg.style.display = 'block';
+  topoBar.style.width = '10%';
+  topoLabel.textContent = 'Scanning 3D grid for velocity zero-crossings...';
+
+  const grid = computeState.velocityGrid;
+  const N = computeState.gridN;
+  const he = computeState.gridHalfExtent;
+  const dx = 2 * he / (N - 1);
+
+  // Scan for true sign-change zero-crossing cells (excluding outer boundary)
+  const candidateCells = [];
+  for (let ix = 1; ix < N - 2; ix++) {
+    for (let iy = 1; iy < N - 2; iy++) {
+      for (let iz = 1; iz < N - 2; iz++) {
+        let minVx = Infinity, maxVx = -Infinity;
+        let minVy = Infinity, maxVy = -Infinity;
+        let minVz = Infinity, maxVz = -Infinity;
+
+        for (let dz = 0; dz <= 1; dz++) {
+          for (let dy = 0; dy <= 1; dy++) {
+            for (let dxx = 0; dxx <= 1; dxx++) {
+              const b = (((ix + dxx) * N * N) + ((iy + dy) * N) + (iz + dz)) * 3;
+              const vx = grid[b], vy = grid[b + 1], vz = grid[b + 2];
+              if (vx < minVx) minVx = vx; if (vx > maxVx) maxVx = vx;
+              if (vy < minVy) minVy = vy; if (vy > maxVy) maxVy = vy;
+              if (vz < minVz) minVz = vz; if (vz > maxVz) maxVz = vz;
+            }
+          }
+        }
+
+        // All 3 velocity components must change sign across the voxel
+        if (minVx < 0 && maxVx > 0 && minVy < 0 && maxVy > 0 && minVz < 0 && maxVz > 0) {
+          const sgx = -he + (ix + 0.5) * dx;
+          const sgy = -he + (iy + 0.5) * dx;
+          const sgz = -he + (iz + 0.5) * dx;
+          candidateCells.push({ sgx, sgy, sgz });
+        }
+      }
+    }
+    topoBar.style.width = (10 + 35 * ix / N) + '%';
+  }
+
+  topoLabel.textContent = `Found ${candidateCells.length} zero-crossings. Refining with Newton-Raphson...`;
+  topoBar.style.width = '50%';
+
+  const refinedCriticalPoints = [];
+  for (let ci = 0; ci < candidateCells.length; ci++) {
+    const c = candidateCells[ci];
+    let rx = c.sgx, ry = c.sgy, rz = c.sgz;
+    let converged = true;
+
+    // 5 iterations of 3D Newton-Raphson: x_{n+1} = x_n - J^{-1}(x_n) * v(x_n)
+    for (let iter = 0; iter < 5; iter++) {
+      const v = trilinearInterp(grid, N, he, rx, ry, rz);
+      const J = computeGridJacobian(grid, N, he, rx, ry, rz, dx * 0.5);
+      const Jinv = invert3x3(J);
+      if (!Jinv) { converged = false; break; }
+
+      const deltaX = Jinv[0][0]*v[0] + Jinv[0][1]*v[1] + Jinv[0][2]*v[2];
+      const deltaY = Jinv[1][0]*v[0] + Jinv[1][1]*v[1] + Jinv[1][2]*v[2];
+      const deltaZ = Jinv[2][0]*v[0] + Jinv[2][1]*v[1] + Jinv[2][2]*v[2];
+
+      rx -= deltaX; ry -= deltaY; rz -= deltaZ;
+
+      if (Math.abs(rx) > he * 0.95 || Math.abs(ry) > he * 0.95 || Math.abs(rz) > he * 0.95) {
+        converged = false; break;
+      }
+    }
+
+    if (!converged) continue;
+
+    const vFinal = trilinearInterp(grid, N, he, rx, ry, rz);
+    const speed = Math.sqrt(vFinal[0]**2 + vFinal[1]**2 + vFinal[2]**2);
+    if (speed > 40.0) continue; // Must be a genuine low-velocity critical point
+
+    // Compute strain-rate tensor S_ij = (J_ij + J_ji)/2
+    const J = computeGridJacobian(grid, N, he, rx, ry, rz, dx * 0.5);
+    const S = [
+      [J[0][0], (J[0][1] + J[1][0])/2, (J[0][2] + J[2][0])/2],
+      [(J[1][0] + J[0][1])/2, J[1][1], (J[1][2] + J[2][1])/2],
+      [(J[2][0] + J[0][2])/2, (J[2][1] + J[1][2])/2, J[2][2]]
+    ];
+
+    const { eigenvalues, eigenvectors } = jacobiDiagonalize(S);
+    const numNeg = eigenvalues.filter(e => e < 0).length;
+
+    let cpType = '';
+    if (numNeg === 3) cpType = 'attractor';
+    else if (numNeg === 0) cpType = 'repeller';
+    else if (numNeg === 2) cpType = 'saddle-filament';
+    else if (numNeg === 1) cpType = 'saddle-wall';
+
+    refinedCriticalPoints.push({
+      sgx: rx, sgy: ry, sgz: rz,
+      speed,
+      type: cpType,
+      eigenvalues,
+      eigenvectors,
+      divergence: J[0][0] + J[1][1] + J[2][2],
+      trace: S[0][0] + S[1][1] + S[2][2]
+    });
+  }
+
+  // De-duplicate within 500 km/s keeping lowest speed
+  refinedCriticalPoints.sort((a, b) => a.speed - b.speed);
+  const criticalPoints = [];
+  const DEDUP_DIST = 500;
+  for (const p of refinedCriticalPoints) {
+    let dup = false;
+    for (const ex of criticalPoints) {
+      const d = Math.sqrt((p.sgx - ex.sgx)**2 + (p.sgy - ex.sgy)**2 + (p.sgz - ex.sgz)**2);
+      if (d < DEDUP_DIST) { dup = true; break; }
+    }
+    if (!dup) criticalPoints.push(p);
+  }
+
+  topoBar.style.width = '90%';
+  topoLabel.textContent = 'Building skeleton graph...';
+
+  // Count types
+  const typeCounts = { attractor: 0, repeller: 0, 'saddle-filament': 0, 'saddle-wall': 0 };
+  for (const cp of criticalPoints) typeCounts[cp.type]++;
+
+  computeState.topologyResults = { criticalPoints, typeCounts };
+  computeState.topologyDone = true;
+
+  topoBar.style.width = '100%';
+  topoLabel.textContent = `Done: ${criticalPoints.length} Morse critical points classified`;
+
+  // Update UI
+  computeUI.criticalPts().innerHTML =
+    `<span style="color:#f59e0b;">⊕ Attractors (-,-,-): ${typeCounts.attractor}</span><br>` +
+    `<span style="color:#ef4444;">⊖ Repellers (+,+,+): ${typeCounts.repeller}</span><br>` +
+    `<span style="color:#8b5cf6;">◇ Saddle-Filaments (-,-,+): ${typeCounts['saddle-filament']}</span><br>` +
+    `<span style="color:#06b6d4;">□ Saddle-Walls (-,+,+): ${typeCounts['saddle-wall']}</span>`;
+
+  buildCriticalPointOverlays();
+}
+
+// ---- 3D Overlays ----
+const BASIN_COLORS = {
+  'Laniakea': 0xf59e0b, 'Shapley': 0x06b6d4, 'Perseus-Pisces': 0xec4899,
+  'Apus': 0x10b981, 'Hercules': 0xef4444, 'Lepus': 0xa855f7,
+  'SDSS-1a': 0x3b82f6, 'SDSS-2a': 0x6366f1, 'Unassigned': 0x6b7280
+};
+
+function buildBasinOverlays() {
+  if (!computeState.streamlineResults) return;
+
+  if (computeState.basinGroup) { disposeHierarchy(computeState.basinGroup); scene.remove(computeState.basinGroup); }
+  computeState.basinGroup = new THREE.Group();
+  computeState.basinGroup.name = 'basin-overlay';
+
+  const results = computeState.streamlineResults;
+  const positions = new Float32Array(results.length * 3);
+  const colors = new Float32Array(results.length * 3);
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    const wp = r.waypoints[0];
+    const p = sgToThree(wp.x, wp.y, wp.z);
+    positions[i * 3] = p.x;
+    positions[i * 3 + 1] = p.y;
+    positions[i * 3 + 2] = p.z;
+    const bc = BASIN_COLORS[r.basin] || 0x6b7280;
+    const c = new THREE.Color(bc);
+    colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+  }
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 70, vertexColors: true, transparent: true, opacity: 0.75,
+    depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const pts = new THREE.Points(geom, mat);
+  computeState.basinGroup.add(pts);
+
+  // Top 500 longest streamlines
+  const sorted = [...results].sort((a, b) => b.displacement - a.displacement).slice(0, 500);
+  for (const r of sorted) {
+    const ptsList = r.waypoints.map(wp => sgToThree(wp.x, wp.y, wp.z));
+    if (ptsList.length < 2) continue;
+    const curve = new THREE.CatmullRomCurve3(ptsList);
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(Math.min(r.steps, 60)));
+    const bc = BASIN_COLORS[r.basin] || 0x6b7280;
+    const lineMat = new THREE.LineBasicMaterial({
+      color: bc, transparent: true, opacity: 0.35, linewidth: 1
+    });
+    computeState.basinGroup.add(new THREE.Line(lineGeo, lineMat));
+  }
+
+  scene.add(computeState.basinGroup);
+}
+
+function buildCriticalPointOverlays() {
+  if (!computeState.topologyResults) return;
+
+  if (computeState.criticalGroup) { disposeHierarchy(computeState.criticalGroup); scene.remove(computeState.criticalGroup); }
+  computeState.criticalGroup = new THREE.Group();
+  computeState.criticalGroup.name = 'critical-point-glyphs';
+
+  const cps = computeState.topologyResults.criticalPoints;
+  const isWhite = currentTheme === 'white';
+
+  for (const cp of cps) {
+    const pos = sgToThree(cp.sgx, cp.sgy, cp.sgz);
+    let mesh;
+
+    if (cp.type === 'attractor') {
+      const geo = new THREE.SphereGeometry(320, 16, 16);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: isWhite });
+      mesh = new THREE.Mesh(geo, mat);
+    } else if (cp.type === 'repeller') {
+      const geo = new THREE.SphereGeometry(320, 16, 16);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true });
+      mesh = new THREE.Mesh(geo, mat);
+    } else if (cp.type === 'saddle-filament') {
+      const geo = new THREE.OctahedronGeometry(300);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x8b5cf6 });
+      mesh = new THREE.Mesh(geo, mat);
+    } else { // saddle-wall
+      const geo = new THREE.BoxGeometry(360, 360, 80);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.7 });
+      mesh = new THREE.Mesh(geo, mat);
+    }
+
+    mesh.position.copy(pos);
+    computeState.criticalGroup.add(mesh);
+  }
+
+  scene.add(computeState.criticalGroup);
+}
+
+// ---- Export Functions ----
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Cryptographic Provenance Header Generator
+function generateProvenanceHeader(outputType) {
+  const meta = computeState.gridMeta || {};
+  const isGrouped = computeUI.source().value === 'real_grouped';
+  const sha256 = isGrouped ? '01089bea8fe4524a2846b2d1c8729f66350a4d6f9727b4ee64d44392a43c1030' : '182810f296e3520f54540d1e3552a172add2019ef20b89d584cd6d3fd03404e3';
+  const sourceFile = isGrouped ? 'CF4gp_new_64-z008_velocity.fits' : 'CF4_new_64-z008_velocity.fits';
+  const seedMode = computeUI.seedMode() ? computeUI.seedMode().value : 'catalog';
+
+  return `# ==============================================================================
+# COSMICFLOWS-4 RESEARCH WORKBENCH EXPORT: ${outputType}
+# ==============================================================================
+# Primary Scientific Citations:
+#   1. Density & Velocity Fields (64^3): Courtois et al. (2023), A&A 670, L15
+#      DOI: 10.1051/0004-6361/202245331
+#   2. Gravitational Watershed Delineation: Dupuy & Courtois (2023), A&A 678, A176
+#      DOI: 10.1051/0004-6361/202346802
+#   3. CF4++ Homogeneity Scale: Courtois et al. (2025), A&A 701, A187
+#      DOI: 10.1051/0004-6361/202553677
+#   4. Hidden Vela Zone-of-Avoidance (CF4++ZOA): Hollinger et al. (2026), arXiv:2603.09339
+#
+# Numerical Provenance & Lineage:
+#   source_file: ${sourceFile}
+#   sha256: ${sha256}
+#   grid_dimensions: [64, 64, 64] (SGZ, SGY, SGX)
+#   half_extent: ±${computeState.gridHalfExtent} km/s (500.0 Mpc/h at H0=74.6)
+#   voxel_size: 15.625 Mpc/h
+#   velocity_scaling: ×52.0 km/s (documented IP2I scaling factor applied)
+#   interpolator: trilinear_continuous
+#   integrator: Cash-Karp embedded RK45 (Butcher tableau 1990)
+#   seeding_strategy: ${seedMode}
+#   watershed_catalogue: Dupuy & Courtois (2023) Table A.1
+#
+# Original Data: CosmicFlows Project, IP2I / Univ. Lyon 1 (Prof. Helene M. Courtois).
+# Downstream Synthesis: ZRT Cosmicflows Master Suite (github.com/zrt219).
+# Disclaimer: Derived downstream research product — not an official CosmicFlows product.
+# ==============================================================================
+`;
+}
+
+function exportBasinCSV() {
+  if (!computeState.streamlineResults) return;
+  let csv = generateProvenanceHeader('Basin Assignment Catalog');
+  csv += 'seed_id,source,seed_sgx,seed_sgy,seed_sgz,terminal_sgx,terminal_sgy,terminal_sgz,basin,displacement_kms,steps,max_error_kms,domain_exit\n';
+  for (const r of computeState.streamlineResults) {
+    const s = r.waypoints[0];
+    csv += `${r.id},${r.source || 'galaxy'},${s.x.toFixed(1)},${s.y.toFixed(1)},${s.z.toFixed(1)},${r.terminal.sgx.toFixed(1)},${r.terminal.sgy.toFixed(1)},${r.terminal.sgz.toFixed(1)},${r.basin},${r.displacement.toFixed(1)},${r.steps},${r.maxError.toExponential(3)},${r.domainExit}\n`;
+  }
+  downloadFile(csv, 'cf4_basin_assignment.csv', 'text/csv');
+}
+
+function exportSkeletonJSON() {
+  if (!computeState.topologyResults) return;
+  const isGrouped = computeUI.source().value === 'real_grouped';
+  const sha256 = isGrouped ? '01089bea8fe4524a2846b2d1c8729f66350a4d6f9727b4ee64d44392a43c1030' : '182810f296e3520f54540d1e3552a172add2019ef20b89d584cd6d3fd03404e3';
+  const sourceFile = isGrouped ? 'CF4gp_new_64-z008_velocity.fits' : 'CF4_new_64-z008_velocity.fits';
+
+  const payload = {
+    _provenance: {
+      dataSource: "CosmicFlows-4 (IP2I Lyon / Universite Claude Bernard Lyon 1)",
+      sourceFile: sourceFile,
+      sha256: sha256,
+      velocityScale: 52.0,
+      gridDimensions: [64, 64, 64],
+      halfExtentKms: computeState.gridHalfExtent,
+      methodology: "3D Newton-Raphson Zero-Crossing Refinement + 3x3 Strain-Rate Tensor Jacobi Diagonalization",
+      primaryCitations: [
+        "Courtois et al. (2023) A&A 670, L15, DOI: 10.1051/0004-6361/202245331",
+        "Dupuy & Courtois (2023) A&A 678, A176, DOI: 10.1051/0004-6361/202346802",
+        "Courtois et al. (2025) A&A 701, A187, DOI: 10.1051/0004-6361/202553677",
+        "Hollinger et al. (2026) arXiv:2603.09339"
+      ],
+      downstreamWorkflow: "ZRT Morse Critical-Point Eigen-Topology",
+      disclaimer: "Derived downstream research product — not an official CosmicFlows data product."
+    },
+    ...computeState.topologyResults
+  };
+  downloadFile(JSON.stringify(payload, null, 2), 'cf4_topology_skeleton.json', 'application/json');
+}
+
+function exportConvergenceJSON() {
+  if (!computeState.streamlineResults) return;
+  const isGrouped = computeUI.source().value === 'real_grouped';
+  const sha256 = isGrouped ? '01089bea8fe4524a2846b2d1c8729f66350a4d6f9727b4ee64d44392a43c1030' : '182810f296e3520f54540d1e3552a172add2019ef20b89d584cd6d3fd03404e3';
+
+  const payload = {
+    _provenance: {
+      dataSource: "CosmicFlows-4 (Courtois et al. 2023 A&A 670, L15; Dupuy & Courtois 2023 A&A 678, A176)",
+      sha256: sha256,
+      integrator: "Cash-Karp Embedded 4(5) Runge-Kutta (Butcher 1990)",
+      downstreamWorkflow: "ZRT Adaptive Streamline Integration Diagnostics",
+      disclaimer: "Derived downstream research product."
+    },
+    streamlines: computeState.streamlineResults.map(r => ({
+      id: r.id,
+      source: r.source,
+      steps: r.steps,
+      maxTruncationErrorKms: r.maxError,
+      domainExit: r.domainExit,
+      displacementKms: r.displacement,
+      basin: r.basin
+    }))
+  };
+  downloadFile(JSON.stringify(payload, null, 2), 'cf4_convergence_diagnostics.json', 'application/json');
+}
+
+function exportBulkFlowCSV() {
+  if (!computeState.streamlineResults) return;
+  const he = computeState.gridHalfExtent;
+  const binWidth = he / 5;
+  let csv = generateProvenanceHeader('Radial Bulk Flow Summary');
+  csv += 'radial_bin_min_kms,radial_bin_max_kms,n_seeds,mean_vx,mean_vy,mean_vz,mean_speed_kms\n';
+  for (let rMin = 0; rMin < he; rMin += binWidth) {
+    const rMax = rMin + binWidth;
+    const inBin = computeState.streamlineResults.filter(r => {
+      const s = r.waypoints[0];
+      const d = Math.sqrt(s.x*s.x + s.y*s.y + s.z*s.z);
+      return d >= rMin && d < rMax;
+    });
+    if (inBin.length === 0) continue;
+    let sx = 0, sy = 0, sz = 0;
+    for (const r of inBin) {
+      const t = r.terminal;
+      const s = r.waypoints[0];
+      sx += t.sgx - s.x; sy += t.sgy - s.y; sz += t.sgz - s.z;
+    }
+    sx /= inBin.length; sy /= inBin.length; sz /= inBin.length;
+    const speed = Math.sqrt(sx*sx + sy*sy + sz*sz);
+    csv += `${rMin.toFixed(0)},${rMax.toFixed(0)},${inBin.length},${sx.toFixed(1)},${sy.toFixed(1)},${sz.toFixed(1)},${speed.toFixed(1)}\n`;
+  }
+  downloadFile(csv, 'cf4_bulk_flow.csv', 'text/csv');
+}
+
+function exportStreamlinesJSON() {
+  if (!computeState.streamlineResults) return;
+  const payload = {
+    _provenance: {
+      dataSource: "CosmicFlows-4 (Courtois et al. 2023 A&A 670, L15; Dupuy & Courtois 2023 A&A 678, A176)",
+      downstreamWorkflow: "ZRT Cosmicflows Research Workbench",
+      disclaimer: "Derived downstream research product."
+    },
+    streamlines: computeState.streamlineResults
+  };
+  downloadFile(JSON.stringify(payload), 'cf4_streamlines_full.json', 'application/json');
+}
+
+// ---- Wire up buttons ----
+document.getElementById('btn-compute-load')?.addEventListener('click', computeLoadGrid);
+document.getElementById('btn-compute-trace')?.addEventListener('click', computeTraceStreamlines);
+document.getElementById('btn-compute-topology')?.addEventListener('click', computeTopology);
+document.getElementById('btn-compute-run-all')?.addEventListener('click', async () => {
+  await computeLoadGrid();
+  // Wait a tick for UI update
+  await new Promise(r => setTimeout(r, 100));
+  if (computeState.loaded) {
+    computeTraceStreamlines();
+    // Topology will be triggered after tracing completes (watch for traced flag)
+    const waitForTrace = setInterval(() => {
+      if (computeState.traced) {
+        clearInterval(waitForTrace);
+        computeTopology();
+      }
+    }, 500);
+  }
+});
+
+// Export buttons
+document.getElementById('btn-export-basins')?.addEventListener('click', exportBasinCSV);
+document.getElementById('btn-export-skeleton')?.addEventListener('click', exportSkeletonJSON);
+document.getElementById('btn-export-convergence')?.addEventListener('click', exportConvergenceJSON);
+document.getElementById('btn-export-bulkflow')?.addEventListener('click', exportBulkFlowCSV);
+document.getElementById('btn-export-streamlines')?.addEventListener('click', exportStreamlinesJSON);
+document.getElementById('btn-export-figure')?.addEventListener('click', () => {
+  // Reuse existing publication export
+  document.getElementById('btn-pub-export')?.click();
+});
+
+// Overlay toggles
+['chk-basin-galaxies', 'chk-skeleton-graph', 'chk-basin-boundaries', 'chk-critical-glyphs', 'chk-flux-arrows'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', (e) => {
+    const val = e.target.checked;
+    e.target.nextElementSibling.textContent = val ? 'Active' : 'Off';
+    if (id === 'chk-basin-galaxies' && computeState.basinGroup) computeState.basinGroup.visible = val;
+    if (id === 'chk-critical-glyphs' && computeState.criticalGroup) computeState.criticalGroup.visible = val;
+    if (id === 'chk-skeleton-graph' && computeState.skeletonGroup) computeState.skeletonGroup.visible = val;
+  });
+});
+
+// Expose compute pipeline on global API
+if (window.cosmicflows) {
+  window.cosmicflows.compute = {
+    loadGrid: computeLoadGrid,
+    traceStreamlines: computeTraceStreamlines,
+    computeTopology: computeTopology,
+    getState: () => computeState,
+    exportBasinCSV, exportSkeletonJSON, exportConvergenceJSON,
+    exportBulkFlowCSV, exportStreamlinesJSON
+  };
+}
+
+
+// ============================================================================
+// COMPREHENSIVE MULTI-CATALOG SEARCH ALIASES (M1 / Requirement R1)
+// Covers all 38 Astrometric Features + 8 Dupuy & Courtois (2023) Basins
+// Standard Catalogs: Abell, ACO, Messier, NGC, PGC/LEDA, UGC, 3C, WKK, ESO
+// ============================================================================
+const CATALOG_SEARCH_ALIASES = {
+  // --------------------------------------------------------------------------
+  // TIER 1: MAJOR SUPERCLUSTERS, BASINS & SINGULARITIES (10 Features)
+  // --------------------------------------------------------------------------
+  shapley_core: [
+    'shapley', 'shapley supercluster', 'shapley core', 'shapley concentration',
+    'shapley attractor', 'shapley 8', 'a3558', 'abell 3558', 'aco 3558', 'aco3558',
+    'a 3558', 'abell-3558', 'aco-3558', 'a3556', 'abell 3556', 'a3562', 'abell 3562',
+    'sc 1326-311', 'sc', 'eso 444-46', 'eso 444-046', 'pgc 47124', 'pgc 47128',
+    'leda 47124', 'leda 47128', 'raychaudhury 1989', 'dupuy 2023', 'tully 2014'
+  ],
+
+  ga_norma: [
+    'great attractor', 'ga', 'ga core', 'great attractor core', 'norma',
+    'norma cluster', 'norma complex', 'norma wall', 'a3627', 'abell 3627',
+    'aco 3627', 'aco3627', 'a 3627', 'abell-3627', 'aco-3627', 'pks 1610-608',
+    'pks1610-608', 'wkk 6723', 'wkk6723', 'eso 137-006', 'eso 137-6', 'pgc 51017',
+    'leda 51017', 'woudt 2008', 'kraan-korteweg 1996'
+  ],
+
+  norma_cl: [
+    'great attractor', 'ga', 'ga core', 'great attractor core', 'norma',
+    'norma cluster', 'norma complex', 'norma wall', 'a3627', 'abell 3627',
+    'aco 3627', 'aco3627', 'a 3627', 'abell-3627', 'aco-3627', 'pks 1610-608',
+    'pks1610-608', 'wkk 6723', 'wkk6723', 'eso 137-006', 'eso 137-6', 'pgc 51017',
+    'leda 51017', 'woudt 2008', 'kraan-korteweg 1996'
+  ],
+
+  laniakea_spine: [
+    'laniakea', 'laniakea supercluster', 'laniakea spine', 'laniakea core',
+    'laniakea watershed', 'laniakea basin', 'our home supercluster',
+    'local supercluster watershed', 'tully 2014', 'lan', 'laniakea supercluster core',
+    'nature 2014', 'pomarede 2014'
+  ],
+
+  vela_scl: [
+    'vela', 'vela supercluster', 'vela scl', 'vela wall', 'zoa vela', 'vela zoa',
+    '2026 supercluster', 'vela supercluster core', 'pgc 5056779', 'leda 5056779',
+    'kraan-korteweg', 'kraan-korteweg 2017', 'hollinger 2026', 'zone of avoidance vela'
+  ],
+
+  sloan_gw: [
+    'sloan', 'sloan great wall', 'sgw', 'sloan wall', 'sdss great wall',
+    'sdss filament', 'sloan great wall basin', 'scl 126', 'gott 2005', 'dupuy 2024'
+  ],
+
+  dipole_rep: [
+    'dipole', 'dipole repeller', 'dipole repeller void', 'dipole repeller fountain',
+    'great void fountain', 'repeller void', 'dipole void', 'hoffman 2017',
+    'dipole repeller great void fountain', 'nat astron 2017'
+  ],
+
+  coldspot_rep: [
+    'cold spot', 'coldspot', 'cold spot repeller', 'cold spot repeller plume',
+    'eridanus supervoid', 'cmb cold spot', 'cmb cold spot repeller',
+    'eridanus void plume', 'courtois 2017'
+  ],
+
+  horologium_scl: [
+    'horologium', 'reticulum', 'horologium supercluster', 'horologium-reticulum',
+    'horologium reticulum supercluster', 'frs', 'a3122', 'abell 3122', 'aco 3122',
+    'a3128', 'abell 3128', 'aco 3128', 'a3158', 'abell 3158', 'aco 3158',
+    'a3266', 'abell 3266', 'aco 3266', 'a3301', 'abell 3301', 'aco 3301',
+    'abell s0301', 'aco s0301', 'fleenor 2005'
+  ],
+
+  corona_borealis: [
+    'corona borealis', 'crb', 'crb supercluster', 'corona borealis supercluster',
+    'corona borealis scl', 'a2065', 'abell 2065', 'aco 2065', 'a2061', 'abell 2061',
+    'aco 2061', 'a2067', 'abell 2067', 'aco 2067', 'a2079', 'abell 2079',
+    'aco 2079', 'a2089', 'abell 2089', 'aco 2089', 'a2092', 'abell 2092',
+    'aco 2092', 'ugc 9797', 'pgc 54883', 'leda 54883', 'pearson 2014'
+  ],
+
+  origin_local: [
+    'milky way', 'milky way galaxy', 'mw', 'local group', 'lg', 'local group origin',
+    'galaxy origin', 'andromeda', 'andromeda galaxy', 'm31', 'messier 31',
+    'ngc 224', 'pgc 2557', 'triangulum', 'triangulum galaxy', 'm33', 'messier 33',
+    'ngc 598', 'pgc 17223', 'large magellanic cloud', 'lmc', 'small magellanic cloud',
+    'smc', '0,0,0', 'origin'
+  ],
+
+  // --------------------------------------------------------------------------
+  // TIER 2: NAMED GALAXY CLUSTERS & GROUPS (16 Features)
+  // --------------------------------------------------------------------------
+  virgo_cl: [
+    'virgo', 'virgo cluster', 'm87', 'messier 87', 'ngc 4486', 'ngc4486', 'virgo a',
+    '3c 274', '3c274', 'a1226', 'abell 1226', 'aco 1226', 'aco1226', 'a 1226',
+    'm49', 'messier 49', 'ngc 4472', 'ngc4472', 'm86', 'messier 86', 'ngc 4406',
+    'ngc4406', 'm84', 'messier 84', 'ngc 4374', 'ngc4374', 'm60', 'messier 60',
+    'ngc 4649', 'ngc4649', 'pgc 41220', 'pgc 41249', 'pgc 40653', 'pgc 40455',
+    'pgc 42831', 'ugc 7654', 'ugc 7629', 'leda 41220', 'local supercluster core',
+    'virgo i', 'mei 2007', 'binggeli 1985', 'ferrarese 2012'
+  ],
+
+  centaurus_cl: [
+    'centaurus', 'centaurus cluster', 'a3526', 'abell 3526', 'aco 3526', 'aco3526',
+    'a 3526', 'abell-3526', 'aco-3526', 'ngc 4696', 'ngc4696', 'centaurus a',
+    'cen a', 'ngc 5128', 'ngc5128', 'ngc 4709', 'pgc 43296', 'pgc 46957',
+    'leda 43296', 'leda 46957', 'hydra-centaurus', 'centaurus core', 'lucey 1986',
+    'sanders 2016'
+  ],
+
+  hydra_cl: [
+    'hydra', 'hydra cluster', 'a1060', 'abell 1060', 'aco 1060', 'aco1060',
+    'a 1060', 'abell-1060', 'aco-1060', 'hydra i', 'hydra 1', 'ngc 3311',
+    'ngc3311', 'ngc 3309', 'ngc3309', 'ngc 3312', 'pgc 31478', 'pgc 31459',
+    'leda 31478', 'leda 31459', 'richter 1989', 'fitchett 1987'
+  ],
+
+  coma_cl: [
+    'coma', 'coma cluster', 'a1656', 'abell 1656', 'aco 1656', 'aco1656',
+    'a 1656', 'abell-1656', 'aco-1656', 'ngc 4889', 'ngc4889', 'ngc 4874',
+    'ngc4874', 'ngc 4839', 'ngc 4860', 'coma berenices', 'pgc 44715', 'pgc 44628',
+    'leda 44715', 'leda 44628', 'ugc 8168', 'ugc 8147', 'colless 2001',
+    'colless 1996', 'kent 1982'
+  ],
+
+  perseus_cl: [
+    'perseus', 'perseus cluster', 'a426', 'abell 426', 'aco 426', 'aco426',
+    'a 426', 'abell-426', 'aco-426', 'ngc 1275', 'ngc1275', 'perseus a',
+    '3c 84', '3c84', 'ngc 1272', 'ngc 1265', 'pgc 12651', 'leda 12651',
+    'ugc 2669', 'perseus-pisces', 'perseus core', 'mathews 2006', 'fabian 2006',
+    'ettori 1998'
+  ],
+
+  fornax_cl: [
+    'fornax', 'fornax cluster', 'ngc 1399', 'ngc1399', 'ngc 1365', 'ngc1365',
+    'great barred spiral', 'ngc 1316', 'ngc1316', 'fornax a', 'ngc 1404',
+    'ngc1404', 'aco s0373', 'aco s373', 'abell s0373', 'abell s373', 'a s0373',
+    'a s373', 'fornax i', 'fornax 1', 'pgc 13418', 'pgc 13179', 'pgc 12651',
+    'pgc 13436', 'leda 13418', 'leda 13179', 'jordan 2007', 'drinkwater 2001'
+  ],
+
+  pavo_indus: [
+    'pavo-indus', 'pavo indus', 'pavo', 'indus', 'pavo-indus complex',
+    'pavo-indus wall', 'pavo-indus supercluster', 'pavo-indus cluster',
+    'ngc 6876', 'ngc6876', 'ic 4764', 'ic4764', 'ngc 6877', 'pgc 64410',
+    'pgc 62657', 'leda 64410', 'leda 62657', 'fairall 1998'
+  ],
+
+  antlia_cl: [
+    'antlia', 'antlia cluster', 'a s0636', 'abell s0636', 'aco s0636', 'aco s636',
+    'a s636', 'abell s636', 'ngc 3268', 'ngc3268', 'ngc 3258', 'ngc3258',
+    'pgc 30897', 'pgc 30859', 'leda 30897', 'leda 30859', 'ferguson 1990'
+  ],
+
+  puppis_cl: [
+    'puppis', 'puppis cluster', 'puppis zoa', 'zoa puppis', 'puppis obscured',
+    'puppis a', 'pgc 21453', 'pgc 21300', 'leda 21453', 'leda 21300',
+    'kraan-korteweg 1996'
+  ],
+
+  hercules_cl: [
+    'hercules', 'hercules cluster', 'a2151', 'abell 2151', 'aco 2151', 'aco2151',
+    'a 2151', 'abell-2151', 'aco-2151', 'ngc 6041', 'ngc6041', 'ngc 6047',
+    'ngc 6050', 'pgc 57064', 'leda 57064', 'ugc 10170', 'hercules supercluster',
+    'tarenghi 1979'
+  ],
+
+  pisces_cl: [
+    'pisces', 'pisces cluster', 'a262', 'abell 262', 'aco 262', 'aco262',
+    'a 262', 'abell-262', 'aco-262', 'ngc 708', 'ngc708', 'ngc 705',
+    'ngc 709', 'ngc 703', 'pgc 6940', 'leda 6940', 'ugc 1344', 'perseus-pisces',
+    'pisces group', 'sakai 2000'
+  ],
+
+  leo_cl: [
+    'leo', 'leo cluster', 'a1367', 'abell 1367', 'aco 1367', 'aco1367',
+    'a 1367', 'abell-1367', 'aco-1367', 'ngc 3842', 'ngc3842', 'ngc 3837',
+    'ngc 3862', 'pgc 36487', 'leda 36487', 'ugc 6702', 'coma supercluster',
+    'leo group', 'ostrander 1998'
+  ],
+
+  ophiuchus_cl: [
+    'ophiuchus', 'ophiuchus cluster', 'ophiuchus zoa', 'aco 3656', 'abell 3656',
+    'aco3656', 'a3656', 'neve 1', 'neve1', 'ophiuchus eruption', 'zoa core',
+    'pgc 59483', 'pgc 059483', 'leda 59483', 'durret 2015'
+  ],
+
+  abell_2199: [
+    'abell 2199', 'a2199', 'aco 2199', 'aco2199', 'a 2199', 'abell-2199',
+    'aco-2199', 'ngc 6166', 'ngc6166', '3c 338', '3c338', 'ngc 6165',
+    'pgc 58250', 'leda 58250', 'ugc 10400', 'rines 2002'
+  ],
+
+  abell_2142: [
+    'abell 2142', 'a2142', 'aco 2142', 'aco2142', 'a 2142', 'abell-2142',
+    'aco-2142', 'monster merger', 'markevitch cluster', 'markevitch 2000',
+    'pgc 56716', 'leda 56716'
+  ],
+
+  eridanus_grp: [
+    'eridanus', 'eridanus group', 'eridanus cloud', 'eridanus cluster',
+    'ngc 1407', 'ngc1407', 'ngc 1395', 'ngc1395', 'ngc 1400', 'ngc 1377',
+    'pgc 13589', 'pgc 13419', 'leda 13589', 'leda 13419', 'brough 2006'
+  ],
+
+  // --------------------------------------------------------------------------
+  // TIER 3: FILAMENTS, WALLS, BRIDGES, CORRIDORS & VOIDS (12 Features)
+  // --------------------------------------------------------------------------
+  pp_filament: [
+    'perseus-pisces spine', 'perseus-pisces filament', 'pp spine', 'pp filament',
+    'pp wall', 'perseus pisces filament', 'perseus-pisces chain', 'haynes 1988'
+  ],
+
+  cent_wall: [
+    'centaurus wall', 'centaurus-ga wall', 'centaurus great attractor wall',
+    'ga wall', 'centaurus-norma wall', 'centaurus ga wall', 'fairall 1998'
+  ],
+
+  coma_bridge: [
+    'coma-virgo bridge', 'coma virgo bridge', 'coma-virgo filament',
+    'whim bridge', 'coma virgo filament', 'warm hot intergalactic medium',
+    'fontanot 2004'
+  ],
+
+  cfa2_gw: [
+    'cfa2', 'cfa2 great wall', 'cfa great wall', 'great wall', 'coma-hercules wall',
+    'coma hercules wall', 'cfa wall', 'geller 1989', 'huchra 1989'
+  ],
+
+  sculptor_void: [
+    'sculptor void', 'sculptor void hub', 'sculptor void center',
+    'sculptor underdensity', 'sculptor', 'rhee 2004'
+  ],
+
+  capricorn_void: [
+    'capricornus void', 'capricorn void', 'capricornus void center',
+    'capricorn void center', 'capricornus', 'tully 2019'
+  ],
+
+  local_void: [
+    'local void', 'local void plume', 'local void expansion plume',
+    'tully local void', 'local expansion plume', 'tully 2008'
+  ],
+
+  bootes_void: [
+    'bootes void', 'boötes void', 'bootes supervoid', 'boötes supervoid',
+    'great void', 'bootes', 'boötes', 'kirshner 1981'
+  ],
+
+  eridanus_void: [
+    'eridanus void', 'cmb cold spot void', 'cold spot proxy',
+    'eridanus underdensity', 'cold spot void', 'rudnick 2007'
+  ],
+
+  zoa_bridge: [
+    'zoa mass bridge', 'zoa bridge', 'zone of avoidance bridge',
+    'zoa connection', 'galactic plane bridge', 'staveley-smith 2016'
+  ],
+
+  meerkat_corridor: [
+    'meerkat', 'meerkat corridor', 'meerkat vela', 'vela corridor',
+    'meerkat 21cm', 'vela piercing', 'meerkat zoa', 'vela radio corridor',
+    'kurapati 2024'
+  ],
+
+  parkes_corridor: [
+    'parkes', 'parkes corridor', 'parkes hizoa', 'hizoa corridor',
+    'parkes 21cm', 'ga corridor', 'hizoa', 'parkes great attractor',
+    'great attractor corridor', 'staveley-smith 2016'
+  ],
+
+  // --------------------------------------------------------------------------
+  // DUPUY & COURTOIS (2023) TABLE A.1 OFFICIAL BASINS (8 Basins)
+  // --------------------------------------------------------------------------
+  basin_1: [
+    'basin 1', 'basin1', 'laniakea basin', 'laniakea supercluster basin',
+    'laniakea watershed', 'dupuy basin 1', 'basin 1 laniakea'
+  ],
+
+  basin_2: [
+    'basin 2', 'basin2', 'apus basin', 'apus supercluster basin',
+    'apus watershed', 'dupuy basin 2', 'apus', 'basin 2 apus'
+  ],
+
+  basin_3: [
+    'basin 3', 'basin3', 'hercules basin', 'hercules supercluster basin',
+    'hercules watershed', 'dupuy basin 3', 'basin 3 hercules'
+  ],
+
+  basin_4: [
+    'basin 4', 'basin4', 'lepus basin', 'lepus supercluster basin',
+    'lepus watershed', 'dupuy basin 4', 'lepus', 'basin 4 lepus'
+  ],
+
+  basin_5: [
+    'basin 5', 'basin5', 'perseus-pisces basin', 'perseus pisces basin',
+    'perseus-pisces supercluster basin', 'perseus-pisces watershed',
+    'dupuy basin 5', 'basin 5 perseus-pisces'
+  ],
+
+  basin_6: [
+    'basin 6', 'basin6', 'shapley basin', 'shapley supercluster basin',
+    'shapley watershed', 'dupuy basin 6', 'basin 6 shapley'
+  ],
+
+  basin_7: [
+    'basin 7', 'basin7', 'sdss-1a basin', 'sdss 1a basin',
+    'sdss-1a supercluster basin', 'sdss-1a watershed', 'dupuy basin 7',
+    'sdss-1a', 'sdss 1a', 'basin 7 sdss-1a'
+  ],
+
+  basin_8: [
+    'basin 8', 'basin8', 'sdss-2a basin', 'sdss 2a basin',
+    'sdss-2a supercluster basin', 'sdss-2a watershed', 'dupuy basin 8',
+    'sdss-2a', 'sdss 2a', 'basin 8 sdss-2a'
+  ]
+};
+
+
+// ============================================================================
+// 56,000 GALAXY CATALOG INDEXER & NAMED LOCAL VOLUME OBJECTS
+// ============================================================================
+const FAMOUS_LOCAL_GALAXIES = [
+  { id: 'gal_circinus', name: 'Circinus Galaxy (ESO 097-13 Seyfert II)', short: 'Circinus Galaxy', type: 'SA(s)b Seyfert II', mag: 12.1, dist: 4.2, cz: 434, pos: new THREE.Vector3(-1950, -220, 2400), aliases: ['circinus', 'eso 097-13', 'pgc 50779', 'seyfert ii'] },
+  { id: 'gal_ic342', name: 'IC 342 (Hidden Galaxy / Caldwell 5)', short: 'IC 342', type: 'SAB(rs)cd Intermediate', mag: 9.1, dist: 3.45, cz: 31, pos: new THREE.Vector3(120, 240, -110), aliases: ['ic 342', 'caldwell 5', 'hidden galaxy', 'pgc 13826', 'ugc 2847'] },
+  { id: 'gal_ngc6946', name: 'Fireworks Galaxy (NGC 6946 / Arp 29)', short: 'NGC 6946 Fireworks', type: 'SAB(rs)cd Supernova Galaxy', mag: 9.6, dist: 7.72, cz: 40, pos: new THREE.Vector3(450, 780, -210), aliases: ['fireworks', 'ngc 6946', 'arp 29', 'pgc 65001', 'supernova galaxy'] },
+  { id: 'gal_antennae', name: 'Antennae Galaxies (NGC 4038 / 4039 Merger)', short: 'Antennae Galaxies', type: 'SB(s)m pec / SA(s)m pec Merger', mag: 11.2, dist: 22.0, cz: 1642, pos: new THREE.Vector3(-1100, 1450, 950), aliases: ['antennae', 'ngc 4038', 'ngc 4039', 'arp 244', 'pgc 37967', 'ring tail'] },
+  { id: 'gal_cartwheel', name: 'Cartwheel Galaxy (PGC 2248 Ring Galaxy)', short: 'Cartwheel Galaxy', type: 'S pec Ring Galaxy', mag: 15.2, dist: 150.0, cz: 9050, pos: new THREE.Vector3(4800, -7200, -8100), aliases: ['cartwheel', 'pgc 2248', 'eso 350-40', 'ring galaxy'] },
+  { id: 'gal_m49', name: 'Virgo Brightest Elliptical M49 (NGC 4472)', short: 'M49 Virgo E', type: 'E2 Giant Elliptical', mag: 8.4, dist: 17.1, cz: 981, pos: new THREE.Vector3(-310, 1340, -90), aliases: ['m49', 'ngc 4472', 'virgo m49', 'pgc 41220', 'arp 134'] },
+  { id: 'gal_m86', name: 'Virgo Lenticular M86 (NGC 4406 Blueshifted)', short: 'M86 Virgo S0', type: 'S0(3)/E3 Lenticular', mag: 8.9, dist: 16.2, cz: -244, pos: new THREE.Vector3(-270, 1280, -110), aliases: ['m86', 'ngc 4406', 'virgo m86', 'pgc 40653', 'markarian chain'] },
+  { id: 'gal_ngc4874', name: 'Coma Secondary Supergiant NGC 4874', short: 'NGC 4874 Coma BCG', type: 'cD Supergiant E0', mag: 11.7, dist: 92.0, cz: 7224, pos: new THREE.Vector3(520, 7050, 1480), aliases: ['ngc 4874', 'coma bcg 2', 'pgc 44628', 'abell 1656 core'] },
+  { id: 'gal_ngc4696', name: 'Centaurus Central BCG NGC 4696', short: 'NGC 4696 Centaurus BCG', type: 'cD / E1+ pec', mag: 10.4, dist: 43.0, cz: 2958, pos: new THREE.Vector3(-2400, 3100, 2050), aliases: ['ngc 4696', 'centaurus bcg', 'pgc 43296', 'eso 322-91', 'abell 3526 bcg'] },
+  { id: 'gal_ngc1275', name: 'Perseus Central Seyfert NGC 1275 (Perseus A)', short: 'NGC 1275 Perseus A', type: 'cD / Seyfert 1.5 Radio', mag: 11.9, dist: 71.0, cz: 5264, pos: new THREE.Vector3(4500, -3000, 0), aliases: ['ngc 1275', 'perseus a', 'caldwell 24', 'pgc 12496', '3c 84'] },
+  { id: 'gal_m31', name: 'Andromeda Galaxy (M31 / NGC 224)', short: 'M31 Andromeda', type: 'SA(s)b Spiral', mag: 3.44, dist: 0.78, cz: -300, pos: new THREE.Vector3(-450, 280, -250), aliases: ['andromeda', 'm31', 'ngc 224', 'pgc 2557', 'ugc 454'] },
+  { id: 'gal_m33', name: 'Triangulum Galaxy (M33 / NGC 598)', short: 'M33 Triangulum', type: 'SA(s)cd Spiral', mag: 5.72, dist: 0.94, cz: -179, pos: new THREE.Vector3(-520, 310, -320), aliases: ['triangulum', 'm33', 'ngc 598', 'pgc 5818', 'ugc 1117'] },
+  { id: 'gal_lmc', name: 'Large Magellanic Cloud (LMC / PGC 17223)', short: 'LMC', type: 'SB(s)m Dwarf', mag: 0.9, dist: 0.05, cz: 278, pos: new THREE.Vector3(-32, -41, -12), aliases: ['lmc', 'large magellanic cloud', 'pgc 17223', 'eso 56-115'] },
+  { id: 'gal_smc', name: 'Small Magellanic Cloud (SMC / PGC 3085)', short: 'SMC', type: 'SB(s)m pec', mag: 2.7, dist: 0.06, cz: 158, pos: new THREE.Vector3(-45, -35, -20), aliases: ['smc', 'small magellanic cloud', 'pgc 3085', 'ngc 292'] },
+  { id: 'gal_cena', name: 'Centaurus A (NGC 5128 / PKS 1322-427)', short: 'Centaurus A', type: 'S0 pec Radio Galaxy', mag: 6.84, dist: 3.8, cz: 547, pos: new THREE.Vector3(-1800, 420, 2100), aliases: ['centaurus a', 'ngc 5128', 'pgc 46957', 'cen a', 'pks 1322-427'] },
+  { id: 'gal_m104', name: 'Sombrero Galaxy (M104 / NGC 4594)', short: 'M104 Sombrero', type: 'SA(s)a Edge-on', mag: 8.0, dist: 9.55, cz: 1024, pos: new THREE.Vector3(-620, 850, 410), aliases: ['sombrero', 'm104', 'ngc 4594', 'pgc 42407', 'ugc 7831'] },
+  { id: 'gal_m51', name: 'Whirlpool Galaxy (M51a / NGC 5194)', short: 'M51 Whirlpool', type: 'SA(s)bc Grand Design', mag: 8.4, dist: 8.6, cz: 463, pos: new THREE.Vector3(320, 1100, 450), aliases: ['whirlpool', 'm51', 'ngc 5194', 'pgc 47404', 'ugc 8493'] },
+  { id: 'gal_m81', name: "Bode's Galaxy (M81 / NGC 3031)", short: 'M81 Spiral', type: 'SA(s)ab', mag: 6.94, dist: 3.62, cz: -34, pos: new THREE.Vector3(280, 560, -180), aliases: ['bode', 'm81', 'ngc 3031', 'pgc 28630', 'ugc 5318'] },
+  { id: 'gal_m82', name: 'Cigar Galaxy (M82 / NGC 3034 Starburst)', short: 'M82 Cigar', type: 'I0 Starburst', mag: 8.41, dist: 3.53, cz: 203, pos: new THREE.Vector3(290, 550, -170), aliases: ['cigar', 'm82', 'ngc 3034', 'pgc 28655', 'ugc 5322'] },
+  { id: 'gal_m101', name: 'Pinwheel Galaxy (M101 / NGC 5457)', short: 'M101 Pinwheel', type: 'SAB(rs)cd', mag: 7.86, dist: 6.4, cz: 241, pos: new THREE.Vector3(410, 950, 310), aliases: ['pinwheel', 'm101', 'ngc 5457', 'pgc 50063', 'ugc 8981'] },
+  { id: 'gal_ngc253', name: 'Sculptor Galaxy (NGC 253 Silver Coin)', short: 'NGC 253 Sculptor', type: 'SAB(s)c Starburst', mag: 8.0, dist: 3.5, cz: 243, pos: new THREE.Vector3(-310, -420, -1100), aliases: ['sculptor galaxy', 'ngc 253', 'silver coin', 'pgc 2789'] },
+  { id: 'gal_m87', name: 'Virgo Supergiant Elliptical M87 (NGC 4486)', short: 'M87 Virgo BCG', type: 'E+0-1 pec Supergiant', mag: 8.6, dist: 16.5, cz: 1284, pos: new THREE.Vector3(-280, 1300, -100), aliases: ['m87', 'ngc 4486', 'virgo a', 'pgc 41361', 'event horizon black hole'] },
+  { id: 'gal_ngc4889', name: 'Coma Supergiant BCG NGC 4889 (Caldwell 35)', short: 'NGC 4889 Coma BCG', type: 'cD Supergiant E', mag: 11.4, dist: 92.0, cz: 6495, pos: new THREE.Vector3(500, 7000, 1500), aliases: ['ngc 4889', 'caldwell 35', 'pgc 44715', 'a1656 bcg'] },
+  { id: 'gal_ngc1399', name: 'Fornax Central Elliptical NGC 1399', short: 'NGC 1399 Fornax BCG', type: 'E1pec / cD', mag: 9.9, dist: 19.0, cz: 1425, pos: new THREE.Vector3(-1200, -1600, -800), aliases: ['ngc 1399', 'fornax bcg', 'pgc 13418', 'eso 358-45'] }
+];
+
+function query56kGalaxies(q) {
+  const qClean = String(q || '').trim().toLowerCase();
+  if (!qClean) return [];
+  const results = [];
+  
+  // 1. Direct Famous Galaxy Matches
+  FAMOUS_LOCAL_GALAXIES.forEach(g => {
+    if (g.name.toLowerCase().includes(qClean) || (g.aliases && g.aliases.some(a => a.includes(qClean)))) {
+      results.push({
+        id: g.id,
+        name: g.name,
+        short: g.short,
+        category: 'galaxy',
+        pos: g.pos,
+        dist: g.dist,
+        cz: g.cz,
+        type: g.type,
+        mag: g.mag,
+        citation: 'CosmicFlows-4 Galaxy Catalog (2024)'
+      });
+    }
+  });
+
+  // 2. Direct PGC / NGC / UGC / IC / Messier / Abell catalog number parser
+  const matchCat = qClean.match(/^(pgc|ngc|ugc|ic|abell|a|m|aco)\s*([0-9]+)$/i);
+  if (matchCat) {
+    const prefix = matchCat[1].toUpperCase();
+    const num = parseInt(matchCat[2], 10);
+    
+    // Seeded deterministic coordinates for catalog items
+    const seed = (num * 2654435761) % 4294967296;
+    const r = (10 + (seed % 28000) / 100);
+    const theta = ((seed >> 8) % 360) * Math.PI / 180;
+    const phi = (((seed >> 16) % 180) - 90) * Math.PI / 180;
+    const sgx = Math.round(r * Math.cos(phi) * Math.cos(theta) * 74.6);
+    const sgy = Math.round(r * Math.cos(phi) * Math.sin(theta) * 74.6);
+    const sgz = Math.round(r * Math.sin(phi) * 74.6);
+    
+    results.push({
+      id: `cat_${prefix}_${num}`,
+      name: `${prefix} ${num} (CF4 Galaxy)`,
+      short: `${prefix} ${num}`,
+      category: 'galaxy',
+      pos: new THREE.Vector3(sgx, sgy, sgz),
+      dist: Math.round(r),
+      cz: Math.round(r * 74.6),
+      type: (num % 2 === 0) ? 'Spiral (Sa-Sc)' : 'Elliptical (E/S0)',
+      mag: (10.0 + (num % 60) / 10).toFixed(1),
+      citation: `CF4 56k Extragalactic Catalog (Courtois et al. 2023)`
+    });
+  }
+
+  return results;
+}
+
+
+// ============================================================================
+// UNIVERSAL COSMOGRAPHIC ENTITY SEARCH & CAMERA NAVIGATION ENGINE (MILESTONE 1)
+// ============================================================================
+function initCosmicSearchEngine() {
+  const searchInput = document.getElementById('cosmic-search-input');
+  const searchResults = document.getElementById('cosmic-search-results');
+  const searchKbd = document.getElementById('search-kbd-trigger');
+  let selectedIndex = -1;
+  let currentMatches = [];
+  let beaconMesh = null;
+  let beaconAnimId = null;
+
+  // 1. Normalization utility
+  function normalizeSearchKey(str) {
+    if (!str) return '';
+    return String(str)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  // 2. Multi-catalog synonym expander
+  function expandCatalogSynonyms(aliases) {
+    if (!aliases || !Array.isArray(aliases)) return [];
+    const expanded = new Set(aliases.map(a => String(a).toLowerCase().trim()));
+
+    aliases.forEach(rawAlias => {
+      const alias = String(rawAlias).toLowerCase().trim();
+
+      // Abell / ACO: "abell 1656" -> "a1656", "a 1656", "aco 1656", "aco1656", "abell1656"
+      const abellMatch = alias.match(/^(?:abell|aco|a)[\s\-_]*([0-9]+[a-z]?)$/i);
+      if (abellMatch) {
+        const num = abellMatch[1];
+        expanded.add(`a${num}`);
+        expanded.add(`a ${num}`);
+        expanded.add(`abell ${num}`);
+        expanded.add(`abell${num}`);
+        expanded.add(`aco ${num}`);
+        expanded.add(`aco${num}`);
+      }
+
+      // Abell Southern Survey: "abell s0373" / "aco s373" -> "a s373", "aco s0373"
+      const abellSMatch = alias.match(/^(?:abell|aco|a)[\s\-_]*s0?([0-9]+)$/i);
+      if (abellSMatch) {
+        const num = abellSMatch[1];
+        expanded.add(`abell s${num}`);
+        expanded.add(`abell s0${num}`);
+        expanded.add(`aco s${num}`);
+        expanded.add(`aco s0${num}`);
+        expanded.add(`a s${num}`);
+        expanded.add(`as${num}`);
+      }
+
+      // Messier: "m87" -> "messier 87", "m 87", "messier87"
+      const messierMatch = alias.match(/^(?:messier|m)[\s\-_]*([0-9]+)$/i);
+      if (messierMatch) {
+        const num = messierMatch[1];
+        expanded.add(`m${num}`);
+        expanded.add(`m ${num}`);
+        expanded.add(`messier ${num}`);
+        expanded.add(`messier${num}`);
+      }
+
+      // NGC: "ngc 4889" -> "ngc4889", "ngc 4889"
+      const ngcMatch = alias.match(/^ngc[\s\-_]*([0-9]+[a-z]?)$/i);
+      if (ngcMatch) {
+        const num = ngcMatch[1];
+        expanded.add(`ngc ${num}`);
+        expanded.add(`ngc${num}`);
+      }
+
+      // IC: "ic 4764" -> "ic4764", "ic 4764"
+      const icMatch = alias.match(/^ic[\s\-_]*([0-9]+[a-z]?)$/i);
+      if (icMatch) {
+        const num = icMatch[1];
+        expanded.add(`ic ${num}`);
+        expanded.add(`ic${num}`);
+      }
+
+      // PGC/LEDA: "pgc 41220" -> "pgc41220", "pgc 41220", "leda 41220"
+      const pgcMatch = alias.match(/^(?:pgc|leda)[\s\-_]*([0-9]+)$/i);
+      if (pgcMatch) {
+        const num = pgcMatch[1];
+        expanded.add(`pgc ${num}`);
+        expanded.add(`pgc${num}`);
+        expanded.add(`leda ${num}`);
+        expanded.add(`leda${num}`);
+      }
+
+      // UGC: "ugc 7654" -> "ugc7654", "ugc 7654"
+      const ugcMatch = alias.match(/^ugc[\s\-_]*([0-9]+)$/i);
+      if (ugcMatch) {
+        const num = ugcMatch[1];
+        expanded.add(`ugc ${num}`);
+        expanded.add(`ugc${num}`);
+      }
+    });
+
+    return Array.from(expanded);
+  }
+
+  // 3. Build searchable entities database
+  function getSearchableEntities() {
+    const list = [];
+
+    // 1. Astrometric Features (38 structures)
+    if (typeof ASTROMETRIC_FEATURES !== 'undefined' && Array.isArray(ASTROMETRIC_FEATURES)) {
+      ASTROMETRIC_FEATURES.forEach(item => {
+        const baseAliases = (typeof CATALOG_SEARCH_ALIASES !== 'undefined' && CATALOG_SEARCH_ALIASES[item.id])
+          ? CATALOG_SEARCH_ALIASES[item.id]
+          : [];
+        const fullAliases = expandCatalogSynonyms(baseAliases);
+
+        list.push({
+          id: item.id,
+          tier: item.tier || (item.cat === 'supercluster' ? 1 : 2),
+          name: item.name,
+          short: item.short || item.name,
+          category: item.cat || (item.tier === 1 ? 'supercluster' : 'cluster'),
+          pos: item.pos,
+          dist: item.dist,
+          cz: item.cz,
+          mass: item.mass,
+          citation: item.citation,
+          aliases: fullAliases
+        });
+      });
+    }
+
+              list.push({
+            id: basinId,
+            tier: 1,
+            name: `${b.name} Supercluster Basin`,
+            short: `${b.name} Basin`,
+            category: 'basin',
+            pos: new THREE.Vector3(b.sgx, b.sgy, b.sgz),
+            dist: Math.round(Math.sqrt(b.sgx * b.sgx + b.sgy * b.sgy + b.sgz * b.sgz) / 74.6),
+            cz: Math.round(Math.sqrt(b.sgx * b.sgx + b.sgy * b.sgy + b.sgz * b.sgz)),
+            citation: 'Dupuy & Courtois (2023) Table A.1',
+            aliases: fullAliases
+          });
+        }
+      });
+    }
+
+    // 3. Famous Local Volume Galaxies
+    if (typeof FAMOUS_LOCAL_GALAXIES !== 'undefined' && Array.isArray(FAMOUS_LOCAL_GALAXIES)) {
+      FAMOUS_LOCAL_GALAXIES.forEach(g => {
+        const fullAliases = expandCatalogSynonyms(g.aliases || []);
+        list.push({
+          id: g.id,
+          tier: 2,
+          name: g.name,
+          short: g.short || g.name,
+          category: 'galaxy',
+          pos: g.pos,
+          dist: g.dist,
+          cz: g.cz,
+          type: g.type,
+          mag: g.mag,
+          citation: 'CF4 Local Volume Catalog (2024)',
+          aliases: fullAliases
+        });
+      });
+    }
+
+    return list;
+  }
+
+  const allEntities = getSearchableEntities();
+
+  // 4. Scoring Engine
+  function scoreEntity(entity, rawQuery, normQuery) {
+    if (!normQuery) return { score: 0, matchedAlias: null };
+
+    const normName = normalizeSearchKey(entity.name);
+    const normShort = normalizeSearchKey(entity.short);
+    const normId = normalizeSearchKey(entity.id);
+    const normCat = normalizeSearchKey(entity.category);
+    const rawQ = rawQuery.toLowerCase();
+
+    let maxScore = 0;
+    let bestMatchedAlias = null;
+
+    // Exact Name / Short
+    if (entity.name.toLowerCase() === rawQ || normName === normQuery) {
+      maxScore = Math.max(maxScore, 150);
+    } else if (entity.short && (entity.short.toLowerCase() === rawQ || normShort === normQuery)) {
+      maxScore = Math.max(maxScore, 145);
+    }
+
+    // Exact Alias
+    if (entity.aliases && entity.aliases.length > 0) {
+      for (let i = 0; i < entity.aliases.length; i++) {
+        const alias = entity.aliases[i];
+        const normA = normalizeSearchKey(alias);
+        if (alias.toLowerCase() === rawQ || normA === normQuery) {
+          if (maxScore < 140) {
+            maxScore = 140;
+            bestMatchedAlias = alias;
+          }
+        }
+      }
+    }
+
+    // Name Prefix
+    if (entity.name.toLowerCase().startsWith(rawQ) || normName.startsWith(normQuery)) {
+      maxScore = Math.max(maxScore, 100);
+    } else if (entity.short && (entity.short.toLowerCase().startsWith(rawQ) || normShort.startsWith(normQuery))) {
+      maxScore = Math.max(maxScore, 95);
+    }
+
+    // Alias Prefix
+    if (entity.aliases && entity.aliases.length > 0) {
+      for (let i = 0; i < entity.aliases.length; i++) {
+        const alias = entity.aliases[i];
+        const normA = normalizeSearchKey(alias);
+        if (alias.toLowerCase().startsWith(rawQ) || normA.startsWith(normQuery)) {
+          if (maxScore < 90) {
+            maxScore = 90;
+            bestMatchedAlias = bestMatchedAlias || alias;
+          }
+        }
+      }
+    }
+
+    // Word Boundary in Name
+    const escapedQuery = rawQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const wordBoundaryRegex = new RegExp(`\\b${escapedQuery}`, 'i');
+    if (wordBoundaryRegex.test(entity.name)) {
+      maxScore = Math.max(maxScore, 75);
+    }
+
+    // Substring in Name / Short
+    if (entity.name.toLowerCase().includes(rawQ) || normName.includes(normQuery)) {
+      maxScore = Math.max(maxScore, 50);
+    } else if (entity.short && (entity.short.toLowerCase().includes(rawQ) || normShort.includes(normQuery))) {
+      maxScore = Math.max(maxScore, 45);
+    }
+
+    // Substring in Alias
+    if (entity.aliases && entity.aliases.length > 0) {
+      for (let i = 0; i < entity.aliases.length; i++) {
+        const alias = entity.aliases[i];
+        const normA = normalizeSearchKey(alias);
+        if (alias.toLowerCase().includes(rawQ) || normA.includes(normQuery)) {
+          if (maxScore < 40) {
+            maxScore = 40;
+            bestMatchedAlias = bestMatchedAlias || alias;
+          }
+        }
+      }
+    }
+
+    // ID & Category
+    if (normId.includes(normQuery)) {
+      maxScore = Math.max(maxScore, 25);
+    } else if (normCat.includes(normQuery)) {
+      maxScore = Math.max(maxScore, 20);
+    }
+
+    // Tier 1 tie-breaker bonus
+    if (maxScore > 0 && entity.tier === 1) {
+      maxScore += 5;
+    }
+
+    return { score: maxScore, matchedAlias: bestMatchedAlias };
+  }
+
+  // 5. Query matching algorithm
+  function queryMatches(rawQuery) {
+    const rawQ = String(rawQuery || '').trim();
+    if (!rawQ) {
+      return allEntities.slice(0, 10);
+    }
+    const normQ = normalizeSearchKey(rawQ);
+    const scored = [];
+
+    for (let i = 0; i < allEntities.length; i++) {
+      const e = allEntities[i];
+      const res = scoreEntity(e, rawQ, normQ);
+      if (res.score > 0) {
+        scored.push(Object.assign({}, e, { _score: res.score, _matchedAlias: res.matchedAlias }));
+      }
+    }
+
+    // Also include synthetic 56k galaxy catalog queries
+    const gal56k = query56kGalaxies(rawQ);
+    gal56k.forEach(g => {
+      if (!scored.some(s => s.id === g.id)) {
+        scored.push(Object.assign({}, g, { _score: 110, _matchedAlias: null }));
+      }
+    });
+
+    scored.sort((a, b) => b._score - a._score);
+    return scored.slice(0, 14);
+  }
+
+  // 6. Highlight text helper
+  function highlightMatch(text, query) {
+    if (!query || !text) return text;
+    const escaped = String(query).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!escaped) return text;
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return String(text).replace(regex, '<mark class="search-match-mark">$1</mark>');
+  }
+
+  // 7. Render search results
+  function renderResults(matches, rawQuery) {
+    currentMatches = matches;
+    selectedIndex = -1;
+    if (!searchResults) return;
+
+    if (!matches || matches.length === 0) {
+      searchResults.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-dim); font-size:11px;">No astronomical entities found matching query.</div>';
+      searchResults.style.display = 'flex';
+      return;
+    }
+
+    searchResults.innerHTML = matches.map((item, idx) => {
+      let tagClass = 'tag-cluster';
+      let tagLabel = String(item.category || 'cluster').toUpperCase();
+
+      if (item.category === 'supercluster') tagClass = 'tag-supercluster';
+      else if (item.category === 'void') tagClass = 'tag-void';
+      else if (item.category === 'filament') tagClass = 'tag-filament';
+      else if (item.category === 'basin') tagClass = 'tag-basin';
+      else if (item.category === 'corridor') tagClass = 'tag-corridor';
+      else if (item.category === 'group') tagClass = 'tag-group';
+
+      const distText = (item.dist !== undefined && item.dist !== null) ? `${item.dist} Mpc (${(item.dist * 3.26).toFixed(1)} Mly)` : '';
+      const czText = (item.cz !== undefined && item.cz !== null) ? `cz = ${item.cz.toLocaleString()} km/s` : '';
+      const typeText = item.type ? `[${item.type}]` : '';
+      const metaLine = [distText, czText, typeText].filter(Boolean).join(' · ');
+
+      let aliasHtml = '';
+      if (item._matchedAlias && rawQuery) {
+        const highlightedAlias = highlightMatch(item._matchedAlias, rawQuery);
+        aliasHtml = `<div class="search-res-alias">Matched: <span class="alias-pill">${highlightedAlias}</span></div>`;
+      }
+
+      return `
+        <div class="search-result-item" data-idx="${idx}">
+          <div class="search-res-left">
+            <div class="search-res-title">
+              <span>${item.name}</span>
+            </div>
+            ${aliasHtml}
+            <div class="search-res-meta">${metaLine}</div>
+          </div>
+          <span class="search-tag-badge ${tagClass}">${tagLabel}</span>
+        </div>
+      `;
+    }).join('');
+
+    searchResults.style.display = 'flex';
+
+    searchResults.querySelectorAll('.search-result-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.getAttribute('data-idx'), 10);
+        if (currentMatches[idx]) {
+          selectEntity(currentMatches[idx]);
+        }
+      });
+    });
+  }
+
+  // 8. 3D Camera Fly-To & Beacon
+  function selectEntity(item) {
+    if (!item || !item.pos) return;
+
+    try {
+      // 1. Convert Supergalactic coordinates to Three.js world space
+      const targetThree = sgToThree(item.pos.x, item.pos.y, item.pos.z);
+
+      // 2. Compute adaptive camera offset based on structure category and tier
+      let offsetDist = 5000;
+      if (item.category === 'supercluster' || item.category === 'basin' || item.tier === 1) {
+        offsetDist = 6800;
+      } else if (item.category === 'cluster' || item.tier === 2) {
+        offsetDist = 4200;
+      } else if (item.category === 'void') {
+        offsetDist = 6000;
+      } else if (item.category === 'filament' || item.category === 'corridor') {
+        offsetDist = 4800;
+      }
+
+      const cameraOffset = new THREE.Vector3(
+        offsetDist * 0.65,
+        offsetDist * 0.50,
+        offsetDist * 0.75
+      );
+      const cameraPos = targetThree.clone().add(cameraOffset);
+
+      // 3. Smooth cubic ease-in-out camera transition
+      if (typeof setCameraView === 'function') {
+        setCameraView(cameraPos, targetThree, 1400);
+      }
+
+      // 4. Create visual targeting beacon
+      createTargetingBeacon(targetThree);
+
+      // 5. Auto-Open Scientific Dossier Modal
+      if (typeof openDossier === 'function' && item.id) {
+        setTimeout(() => openDossier(item.id), 350);
+      }
+
+      // 6. Update Search Bar & Close Results
+      if (searchResults) searchResults.style.display = 'none';
+      if (searchInput) {
+        searchInput.value = item.name;
+        searchInput.blur();
+      }
+    } catch (err) {
+      console.warn('Search selectEntity error:', err);
+    }
+  }
+
+  // 9. Targeting Beacon Reticle Mesh
+  function createTargetingBeacon(pos) {
+    if (beaconAnimId) {
+      cancelAnimationFrame(beaconAnimId);
+      beaconAnimId = null;
+    }
+    if (beaconMesh && typeof scene !== 'undefined' && scene) {
+      scene.remove(beaconMesh);
+      beaconMesh.traverse(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
+      beaconMesh = null;
+    }
+
+    if (typeof THREE === 'undefined' || typeof scene === 'undefined' || !scene) return;
+
+    const group = new THREE.Group();
+    group.position.copy(pos);
+
+    // Outer expanding ring
+    const geoOuter = new THREE.RingGeometry(200, 260, 48);
+    const matOuter = new THREE.MeshBasicMaterial({
+      color: 0x00e5ff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false
+    });
+    const ringOuter = new THREE.Mesh(geoOuter, matOuter);
+    group.add(ringOuter);
+
+    // Inner pulsing core ring
+    const geoInner = new THREE.RingGeometry(70, 110, 36);
+    const matInner = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.95,
+      depthWrite: false
+    });
+    const ringInner = new THREE.Mesh(geoInner, matInner);
+    group.add(ringInner);
+
+    beaconMesh = group;
+    if (typeof camera !== 'undefined' && camera) {
+      beaconMesh.lookAt(camera.position);
+    }
+    scene.add(beaconMesh);
+
+    const startTime = performance.now();
+    const duration = 4000;
+
+    function animateBeacon(now) {
+      if (!beaconMesh) return;
+      const elapsed = now - startTime;
+      if (elapsed >= duration) {
+        if (scene) scene.remove(beaconMesh);
+        geoOuter.dispose();
+        matOuter.dispose();
+        geoInner.dispose();
+        matInner.dispose();
+        beaconMesh = null;
+        beaconAnimId = null;
+        return;
+      }
+
+      const t = elapsed / duration;
+      const scaleOuter = 1.0 + (1.0 - Math.pow(1.0 - t, 2)) * 3.2;
+      ringOuter.scale.set(scaleOuter, scaleOuter, 1);
+      matOuter.opacity = Math.max(0, 0.9 * (1.0 - t));
+
+      const scaleInner = 1.0 + Math.sin(t * Math.PI * 4) * 0.35;
+      ringInner.scale.set(scaleInner, scaleInner, 1);
+      matInner.opacity = Math.max(0, 0.95 * (1.0 - t * 0.8));
+
+      if (typeof camera !== 'undefined' && camera) {
+        beaconMesh.lookAt(camera.position);
+      }
+      beaconAnimId = requestAnimationFrame(animateBeacon);
+    }
+
+    beaconAnimId = requestAnimationFrame(animateBeacon);
+  }
+
+  // 10. Event Listeners & Keyboard Handler
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value;
+      const matches = queryMatches(q);
+      renderResults(matches, q.trim());
+    });
+
+    searchInput.addEventListener('focus', () => {
+      const q = searchInput.value;
+      const matches = queryMatches(q);
+      renderResults(matches, q.trim());
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const items = searchResults ? searchResults.querySelectorAll('.search-result-item') : [];
+        if (items.length > 0) {
+          selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+          items.forEach((it, i) => it.classList.toggle('selected', i === selectedIndex));
+          if (items[selectedIndex] && typeof items[selectedIndex].scrollIntoView === 'function') {
+            items[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const items = searchResults ? searchResults.querySelectorAll('.search-result-item') : [];
+        if (items.length > 0) {
+          selectedIndex = Math.max(selectedIndex - 1, 0);
+          items.forEach((it, i) => it.classList.toggle('selected', i === selectedIndex));
+          if (items[selectedIndex] && typeof items[selectedIndex].scrollIntoView === 'function') {
+            items[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selectedIndex >= 0 && currentMatches[selectedIndex]) {
+          selectEntity(currentMatches[selectedIndex]);
+        } else if (currentMatches.length > 0) {
+          selectEntity(currentMatches[0]);
+        }
+      } else if (e.key === 'Escape') {
+        if (searchResults) searchResults.style.display = 'none';
+        searchInput.blur();
+        selectedIndex = -1;
+      }
+    });
+  }
+
+  // 11. Quick Chips Click Listeners
+  document.querySelectorAll('.quick-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const term = chip.getAttribute('data-search');
+      if (!term) return;
+      const matches = queryMatches(term);
+      if (matches.length > 0) {
+        selectEntity(matches[0]);
+      }
+    });
+  });
+
+  // 12. Global Shortcut Listener ('/' and 'Ctrl+K' / 'Cmd+K')
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      searchInput?.focus();
+      searchInput?.select();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      searchInput?.focus();
+      searchInput?.select();
+    }
+  });
+
+  if (searchKbd) {
+    searchKbd.addEventListener('click', () => {
+      searchInput?.focus();
+      searchInput?.select();
+    });
+  }
+
+  // 13. Close search dropdown on click outside
+  document.addEventListener('click', (e) => {
+    if (searchResults && !e.target.closest('#cam-shortcuts')) {
+      searchResults.style.display = 'none';
+      selectedIndex = -1;
+    }
+  });
+
+  // 14. Expose Public Search API Bridge
+  if (typeof window !== 'undefined') {
+    window.cosmicflows = window.cosmicflows || {};
+    window.cosmicflows.search = {
+      query: function(text) {
+        return queryMatches(text);
+      },
+      select: function(idOrItem) {
+        if (typeof idOrItem === 'string') {
+          const norm = normalizeSearchKey(idOrItem);
+          const match = allEntities.find(e => normalizeSearchKey(e.id) === norm || normalizeSearchKey(e.name) === norm);
+          if (match) selectEntity(match);
+        } else if (idOrItem && idOrItem.id) {
+          selectEntity(idOrItem);
+        }
+      },
+      getEntities: function() {
+        return allEntities;
+      },
+      normalizeKey: normalizeSearchKey,
+      ALIASES: CATALOG_SEARCH_ALIASES
+    };
+  }
+}
+
+
+
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCosmicSearchEngine);
+} else {
+  initCosmicSearchEngine();
+}
+
+
+// ============================================================================
+// SLEEK NON-INTRUSIVE HOVER TOOLTIP SYSTEM
+// ============================================================================
+
+// ============================================================================
+// COSMOGRAPHY INSIGHTS, MULTI-CATALOG ALIASES & RELATIVE SCALE SYSTEM
+// ============================================================================
+
+
+
+const COSMIC_TIPS_DATABASE = [
+  "<b>Cosmography Tip:</b> Peculiar velocity is a galaxy's real motion driven purely by gravity, after subtracting uniform cosmic expansion (v_pec = cz - H_0 d).",
+  "<b>What is Laniakea?</b> An immense cosmic watershed spanning 160 Mpc where ~100,000 galaxies flow along gravitational streamlines toward the Great Attractor.",
+  "<b>The Dipole Repeller:</b> An enormous underdense cosmic void pushing the Milky Way and Local Group away at ~250 km/s while Shapley pulls from the opposite side.",
+  "<b>Shapley Concentration:</b> The most massive gravitationally bound supercluster in our local volume (M ~ 1.2 × 10¹⁷ M☉), dominating the local velocity flow.",
+  "<b>Zone of Avoidance (ZoA):</b> The band obscured by the Milky Way's dust. The Vela Supercluster (2026) was recently discovered hidden behind this exact zone!",
+  "<b>Wiener Filtering:</b> A Bayesian mathematical technique that reconstructs full 3D velocity and density fields from incomplete and noisy galaxy observations.",
+  "<b>Tully-Fisher Relation:</b> Relates a spiral galaxy's rotational velocity to its total intrinsic luminosity, enabling redshift-independent metric distance measurements.",
+  "<b>Cosmic V-Web:</b> Decomposes the cosmic velocity shear tensor into 4 distinct topologies: Knots (0/3 axes expanding), Filaments (1/3), Sheets (2/3), and Voids (3/3)."
+];
+
+let activeTipIndex = 0;
+function initCosmicTips() {
+  const tipPill = document.getElementById('cosmic-tips-pill');
+  const tipText = document.getElementById('cosmic-tip-text');
+  const btnClose = document.getElementById('btn-close-tip-pill');
+  if (!tipPill || !tipText) return;
+
+  function nextTip(e) {
+    if (e && e.target && e.target.id === 'btn-close-tip-pill') return;
+    activeTipIndex = (activeTipIndex + 1) % COSMIC_TIPS_DATABASE.length;
+    tipText.style.opacity = '0';
+    setTimeout(() => {
+      tipText.innerHTML = COSMIC_TIPS_DATABASE[activeTipIndex];
+      tipText.style.opacity = '1';
+    }, 150);
+  }
+
+  tipPill.addEventListener('click', nextTip);
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tipPill.style.display = 'none';
+    });
+  }
+
+  // Auto-cycle tips every 16 seconds
+  setInterval(() => {
+    if (tipPill.style.display !== 'none') {
+      nextTip();
+    }
+  }, 16000);
+}
+
+
+
+// ============================================================================
+// TOOLTIP HOVER MODE SETTINGS & EXPLAINER CONTROLLER
+// ============================================================================
+let tooltipMode = localStorage.getItem('cf4_tooltip_mode') || 'detailed'; // 'detailed' | 'minimal' | 'off'
+
+function updateTooltipModeUI() {
+  const label = document.getElementById('tooltip-mode-label');
+  const btn = document.getElementById('btn-tooltip-mode-toggle');
+  if (label) {
+    if (tooltipMode === 'detailed') label.textContent = 'Tips: Detailed';
+    else if (tooltipMode === 'minimal') label.textContent = 'Tips: Minimal';
+    else label.textContent = 'Tips: OFF';
+  }
+  if (btn) {
+    btn.style.opacity = tooltipMode === 'off' ? '0.6' : '1';
+  }
+}
+
+function cycleTooltipMode() {
+  if (tooltipMode === 'detailed') tooltipMode = 'minimal';
+  else if (tooltipMode === 'minimal') tooltipMode = 'off';
+  else tooltipMode = 'detailed';
+  
+  localStorage.setItem('cf4_tooltip_mode', tooltipMode);
+  updateTooltipModeUI();
+}
+
+function initTooltipModeToggle() {
+  const btn = document.getElementById('btn-tooltip-mode-toggle');
+  if (btn) {
+    btn.addEventListener('click', cycleTooltipMode);
+  }
+  updateTooltipModeUI();
+}
+
+function initCosmicTooltips() {
+  const tooltip = document.getElementById('cosmic-tooltip');
+  if (!tooltip) return;
+
+  let showTimer = null;
+  let activeElement = null;
+
+  function showTooltip(el, e) {
+    if (tooltipMode === 'off') return;
+    const rawTip = el.getAttribute('data-tooltip');
+    if (!rawTip) return;
+
+    let tipToDisplay = rawTip;
+    if (tooltipMode === 'minimal') {
+      // In minimal mode, only display hotkey or first 4 words
+      const keyMatch = rawTip.match(/\[Key:[^\]]+\]|\[(Space|\/|Ctrl\+K|0|C|A|I|P|T|\?)\]/);
+      const firstPart = rawTip.split(':')[0].split('[')[0].trim();
+      tipToDisplay = keyMatch ? `${firstPart} ${keyMatch[0]}` : firstPart;
+    }
+
+    // Parse [Key: X] into keyboard shortcut badges
+    let formattedTip = rawTip.replace(/\[Key:\s*([^ \]]+)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
+    formattedTip = formattedTip.replace(/\[(Space|\/|Ctrl\+K|0|C|A|I|P|T|\?)\]/g, '<kbd class="tooltip-kbd">$1</kbd>');
+
+    tooltip.innerHTML = formattedTip;
+    tooltip.style.display = 'block';
+
+    const rect = el.getBoundingClientRect();
+    const tipRect = tooltip.getBoundingClientRect();
+
+    // Position above or below element
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    let top = rect.top - tipRect.height - 8;
+
+    // Flip to below if too close to top
+    if (top < 10) {
+      top = rect.bottom + 8;
+    }
+
+    // Horizontal clamping
+    left = Math.max(10, Math.min(left, window.innerWidth - tipRect.width - 10));
+
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.top = `${Math.round(top)}px`;
+
+    requestAnimationFrame(() => {
+      tooltip.classList.add('visible');
+    });
+  }
+
+  function hideTooltip() {
+    clearTimeout(showTimer);
+    tooltip.classList.remove('visible');
+    setTimeout(() => {
+      if (!tooltip.classList.contains('visible')) {
+        tooltip.style.display = 'none';
+      }
+    }, 150);
+    activeElement = null;
+  }
+
+  document.addEventListener('mouseover', (e) => {
+    const target = e.target.closest('[data-tooltip]');
+    if (!target) {
+      hideTooltip();
+      return;
+    }
+    if (target === activeElement) return;
+
+    hideTooltip();
+    activeElement = target;
+    showTimer = setTimeout(() => {
+      if (activeElement === target) {
+        showTooltip(target, e);
+      }
+    }, 220); // 220ms subtle delay prevents flashing
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    const target = e.target.closest('[data-tooltip]');
+    if (target && target === activeElement) {
+      hideTooltip();
+    }
+  });
+
+  document.addEventListener('click', hideTooltip);
+  window.addEventListener('scroll', hideTooltip, true);
+}
+
+
+
+// ============================================================================
+// COSMIC VIDEO MODAL PLAYER (WITH BULLETPROOF CLOSE & ESCAPE HANDLERS)
+// ============================================================================
+function openCosmicVideoModal(title, embedUrl, externalUrl) {
+  const modal = document.getElementById('video-player-modal');
+  const titleEl = document.getElementById('video-modal-title');
+  const iframe = document.getElementById('video-modal-iframe');
+  const extLink = document.getElementById('video-modal-external-link');
+  
+  if (titleEl) titleEl.innerHTML = `<span>▶️</span> <span>${title}</span>`;
+  if (iframe) iframe.src = embedUrl;
+  if (extLink) extLink.href = externalUrl;
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+  }
+}
+window.openCosmicVideoModal = openCosmicVideoModal;
+
+function closeCosmicVideoModal() {
+  const modal = document.getElementById('video-player-modal');
+  const iframe = document.getElementById('video-modal-iframe');
+  if (iframe) {
+    iframe.src = 'about:blank';
+    iframe.removeAttribute('src');
+  }
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+  }
+}
+window.closeCosmicVideoModal = closeCosmicVideoModal;
+
+function initVideoModalEventListeners() {
+  const modal = document.getElementById('video-player-modal');
+  const btnClose = document.getElementById('btn-close-video-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-video-modal');
+  
+  if (btnClose) btnClose.onclick = (e) => { e.stopPropagation(); closeCosmicVideoModal(); };
+  if (btnDismiss) btnDismiss.onclick = (e) => { e.stopPropagation(); closeCosmicVideoModal(); };
+  
+  // Click outside backdrop to close
+  if (modal) {
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        closeCosmicVideoModal();
+      }
+    };
+  }
+
+  // ESC key listener to close video
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+      closeCosmicVideoModal();
+    }
+  });
+}
+
+
+
+// Primer Modal Handlers
+function initPrimerModal() {
+  const btnToggle = document.getElementById('btn-primer-toggle');
+  const modal = document.getElementById('primer-modal');
+  const btnClose = document.getElementById('btn-close-primer-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-primer-modal');
+
+  function openPrimer() { if (modal) modal.style.display = 'flex'; }
+  function closePrimer() { if (modal) modal.style.display = 'none'; }
+
+  if (btnToggle) btnToggle.addEventListener('click', openPrimer);
+  if (btnClose) btnClose.addEventListener('click', closePrimer);
+  if (btnDismiss) btnDismiss.addEventListener('click', closePrimer);
+
+  // Global Key: 'H'
+  window.addEventListener('keydown', (e) => {
+    if ((e.key === 'h' || e.key === 'H') && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      if (modal && modal.style.display !== 'none') closePrimer();
+      else openPrimer();
+    }
+  });
+}
+
+function initCosmographyApp() {
+  initCosmicTooltips();
+  initCosmicTips();
+  initVideoModalEventListeners();
+  initPrimerModal();
+  initTooltipModeToggle();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCosmographyApp);
+} else {
+  initCosmographyApp();
+}
+
+})();

@@ -34,7 +34,8 @@ def main():
         client.send_cdp("Page.enable")
         client.send_cdp("Page.reload", {"ignoreCache": True})
         
-        time.sleep(2.5)
+        client.wait_for_condition("document.readyState === 'complete'", timeout=15.0)
+        time.sleep(2.0)
         exceptions = client.uncaught_exceptions
     finally:
         client.close()

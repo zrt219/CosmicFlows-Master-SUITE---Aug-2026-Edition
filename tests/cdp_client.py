@@ -86,11 +86,15 @@ class ChromeCDPClient:
                 raise RuntimeError(f"CDP Port {self.port} is not accessible and spawn_headless=False")
 
         # Connect to page target
-        for attempt in range(10):
+        for attempt in range(15):
             try:
                 req = urllib.request.urlopen(f"http://localhost:{self.port}/json/list", timeout=2.0)
                 pages = json.loads(req.read().decode())
-                target = next((p for p in pages if "8000" in p.get("url", "") or p.get("type") == "page"), None)
+                target = next((p for p in pages if ("8000" in p.get("url", "") or self.target_url in p.get("url", "")) and "webSocketDebuggerUrl" in p), None)
+                if not target:
+                    target = next((p for p in pages if p.get("type") == "page" and p.get("url", "") not in ("about:blank", "chrome://newtab/") and "webSocketDebuggerUrl" in p), None)
+                if not target:
+                    target = next((p for p in pages if "webSocketDebuggerUrl" in p and p.get("type") == "page"), None)
                 if target and "webSocketDebuggerUrl" in target:
                     self.ws = websocket.create_connection(target["webSocketDebuggerUrl"], timeout=30.0)
                     break

@@ -30,6 +30,19 @@ def main():
     client.start()
     
     try:
+        client.evaluate("""
+        (function() {
+            if (typeof katex === 'undefined') {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js';
+                document.head.appendChild(s);
+            }
+        })()
+        """)
+        ready = client.wait_for_condition("typeof katex !== 'undefined'", timeout=15.0)
+        if not ready:
+            raise RuntimeError("Timed out waiting for KaTeX library to load in browser")
+            
         readme_path = os.path.join(ROOT_DIR, "README.md")
         with open(readme_path, "r", encoding="utf-8") as f:
             content = f.read()

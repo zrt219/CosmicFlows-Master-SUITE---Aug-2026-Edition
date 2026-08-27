@@ -29,6 +29,7 @@ def main():
     client.start()
     
     try:
+        client.wait_for_condition("document.readyState === 'complete'", timeout=15.0)
         time.sleep(1.2) # Allow initial display threshold
         client.evaluate("if (window.splashController && !window.splashController.isDismissed) window.splashController.dismiss(true);")
         time.sleep(0.5)

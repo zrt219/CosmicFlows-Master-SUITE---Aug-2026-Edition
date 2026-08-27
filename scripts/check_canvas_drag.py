@@ -29,11 +29,14 @@ def main():
     client.start()
     
     try:
-        time.sleep(2.0)
+        ready = client.wait_for_condition("document.readyState === 'complete' && !!window.camera && !!window.controls", timeout=15.0)
+        if not ready:
+            raise RuntimeError("Timed out waiting for window.camera and window.controls to initialize")
+            
         client.evaluate("if (window.splashController) window.splashController.dismiss(true);")
         time.sleep(0.3)
         
-        init_pos = client.evaluate("({ x: camera.position.x, y: camera.position.y, z: camera.position.z })")
+        init_pos = client.evaluate("({ x: (window.camera ? window.camera.position.x : 0), y: (window.camera ? window.camera.position.y : 0), z: (window.camera ? window.camera.position.z : 0) })")
         
         client.send_cdp("Input.dispatchMouseEvent", {"type": "mousePressed", "x": 640, "y": 360, "button": "left", "clickCount": 1})
         time.sleep(0.05)
@@ -42,7 +45,7 @@ def main():
         client.send_cdp("Input.dispatchMouseEvent", {"type": "mouseReleased", "x": 740, "y": 460, "button": "left"})
         time.sleep(0.3)
         
-        new_pos = client.evaluate("({ x: camera.position.x, y: camera.position.y, z: camera.position.z })")
+        new_pos = client.evaluate("({ x: (window.camera ? window.camera.position.x : 0), y: (window.camera ? window.camera.position.y : 0), z: (window.camera ? window.camera.position.z : 0) })")
     finally:
         client.close()
     

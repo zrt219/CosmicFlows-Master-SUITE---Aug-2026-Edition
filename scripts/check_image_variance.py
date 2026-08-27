@@ -33,12 +33,18 @@ def main():
     client.start()
     
     try:
-        time.sleep(2.0)
+        ready = client.wait_for_condition(
+            "document.readyState === 'complete' && !!window.camera && !!window.controls && typeof (window.toggleTheme || (window.cosmicflows && window.cosmicflows.toggleTheme)) === 'function'",
+            timeout=15.0
+        )
+        if not ready:
+            raise RuntimeError("Timed out waiting for camera, controls, and toggleTheme initialization")
+            
         client.evaluate("if (window.splashController) window.splashController.dismiss(true);")
         time.sleep(0.5)
         
         # 1. White Mode Check
-        client.evaluate("toggleTheme('white');")
+        client.evaluate("(window.toggleTheme || (window.cosmicflows && window.cosmicflows.toggleTheme))('white');")
         time.sleep(0.5)
         res_w = client.send_cdp("Page.captureScreenshot", {"format": "png"})
         img_w = Image.open(io.BytesIO(base64.b64decode(res_w["data"]))).convert("RGB")
@@ -47,7 +53,7 @@ def main():
         sz_w = len(base64.b64decode(res_w["data"])) / 1024.0
         
         # 2. Dark Mode Check
-        client.evaluate("toggleTheme('dark');")
+        client.evaluate("(window.toggleTheme || (window.cosmicflows && window.cosmicflows.toggleTheme))('dark');")
         time.sleep(0.5)
         res_d = client.send_cdp("Page.captureScreenshot", {"format": "png"})
         img_d = Image.open(io.BytesIO(base64.b64decode(res_d["data"]))).convert("RGB")
