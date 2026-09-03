@@ -140,7 +140,7 @@ def main():
     static_errors = []
 
     # Audit Markdown Documentation
-    doc_targets = ["README.md", "AGENTS.md", "GEMINI.md"]
+    doc_targets = ["README.md", "AGENTS.md", "GEMINI.md", "docs/HOOLEILANA_BAO_RESEARCH.md"]
     md_audits = {}
     total_display_eqs = 0
     total_inline_eqs = 0

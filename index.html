@@ -213,6 +213,24 @@ window.onerror = function(msg, url, line, col, error) {
     background: rgba(0, 229, 255, 0.16); font-weight: 900;
     box-shadow: 0 0 12px rgba(0, 229, 255, 0.28);
   }
+  .top-btn.room-btn {
+    border-color: #6366f1; color: #6366f1;
+    background: rgba(99, 102, 241, 0.12);
+  }
+  .top-btn.room-btn.active {
+    border-color: #4f46e5; color: #4f46e5;
+    background: rgba(99, 102, 241, 0.22);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.28);
+  }
+  body.theme-white .top-btn.room-btn {
+    border-color: #4f46e5; color: #4338ca;
+    background: rgba(99, 102, 241, 0.08);
+  }
+  body.theme-white .top-btn.room-btn.active {
+    border-color: #3730a3; color: #312e81;
+    background: rgba(99, 102, 241, 0.18);
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.25);
+  }
 
   /* TOP RIGHT CLUSTER - UNIFIED HORIZONTAL STATUS & DATASET HUB */
   #top-right-cluster {
@@ -301,27 +319,49 @@ window.onerror = function(msg, url, line, col, error) {
     display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
   }
 
-  /* TABS BAR: Clean 4-Column Auto-Fit Grid for 11 Tabs */
+  /* TABS BAR: Clean 3-Column Grid for 12 Tabs */
   .tabs {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
     padding: 8px;
     background: var(--panel-header);
     border-bottom: 1.5px solid var(--panel-border);
     flex-shrink: 0;
   }
   .tab-btn {
-    padding: 6px 4px; font-family: inherit; font-size: 10.5px; text-transform: uppercase;
-    letter-spacing: 0.02em; background: rgba(0,0,0,0.08); border: 1.5px solid var(--panel-border);
+    padding: 8px 6px; font-family: inherit; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.02em; background: rgba(0,0,0,0.08); border: 2px solid var(--panel-border);
     border-radius: 6px; color: var(--text-main); cursor: pointer; transition: all 0.15s ease;
     text-align: center; white-space: nowrap; font-weight: 800; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 4px rgba(0, 0, 0, 0.2);
   }
-  .tab-btn:hover { color: var(--text-bright); border-color: var(--accent-cyan); background: rgba(2, 132, 199, 0.16); }
+  .tab-btn:hover {
+    color: var(--text-bright); border-color: var(--accent-cyan);
+    background: rgba(2, 132, 199, 0.18);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 2px 6px rgba(2, 132, 199, 0.25);
+  }
   .tab-btn.active {
     color: var(--accent-cyan); border-color: var(--accent-cyan);
-    background: rgba(2, 132, 199, 0.22); box-shadow: 0 0 10px rgba(0, 229, 255, 0.35); font-weight: 800;
+    background: rgba(2, 132, 199, 0.24);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 10px rgba(0, 229, 255, 0.35);
+    font-weight: 800;
     border-width: 2px;
+  }
+  body.theme-white .tab-btn {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(15, 23, 42, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+  body.theme-white .tab-btn:hover {
+    color: var(--accent-cyan); border-color: var(--accent-cyan);
+    background: rgba(2, 132, 199, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 6px rgba(2, 132, 199, 0.2);
+  }
+  body.theme-white .tab-btn.active {
+    color: var(--accent-cyan); border-color: var(--accent-cyan);
+    background: rgba(2, 132, 199, 0.18);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 8px rgba(2, 132, 199, 0.3);
   }
 
   /* TAB CONTENT PANES */
@@ -1386,6 +1426,9 @@ window.onerror = function(msg, url, line, col, error) {
       <button class="top-btn theme-btn" id="btn-theme-toggle" data-tooltip="Toggle 600-DPI Publication White / Dark Sci-Fi mode [Key: T]" title="Switch Theme [Key: T]">
         <span id="theme-icon">☀️</span> <b id="theme-label">Theme (T)</b>
       </button>
+      <button class="top-btn room-btn active" id="btn-room-toggle" data-tooltip="Toggle 3D Pure White Gallery Room Environment [Key: B / M]" title="3D Gallery Room [Key: B / M]">
+        <span id="room-icon">🏛️</span> <b id="room-label">Room (B)</b>
+      </button>
       <button class="top-btn" id="btn-callouts-toggle" data-tooltip="Toggle 3D cluster pins and galaxy name labels [Key: A]" title="Toggle Cluster Pins [Key: A]">
         <span>🏷️</span> <b>Pins (A)</b>
       </button>
@@ -1409,6 +1452,9 @@ window.onerror = function(msg, url, line, col, error) {
       </button>
       <button class="top-btn" id="btn-spotlight-tour" data-tooltip="Launch interactive step-by-step walkthrough tutorial [Key: /]" title="Interactive Guided Tour [Key: /]">
         <span>🎓</span> <b>Tour (/)</b>
+      </button>
+      <button class="top-btn" id="btn-powers-of-ten-toggle" data-tooltip="Explore real cosmic scale from Laniakea down to Earth [Key: O]" title="Powers of Ten: Cosmic Scale [Key: O]">
+        <span>🌌</span> <b>Scale (O)</b>
       </button>
       <button class="top-btn" id="btn-shortcuts-toggle" data-tooltip="Open keyboard shortcut reference [Key: ?]" title="Keyboard Shortcuts [Key: ?]">
         <span>⌨️</span> <b>Keys (?)</b>
@@ -1541,6 +1587,25 @@ window.onerror = function(msg, url, line, col, error) {
   <div id="spec-canvas-container">
     <canvas id="spec-canvas" width="400" height="130"></canvas>
   </div>
+  <div id="spec-bao-panel" style="display:none; background:rgba(56, 189, 248, 0.06); border:1px solid #38bdf8; border-radius:8px; padding:10px; margin:8px 0; font-size:11px; line-height:1.5;">
+    <div style="font-weight:800; color:#38bdf8; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+      <span>🪐</span> <span>Primordial Acoustic Wave Relic (BAO) Analysis</span>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px;">
+      <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px; border:1px solid var(--panel-border);">
+        <b style="color:var(--accent-amber);">Dynamic Basin (Laniākea):</b><br>
+        <span style="font-size:10px; color:var(--text-dim);">Gravitational convergence basin where matter flows <i>today</i> toward the Great Attractor core.</span>
+      </div>
+      <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px; border:1px solid var(--panel-border);">
+        <b style="color:var(--accent-cyan);">Acoustic Relic (Hoʻoleilana):</b><br>
+        <span style="font-size:10px; color:var(--text-dim);">Surviving spatial shell imprint of an outward sound wave frozen at recombination &gt; 13 Gyr ago.</span>
+      </div>
+    </div>
+    <div style="background:var(--panel-header); padding:6px 8px; border-radius:6px; border:1px solid var(--panel-border); font-size:10.5px;">
+      <b>Hubble Tension Gauge:</b> Inferred <i>H</i><sub>0</sub> &approx; 76.9 (+8.2 / -4.8) km/s/Mpc vs Planck <i>H</i><sub>0</sub> = 67.4 &plusmn; 0.5 vs SH0ES <i>H</i><sub>0</sub> = 73.04 &plusmn; 1.04 km/s/Mpc.
+      <br><span style="font-size:9.5px; color:#f59e0b;">Epistemic Status: ◌ Candidate Relic / Low-Precision BAO</span>
+    </div>
+  </div>
   <div class="spec-cite" id="spec-citation">
     <b>Primary References:</b> Colless & Dunn (1996) ApJ 458; Sanders et al. (2020) A&A 633; eROSITA (2024).
   </div>
@@ -1556,6 +1621,11 @@ window.onerror = function(msg, url, line, col, error) {
     </button>
     <button id="spec-btn-bibtex" class="spec-link-btn bibtex" style="display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:6px; font-size:10px; font-weight:700; background:rgba(16,185,129,0.12); border:1px solid #34d399; color:#34d399; cursor:pointer; font-family:inherit; transition:all 0.15s;">
       <span>📋</span> <span id="bibtex-btn-text">BibTeX</span>
+    </button>
+  </div>
+  <div id="spec-powers-of-ten-container" style="display:none; margin-top:10px; border-top:1px solid var(--panel-border); padding-top:10px;">
+    <button id="btn-spec-powers-of-ten" style="width:100%; background:linear-gradient(135deg, #0284c7, #8b5cf6); color:#ffffff; border:none; border-radius:8px; padding:8px 12px; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(2,132,199,0.35); transition:transform 0.15s;">
+      <span style="font-size:15px;">🌌</span> <span>Explore Cosmic Scale (Laniakea → Earth) [Key: O]</span>
     </button>
   </div>
 </div>
@@ -1592,6 +1662,7 @@ window.onerror = function(msg, url, line, col, error) {
       <button class="tab-btn" data-tab="tab-streamlines" data-tooltip="Trace 4,200 velocity flow rivers across the universe">🌊 Flow Rivers</button>
       <button class="tab-btn" data-tab="tab-compute" data-tooltip="Analyze cosmic web filaments, voids, and epistemic uncertainty">🧮 Cosmic Web</button>
       <button class="tab-btn" data-tab="tab-settings" data-tooltip="Customize tooltips, UI scale, and color-blind safe palettes">⚙️ App Settings</button>
+      <button class="tab-btn" data-tab="tab-bao" data-tooltip="Explore Hoʻoleilana BAO acoustic shell and primordial sound horizon physics">🪐 Primordial BAO</button>
     </div>
 
     <div class="tab-content">
@@ -1629,12 +1700,87 @@ window.onerror = function(msg, url, line, col, error) {
         <div class="ctrl-group-title">Display Layers</div>
         <div class="ctrl-row"><label>Graduated Ruler</label><input type="checkbox" id="chk-ruler-box" checked><span class="val">Inward Ticks</span></div>
         <div class="ctrl-row"><label>3D Floor Grid</label><input type="checkbox" id="chk-floor-grid" data-tooltip="3D Floor Grid SGZ=-150: Supergalactic Cartesian coordinate plane in Mpc/h, providing scale perspective" checked><span class="val">SGZ = -15k</span></div>
+        <div class="ctrl-row"><label>🏛️ 3D Gallery Room</label><input type="checkbox" id="chk-gallery-room" data-tooltip="Pure White 3D Architectural Exhibition Room with Central Museum Plinth [Key: B / M]" checked><span class="val" id="val-gallery-room">Active</span></div>
         <div class="ctrl-row"><label>Equator Grid</label><input type="checkbox" id="chk-equator-grid"><span class="val">SGZ = 0</span></div>
         <div class="ctrl-row"><label>Pulsating Halos</label><input type="checkbox" id="chk-halos" checked><span class="val">Chromatic</span></div>
         <div class="ctrl-row"><label>Flow Chevrons</label><input type="checkbox" id="chk-chevrons" checked><span class="val">Sparse</span></div>
         <div class="ctrl-row"><label>CF4 Galaxies</label><input type="checkbox" id="chk-galaxies" data-tooltip="Galaxies Point Cloud: 56,000 CosmicFlows-4 extragalactic data points with Tully-Fisher distances [Key: Space]" checked><span class="val">38k Groups</span></div>
         <div class="ctrl-row"><label>Watershed Shells</label><input type="checkbox" id="chk-watershed-shells" checked><span class="val">Probabilistic</span></div>
         <div class="ctrl-row"><label>Zone of Avoidance</label><input type="checkbox" id="chk-zoa" checked><span class="val">Dust Extinction |b|&lt;10°</span></div>
+      </div>
+    </div>
+
+    <!-- TAB 12: HOʻOLEILANA PRIMORDIAL BAO (FOSSIL SOUND WAVE) -->
+    <div class="pane" id="tab-bao">
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">🪐 Hoʻoleilana BAO Shell (1 Gly Relic)</div>
+        <p style="font-size:8.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;">
+          Surviving 155 Mpc (~505 Mly radius) spherical shell left by a 380,000-year-old primordial acoustic wave. Unifies Boötes core, Sloan Great Wall, CfA2 Great Wall, and Hercules Complex.
+        </p>
+        <div class="ctrl-row">
+          <label>Shell Mesh Visible</label>
+          <input type="checkbox" id="chk-bao-shell" checked>
+          <span class="val" id="val-bao-shell">Active</span>
+        </div>
+        <div class="ctrl-row">
+          <label>Shell Opacity</label>
+          <input type="range" id="rng-bao-opacity" min="0.05" max="0.60" step="0.01" value="0.28">
+          <span class="val" id="val-bao-opacity">28%</span>
+        </div>
+        <div class="ctrl-row">
+          <label>Acoustic Radius R</label>
+          <input type="range" id="rng-bao-radius" min="130" max="180" step="1" value="155">
+          <span class="val" id="val-bao-radius">155 Mpc</span>
+        </div>
+        <div class="ctrl-row">
+          <label>Constituent Anchors</label>
+          <input type="checkbox" id="chk-bao-anchors" checked>
+          <span class="val" id="val-bao-anchors">Shown</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+          <button class="action-btn primary" id="btn-fly-hooleilana">🚀 Fly to Shell</button>
+          <button class="action-btn" id="btn-open-bao-primer">📖 BAO Primer</button>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">🧮 Acoustic Sound Horizon &amp; H₀ Calculator</div>
+        <p style="font-size:8.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;">
+          Calculates theoretical comoving sound horizon <i>r</i><sub>d</sub> from early-universe plasma physics and compares live with Hoʻoleilana's observed 155 Mpc scale.
+        </p>
+        <div class="ctrl-row">
+          <label>Hubble Constant H₀</label>
+          <input type="range" id="rng-bao-h0" min="65" max="82" step="0.5" value="76.9">
+          <span class="val" id="val-bao-h0">76.9 km/s/Mpc</span>
+        </div>
+        <div class="ctrl-row">
+          <label>Baryon Density Ω_b h²</label>
+          <input type="range" id="rng-bao-omb" min="0.019" max="0.025" step="0.0002" value="0.02237">
+          <span class="val" id="val-bao-omb">0.0224</span>
+        </div>
+        <div style="background:var(--panel-header); border:1px solid var(--panel-border); border-radius:8px; padding:8px 10px; margin-top:8px; font-size:11px; line-height:1.5;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:var(--text-dim);">Theoretical Horizon <i>r</i><sub>d</sub>:</span>
+            <span style="font-weight:bold; color:var(--accent-cyan);" id="calc-bao-rd">147.1 Mpc</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:var(--text-dim);">Observed Shell Scale:</span>
+            <span style="font-weight:bold; color:var(--text-bright);" id="calc-bao-obs">155.0 Mpc (+5.4%)</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-dim);">Hubble Tension Shift:</span>
+            <span style="font-weight:bold; color:#f59e0b;" id="calc-bao-tension">+9.5 km/s/Mpc vs Planck</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-group-title">🏷️ Epistemic Status &amp; Provenance</div>
+        <div style="background:rgba(245, 158, 11, 0.06); border:1px solid #f59e0b; border-radius:8px; padding:8px 10px; font-size:10px; color:var(--text-main); line-height:1.4;">
+          <b>Status:</b> ◌ Candidate Relic / Low-Precision BAO<br>
+          <b>Reference:</b> Tully, Howlett &amp; Pomarède (2023) ApJ 954, 169.<br>
+          <b>Caution:</b> Statistical BAO across millions of galaxies is verified to &lt; 1% precision. An individual cosmic realization is harder to definitively isolate and carries +8.2 / -4.8 km/s/Mpc uncertainty.
+        </div>
       </div>
     </div>
 
@@ -2466,6 +2612,8 @@ const simState = {
   particleCount: 1800,
   rulerVisible: true,
   floorGridVisible: true,
+  galleryRoom: true,
+  galleryRoomLighting: 1.0,
   equatorGridVisible: false,
   originTriadVisible: true,
   chevronsVisible: true,
@@ -2488,6 +2636,10 @@ const simState = {
   basinLaniakea: true,
   basinShapley: true,
   basinSloan: true,
+  hooleilanaBaoVisible: true,
+  hooleilanaBaoOpacity: 0.28,
+  hooleilanaBaoRadius: 155,
+  hooleilanaAnchorsVisible: true,
   vwebVoids: false,
   vwebKnots: true,
   zoaVisible: true,
@@ -2951,11 +3103,18 @@ window.CAM_SETTINGS = CAM_SETTINGS;
 window.applyCameraSettings = applyCameraSettings;
 window.setCameraView = setCameraView;
 window.setCameraNatureRefView = setCameraNatureRefView;
+window.flyToHooleilana = flyToHooleilana;
 
 function setCameraNatureRefView() {
   setCameraView(new THREE.Vector3(-27000, 20500, 44000), new THREE.Vector3(-500, -800, 0), 1300);
 }
 setCameraNatureRefView();
+
+function flyToHooleilana() {
+  const centerPos = sgToThree(3800, 16200, 8900);
+  const targetCam = centerPos.clone().add(new THREE.Vector3(12000, 16000, 24000));
+  setCameraView(targetCam, centerPos, 1400);
+}
 
 window.addEventListener('resize', () => {
   const w = window.innerWidth;
@@ -3091,6 +3250,10 @@ function buildChromaticHalos() {
 const HALF = 15000;
 let rulerBoxGroup = new THREE.Group();
 scene.add(rulerBoxGroup);
+let galleryRoomGroup = new THREE.Group();
+scene.add(galleryRoomGroup);
+let galleryRoomLightsGroup = new THREE.Group();
+scene.add(galleryRoomLightsGroup);
 
 function drawRoundedPill(ctx, x, y, width, height, radius) {
   ctx.beginPath();
@@ -3324,6 +3487,307 @@ function buildRulerBox() {
 }
 splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
 buildRulerBox();
+
+// ==========================================
+// 5B. ARCHITECTURAL GALLERY ROOM & MUSEUM PLINTH (WHITE MODE)
+// ==========================================
+function buildGalleryRoom() {
+  try {
+    disposeHierarchy(galleryRoomGroup);
+    while (galleryRoomGroup.children.length > 0) {
+      galleryRoomGroup.remove(galleryRoomGroup.children[0]);
+    }
+    disposeHierarchy(galleryRoomLightsGroup);
+    while (galleryRoomLightsGroup.children.length > 0) {
+      galleryRoomLightsGroup.remove(galleryRoomLightsGroup.children[0]);
+    }
+
+    const isRoomActive = (currentTheme === 'white' && !!simState.galleryRoom);
+    galleryRoomGroup.visible = isRoomActive;
+    galleryRoomLightsGroup.visible = isRoomActive;
+
+    const btnRoom = document.getElementById('btn-room-toggle');
+    if (btnRoom) {
+      btnRoom.classList.toggle('active', isRoomActive);
+      btnRoom.style.display = (currentTheme === 'white') ? 'inline-flex' : 'none';
+    }
+    const chkRoom = document.getElementById('chk-gallery-room');
+    if (chkRoom) chkRoom.checked = isRoomActive;
+    const valRoom = document.getElementById('val-gallery-room');
+    if (valRoom) valRoom.textContent = isRoomActive ? 'Active' : 'Flat Canvas';
+
+    if (!isRoomActive) return;
+
+    // Pure white materials (surfaces strictly 0xffffff, no grey)
+    const pureWhiteWallMat = new THREE.MeshLambertMaterial({
+      color: 0xffffff,
+      side: THREE.BackSide,
+      depthWrite: true
+    });
+    const pureWhiteFloorMat = new THREE.MeshLambertMaterial({
+      color: 0xffffff,
+      side: THREE.FrontSide,
+      depthWrite: true
+    });
+    const pureWhitePlinthMat = new THREE.MeshLambertMaterial({
+      color: 0xffffff,
+      side: THREE.FrontSide,
+      depthWrite: true
+    });
+
+    // Crisp architectural technical lines for physical edge articulation
+    const archLineMat = new THREE.LineBasicMaterial({
+      color: 0xe2e8f0,
+      linewidth: 1.2,
+      transparent: true,
+      opacity: 0.8
+    });
+    const plinthEdgeMat = new THREE.LineBasicMaterial({
+      color: 0x94a3b8,
+      linewidth: 1.6,
+      transparent: true,
+      opacity: 0.95
+    });
+    const baseboardShadowMat = new THREE.LineBasicMaterial({
+      color: 0x64748b,
+      linewidth: 1.5,
+      transparent: true,
+      opacity: 0.85
+    });
+
+    // 1. Inverted Room Enclosure Box (BackSide culling: never occludes OrbitControls)
+    // Box dimensions: 170k x 120k x 170k. Floor at Y = -15400, Ceiling at Y = 104600.
+    const roomBoxGeo = new THREE.BoxGeometry(170000, 120000, 170000);
+    const roomBoxMesh = new THREE.Mesh(roomBoxGeo, pureWhiteWallMat);
+    roomBoxMesh.position.set(0, 44600, 0);
+    galleryRoomGroup.add(roomBoxMesh);
+
+    // 2. Physical Architectural Floor Plane (Pure White with Subtle Joint Seams)
+    const floorGeo = new THREE.PlaneGeometry(168000, 168000);
+    floorGeo.rotateX(-Math.PI / 2);
+    const floorMesh = new THREE.Mesh(floorGeo, pureWhiteFloorMat);
+    floorMesh.position.set(0, -15390, 0);
+    galleryRoomGroup.add(floorMesh);
+
+    // Architectural floor tile seams (15,000 unit grid slabs)
+    const floorSeamPos = [];
+    for (let c = -75000; c <= 75000; c += 15000) {
+      floorSeamPos.push(c, -15380, -75000, c, -15380, 75000);
+      floorSeamPos.push(-75000, -15380, c, 75000, -15380, c);
+    }
+    const floorSeamGeo = new THREE.BufferGeometry();
+    floorSeamGeo.setAttribute('position', new THREE.Float32BufferAttribute(floorSeamPos, 3));
+    galleryRoomGroup.add(new THREE.LineSegments(floorSeamGeo, archLineMat));
+
+    // 3. Elevated Museum Exhibition Plinth / Dais
+    // Two-tiered stepped pedestal directly beneath the cosmic volume
+    // Lower Sub-Base Stage: 38,000 x 140 x 38,000, top at Y = -15250
+    const subBaseGeo = new THREE.BoxGeometry(38000, 140, 38000);
+    const subBaseMesh = new THREE.Mesh(subBaseGeo, pureWhitePlinthMat);
+    subBaseMesh.position.set(0, -15320, 0);
+    galleryRoomGroup.add(subBaseMesh);
+
+    // Main Exhibition Plinth Stage: 34,000 x 250 x 34,000, top exactly at Y = -15000
+    const plinthGeo = new THREE.BoxGeometry(34000, 250, 34000);
+    const plinthMesh = new THREE.Mesh(plinthGeo, pureWhitePlinthMat);
+    plinthMesh.position.set(0, -15125, 0);
+    galleryRoomGroup.add(plinthMesh);
+
+    // Perimeter architectural reveal lines for plinth tiers
+    const plinthLinePos = [];
+    const pHalf = 17000;
+    plinthLinePos.push(
+      -pHalf, -14995, -pHalf,  pHalf, -14995, -pHalf,
+       pHalf, -14995, -pHalf,  pHalf, -14995,  pHalf,
+       pHalf, -14995,  pHalf, -pHalf, -14995,  pHalf,
+      -pHalf, -14995,  pHalf, -pHalf, -14995, -pHalf
+    );
+    const sbHalf = 19000;
+    plinthLinePos.push(
+      -sbHalf, -15245, -sbHalf,  sbHalf, -15245, -sbHalf,
+       sbHalf, -15245, -sbHalf,  sbHalf, -15245,  sbHalf,
+       sbHalf, -15245,  sbHalf, -sbHalf, -15245,  sbHalf,
+      -sbHalf, -15245,  sbHalf, -sbHalf, -15245, -sbHalf
+    );
+    const plinthLineGeo = new THREE.BufferGeometry();
+    plinthLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(plinthLinePos, 3));
+    galleryRoomGroup.add(new THREE.LineSegments(plinthLineGeo, plinthEdgeMat));
+
+    // Exhibition Plinth Corner Bracket Accents
+    const bracketLen = 1200;
+    const bracketPos = [];
+    const cornerSigns = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+    cornerSigns.forEach(([sx, sz]) => {
+      const cx = sx * (pHalf - 100);
+      const cz = sz * (pHalf - 100);
+      const cy = -14990;
+      bracketPos.push(cx, cy, cz, cx - sx * bracketLen, cy, cz);
+      bracketPos.push(cx, cy, cz, cx, cy, cz - sz * bracketLen);
+    });
+    const bracketGeo = new THREE.BufferGeometry();
+    bracketGeo.setAttribute('position', new THREE.Float32BufferAttribute(bracketPos, 3));
+    galleryRoomGroup.add(new THREE.LineSegments(bracketGeo, new THREE.LineBasicMaterial({ color: 0x475569, linewidth: 2 })));
+
+    // 4. Soft Contact Grounding (Ambient Occlusion on Plinth Top)
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 512;
+    shadowCanvas.height = 512;
+    const sCtx = shadowCanvas.getContext('2d');
+    const radGrad = sCtx.createRadialGradient(256, 256, 10, 256, 256, 250);
+    radGrad.addColorStop(0, 'rgba(15, 23, 42, 0.16)');
+    radGrad.addColorStop(0.45, 'rgba(15, 23, 42, 0.07)');
+    radGrad.addColorStop(0.85, 'rgba(15, 23, 42, 0.015)');
+    radGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    sCtx.fillStyle = radGrad;
+    sCtx.fillRect(0, 0, 512, 512);
+
+    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+    const shadowGeo = new THREE.PlaneGeometry(30000, 30000);
+    shadowGeo.rotateX(-Math.PI / 2);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: shadowTex,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false
+    });
+    const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+    shadowMesh.position.set(0, -14988, 0);
+    galleryRoomGroup.add(shadowMesh);
+
+    // 5. Perimeter Baseboards & Wall Reveal Grooves
+    const baseboardPos = [];
+    const wallHalf = 84800;
+    const baseH = -15360;
+    baseboardPos.push(
+      -wallHalf, baseH, -wallHalf,  wallHalf, baseH, -wallHalf,
+       wallHalf, baseH, -wallHalf,  wallHalf, baseH,  wallHalf,
+       wallHalf, baseH,  wallHalf, -wallHalf, baseH,  wallHalf,
+      -wallHalf, baseH,  wallHalf, -wallHalf, baseH, -wallHalf
+    );
+    const baseTopH = -15110;
+    baseboardPos.push(
+      -wallHalf, baseTopH, -wallHalf,  wallHalf, baseTopH, -wallHalf,
+       wallHalf, baseTopH, -wallHalf,  wallHalf, baseTopH,  wallHalf,
+       wallHalf, baseTopH,  wallHalf, -wallHalf, baseTopH,  wallHalf,
+      -wallHalf, baseTopH,  wallHalf, -wallHalf, baseTopH, -wallHalf
+    );
+    const ceilH = 104000;
+    cornerSigns.forEach(([sx, sz]) => {
+      const cx = sx * wallHalf;
+      const cz = sz * wallHalf;
+      baseboardPos.push(cx, baseH, cz, cx, ceilH, cz);
+    });
+    const baseboardGeo = new THREE.BufferGeometry();
+    baseboardGeo.setAttribute('position', new THREE.Float32BufferAttribute(baseboardPos, 3));
+    galleryRoomGroup.add(new THREE.LineSegments(baseboardGeo, baseboardShadowMat));
+
+    // 6. Suspended Architectural Ceiling Track Lighting
+    const trackY = 62000;
+    const trackHalf = 24000;
+    const trackPos = [];
+    trackPos.push(
+      -trackHalf, trackY, -trackHalf,  trackHalf, trackY, -trackHalf,
+       trackHalf, trackY, -trackHalf,  trackHalf, trackY,  trackHalf,
+       trackHalf, trackY,  trackHalf, -trackHalf, trackY,  trackHalf,
+      -trackHalf, trackY,  trackHalf, -trackHalf, trackY, -trackHalf
+    );
+    cornerSigns.forEach(([sx, sz]) => {
+      const tx = sx * trackHalf;
+      const tz = sz * trackHalf;
+      trackPos.push(tx, trackY, tz, tx, ceilH, tz);
+    });
+    const trackGeo = new THREE.BufferGeometry();
+    trackGeo.setAttribute('position', new THREE.Float32BufferAttribute(trackPos, 3));
+    galleryRoomGroup.add(new THREE.LineSegments(trackGeo, new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 1.8 })));
+
+    // Spotlight canisters along track rails
+    const spotGeo = new THREE.CylinderGeometry(260, 320, 650, 16);
+    const spotMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const spotPositions = [
+      [-trackHalf, trackY, -12000], [-trackHalf, trackY, 12000],
+      [ trackHalf, trackY, -12000], [ trackHalf, trackY, 12000],
+      [-12000, trackY, -trackHalf], [ 12000, trackY, -trackHalf],
+      [-12000, trackY,  trackHalf], [ 12000, trackY,  trackHalf]
+    ];
+    spotPositions.forEach(([sx, sy, sz]) => {
+      const spotMesh = new THREE.Mesh(spotGeo, spotMat);
+      spotMesh.position.set(sx, sy - 300, sz);
+      spotMesh.lookAt(0, -15000, 0);
+      galleryRoomGroup.add(spotMesh);
+    });
+
+    // 7. Ceiling Perimeter Indirect Cove Lighting Band
+    const coveY = 103000;
+    const covePos = [];
+    covePos.push(
+      -wallHalf + 1000, coveY, -wallHalf + 1000,  wallHalf - 1000, coveY, -wallHalf + 1000,
+       wallHalf - 1000, coveY, -wallHalf + 1000,  wallHalf - 1000, coveY,  wallHalf - 1000,
+       wallHalf - 1000, coveY,  wallHalf - 1000, -wallHalf + 1000, coveY,  wallHalf - 1000,
+      -wallHalf + 1000, coveY,  wallHalf - 1000, -wallHalf + 1000, coveY, -wallHalf + 1000
+    );
+    const coveGeo = new THREE.BufferGeometry();
+    coveGeo.setAttribute('position', new THREE.Float32BufferAttribute(covePos, 3));
+    galleryRoomGroup.add(new THREE.LineSegments(coveGeo, new THREE.LineBasicMaterial({ color: 0xcfd8e3, linewidth: 2 })));
+
+    // 8. Authentic Museum Exhibition Typographic Wall Inscription
+    const plaqueCanvas = document.createElement('canvas');
+    plaqueCanvas.width = 2048;
+    plaqueCanvas.height = 512;
+    const pCtx = plaqueCanvas.getContext('2d');
+    pCtx.fillStyle = 'rgba(255, 255, 255, 0)';
+    pCtx.fillRect(0, 0, 2048, 512);
+
+    pCtx.textAlign = 'center';
+    pCtx.textBaseline = 'middle';
+    pCtx.fillStyle = '#0f172a';
+    pCtx.font = 'bold 54px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    pCtx.fillText('COSMICFLOWS\u22124 \u00B7 CARTESIAN LOCAL UNIVERSE SURVEY', 1024, 130);
+
+    pCtx.fillStyle = '#334155';
+    pCtx.font = '600 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    pCtx.fillText('30,000 km\u00B7s\u207B\u00B9 SUPERGALACTIC VOLUME \u00B7 38,061 GALAXY GROUPS \u00B7 WIENER FILTER RECONSTRUCTION', 1024, 220);
+
+    pCtx.fillStyle = '#64748b';
+    pCtx.font = '500 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    pCtx.fillText('COURTOIS ET AL. (2023) A&A 670, L15 \u00B7 DUPUY & COURTOIS (2023) A&A 678, A176', 1024, 300);
+
+    const plaqueTex = new THREE.CanvasTexture(plaqueCanvas);
+    plaqueTex.minFilter = THREE.LinearFilter;
+    const plaqueMat = new THREE.MeshBasicMaterial({
+      map: plaqueTex,
+      transparent: true,
+      side: THREE.FrontSide
+    });
+    const plaqueMesh = new THREE.Mesh(new THREE.PlaneGeometry(36000, 9000), plaqueMat);
+    plaqueMesh.position.set(0, 8000, -84700);
+    galleryRoomGroup.add(plaqueMesh);
+
+    // 9. Pure White Architectural Gallery Lighting System
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
+    keyLight.position.set(35000, 95000, 45000);
+    keyLight.target.position.set(0, -15000, 0);
+    galleryRoomLightsGroup.add(keyLight.target);
+    galleryRoomLightsGroup.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.45);
+    fillLight.position.set(-45000, 80000, -35000);
+    fillLight.target.position.set(0, -15000, 0);
+    galleryRoomLightsGroup.add(fillLight.target);
+    galleryRoomLightsGroup.add(fillLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xf8fafc, 0.82);
+    hemiLight.position.set(0, 90000, 0);
+    galleryRoomLightsGroup.add(hemiLight);
+
+  } catch (err) {
+    if (window.errorRegistry && typeof window.errorRegistry.register === 'function') {
+      window.errorRegistry.register('buildGalleryRoom', err);
+    } else {
+      console.warn('buildGalleryRoom non-critical error:', err);
+    }
+  }
+}
+buildGalleryRoom();
 
 // ==========================================
 // 6. FULL COSMICFLOWS GALAXY CATALOG (56k CF4 / 65k+ CF4++)
@@ -3595,6 +4059,121 @@ function initWatershedShells() {
   scene.add(watershedGroup);
 }
 initWatershedShells();
+
+// ==========================================
+// 7C. HOʻOLEILANA PRIMORDIAL BAO RELIC SHELL (1 Gly ACOUSTIC WAVE)
+// ==========================================
+let hooleilanaGroup = new THREE.Group();
+scene.add(hooleilanaGroup);
+
+function initHooleilanaBaoShell() {
+  disposeHierarchy(hooleilanaGroup);
+  scene.remove(hooleilanaGroup);
+  hooleilanaGroup = new THREE.Group();
+
+  if (!simState.hooleilanaBaoVisible) {
+    scene.add(hooleilanaGroup);
+    return;
+  }
+
+  const isWhite = currentTheme === 'white';
+  const centerPos = sgToThree(3800, 16200, 8900); // Boötes Core in Three.js coordinates
+  const radiusUnits = (simState.hooleilanaBaoRadius || 155) * 70; // 155 Mpc * 70 km/s/Mpc = 10,850 units
+
+  // 1. Outer Geodesic Icosahedron Shell (Ice Blue / Acoustic Ripple Cyan)
+  const shellGeo = new THREE.IcosahedronGeometry(radiusUnits, 3);
+  const shellMat = new THREE.MeshBasicMaterial({
+    color: isWhite ? 0x0284c7 : 0x38bdf8,
+    wireframe: true,
+    transparent: true,
+    opacity: isWhite ? Math.min(0.24, (simState.hooleilanaBaoOpacity || 0.28) * 0.8) : (simState.hooleilanaBaoOpacity || 0.28),
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+  const shellMesh = new THREE.Mesh(shellGeo, shellMat);
+  shellMesh.position.copy(centerPos);
+  shellMesh.userData = { isHooleilanaShell: true };
+  hooleilanaGroup.add(shellMesh);
+
+  // 2. Inner Semi-Translucent Depth Shell
+  const innerGeo = new THREE.IcosahedronGeometry(radiusUnits * 0.985, 2);
+  const innerMat = new THREE.MeshBasicMaterial({
+    color: isWhite ? 0x38bdf8 : 0x0284c7,
+    wireframe: false,
+    transparent: true,
+    opacity: isWhite ? 0.04 : 0.08,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    depthWrite: false
+  });
+  const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+  innerMesh.position.copy(centerPos);
+  hooleilanaGroup.add(innerMesh);
+
+  // 3. Acoustic Latitude Wave Rings (equatorial, +/- 30 deg, +/- 60 deg)
+  const latitudes = [0, 30, -30, 60, -60];
+  latitudes.forEach(latDeg => {
+    const latRad = (latDeg * Math.PI) / 180;
+    const ringR = radiusUnits * Math.cos(latRad);
+    const ringY = radiusUnits * Math.sin(latRad);
+    const ringGeo = new THREE.BufferGeometry();
+    const pts = [];
+    const segs = 64;
+    for (let i = 0; i <= segs; i++) {
+      const theta = (i / segs) * Math.PI * 2;
+      pts.push(new THREE.Vector3(Math.cos(theta) * ringR, ringY, Math.sin(theta) * ringR));
+    }
+    ringGeo.setFromPoints(pts);
+    const ringMat = new THREE.LineBasicMaterial({
+      color: isWhite ? 0x0369a1 : 0x7dd3fc,
+      transparent: true,
+      opacity: isWhite ? 0.25 : 0.42,
+      linewidth: 1.2
+    });
+    const ringLine = new THREE.Line(ringGeo, ringMat);
+    ringLine.position.copy(centerPos);
+    hooleilanaGroup.add(ringLine);
+  });
+
+  // 4. Center Anchor Pin (Boötes Core) & Constituent Links
+  if (simState.hooleilanaAnchorsVisible) {
+    const pinGeo = new THREE.SphereGeometry(220, 16, 16);
+    const pinMat = new THREE.MeshBasicMaterial({ color: isWhite ? 0xb45309 : 0xfbbf24 });
+    const pinMesh = new THREE.Mesh(pinGeo, pinMat);
+    pinMesh.position.copy(centerPos);
+    hooleilanaGroup.add(pinMesh);
+
+    const targets = [
+      { name: 'Sloan Great Wall (Shell Arc)', pos: sgToThree(12000, 14000, 11000), color: 0xd946ef },
+      { name: 'CfA2 / Hercules Complex (Shell Arc)', pos: sgToThree(3200, 11000, 4500), color: 0x10b981 },
+      { name: 'Laniākea Tangency Perimeter', pos: sgToThree(-4700, 700, -300), color: 0xf59e0b }
+    ];
+
+    targets.forEach(tgt => {
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([centerPos, tgt.pos]);
+      const lineMat = new THREE.LineDashedMaterial({
+        color: tgt.color,
+        dashSize: 400,
+        gapSize: 250,
+        transparent: true,
+        opacity: isWhite ? 0.6 : 0.75,
+        linewidth: 1.5
+      });
+      const line = new THREE.Line(lineGeo, lineMat);
+      line.computeLineDistances();
+      hooleilanaGroup.add(line);
+
+      const dotGeo = new THREE.SphereGeometry(180, 12, 12);
+      const dotMat = new THREE.MeshBasicMaterial({ color: tgt.color });
+      const dot = new THREE.Mesh(dotGeo, dotMat);
+      dot.position.copy(tgt.pos);
+      hooleilanaGroup.add(dot);
+    });
+  }
+
+  hooleilanaGroup.visible = simState.hooleilanaBaoVisible !== false;
+  scene.add(hooleilanaGroup);
+}
+initHooleilanaBaoShell();
 
 // ==========================================
 // 7B. ZONE OF AVOIDANCE (ZoA) & 21cm PIERCING CORRIDORS
@@ -5146,9 +5725,11 @@ function toggleTheme(targetTheme = null) {
 
   splashController.update(45, 'Parsing CF4 Velocity Field (38k Groups)...');
 buildRulerBox();
+  buildGalleryRoom();
   buildChromaticHalos();
   buildCallouts();
   initWatershedShells();
+  initHooleilanaBaoShell();
   buildZoneOfAvoidance();
   generateFullCF4Catalog();
   if (typeof buildErositaOverlays === 'function') buildErositaOverlays();
@@ -5170,6 +5751,27 @@ setTimeout(() => splashController.dismiss(), 350);
 }
 window.toggleTheme = toggleTheme;
 document.getElementById('btn-theme-toggle')?.addEventListener('click', () => toggleTheme());
+
+function toggleGalleryRoom(forceState = null) {
+  simState.galleryRoom = (forceState !== null) ? !!forceState : !simState.galleryRoom;
+  const btn = document.getElementById('btn-room-toggle');
+  if (btn) btn.classList.toggle('active', simState.galleryRoom);
+  const chk = document.getElementById('chk-gallery-room');
+  if (chk) chk.checked = simState.galleryRoom;
+  const val = document.getElementById('val-gallery-room');
+  if (val) val.textContent = simState.galleryRoom ? 'Active' : 'Flat Canvas';
+
+  buildGalleryRoom();
+
+  if (currentTheme === 'white') {
+    renderer.render(scene, camera);
+  } else {
+    composer.render();
+  }
+}
+window.toggleGalleryRoom = toggleGalleryRoom;
+document.getElementById('btn-room-toggle')?.addEventListener('click', () => toggleGalleryRoom());
+document.getElementById('chk-gallery-room')?.addEventListener('change', e => toggleGalleryRoom(e.target.checked));
 
 function toggleCleanMode() {
   cleanMode = !cleanMode;
@@ -5779,7 +6381,7 @@ window.addEventListener('pointermove', e => {
     }
   }
 
-  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
+  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #bao-primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
     if (hoverCard) hoverCard.style.display = 'none';
     return;
   }
@@ -6334,11 +6936,44 @@ const DOSSIER_LINKS = {
     youtubeEmbed: 'https://www.youtube-nocookie.com/embed/fIPuSH19pKw?autoplay=1',
     youtubeTitle: 'Basin 6: Shapley Concentration Mega-Watershed',
     bibtex: `@article{Dupuy2023Basin6, title={CosmicFlows-4: Table A.1 Basin 6 Shapley}, author={Dupuy, A. and Courtois, H. M.}, journal={Astronomy & Astrophysics}, volume={678}, pages={A176}, year={2023}}`
+  },
+  hooleilana_bao: {
+    studyUrl: 'https://doi.org/10.3847/1538-4357/aceaf3',
+    wikiUrl: 'https://en.wikipedia.org/wiki/Ho%CA%BBoleilana',
+    youtubeUrl: 'https://www.youtube.com/watch?v=kYv9L1_9k1A',
+    youtubeEmbed: 'https://www.youtube-nocookie.com/embed/kYv9L1_9k1A?autoplay=1',
+    youtubeTitle: 'Hoʻoleilana: An Individual Baryon Acoustic Oscillation? (Pomarède 3D Visualization)',
+    bibtex: `@article{Tully2023Hooleilana, title={Ho'oleilana: An Individual Baryon Acoustic Oscillation?}, author={Tully, R. Brent and Howlett, Cullan and Pomar{\`e}de, Daniel}, journal={The Astrophysical Journal}, volume={954}, number={2}, pages={169}, year={2023}}`
   }
 };
 window.DOSSIER_LINKS = DOSSIER_LINKS;
 
 const SPECTROSCOPY_DOSSIERS = {
+  hooleilana_bao: {
+    id: 'hooleilana_bao',
+    name: 'Hoʻoleilana Primordial BAO Shell',
+    label: 'Hoʻoleilana BAO Shell',
+    tier: 1,
+    cat: 'bao_relic',
+    pos: new THREE.Vector3(3800, 16200, 8900),
+    mass: 1.5e17,
+    m200: 1.5e17,
+    cz: 20400,
+    recessionalVelocity: 20400,
+    sigma_v: 1100,
+    sigmaV: 1100,
+    dispersion: 1100,
+    dist: 250.0,
+    distance: 250.0,
+    bcg: 'Boötes Supercluster Core',
+    primaryGalaxy: 'Boötes Core (Central Anchor)',
+    vPec: [120, -180, 95],
+    peculiarVelocity: [120, -180, 95],
+    tx: 4.8,
+    lx: '6.4 × 10⁴⁴ erg/s (Shell Aggregation)',
+    members: 'Boötes Core, Sloan Great Wall, CfA2 Great Wall, Hercules Complex (~1 Gly diameter)',
+    citation: 'Tully, Howlett & Pomarède (2023) ApJ 954, 169 (DOI: 10.3847/1538-4357/aceaf3); Courtois et al. (2023).'
+  },
   laniakea_spine: {
     id: 'laniakea_spine',
     name: 'Laniakea Supercluster Core',
@@ -6910,7 +7545,8 @@ function openDossier(id) {
   if (!modal) return;
 
   let tagLabel = 'Cluster';
-  if (d.cat === 'supercluster' || d.tier === 1) tagLabel = 'Supercluster';
+  if (d.cat === 'bao_relic' || d.id === 'hooleilana_bao') tagLabel = 'Primordial BAO Relic';
+  else if (d.cat === 'supercluster' || d.tier === 1) tagLabel = 'Supercluster';
   else if (d.cat === 'void') tagLabel = 'Void';
   else if (d.cat === 'filament') tagLabel = 'Filament';
   else if (d.cat === 'basin') tagLabel = 'Basin';
@@ -6992,6 +7628,16 @@ function openDossier(id) {
     };
   }
 
+  const baoPanel = document.getElementById('spec-bao-panel');
+  if (baoPanel) {
+    baoPanel.style.display = (d.id === 'hooleilana_bao' || d.cat === 'bao_relic') ? 'block' : 'none';
+  }
+
+  const potPanel = document.getElementById('spec-powers-of-ten-container');
+  if (potPanel) {
+    potPanel.style.display = (d.id === 'origin_local') ? 'block' : 'none';
+  }
+
   modal.style.display = 'block';
   modal.classList.remove('hidden');
 
@@ -7042,7 +7688,7 @@ window.addEventListener('pointerup', e => {
 
   if (dist >= 5 || dt >= 350) return;
 
-  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
+  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #bao-primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
     return;
   }
 
@@ -7389,6 +8035,7 @@ window.addEventListener('keydown', e => {
   }
   else if (e.key === 'c' || e.key === 'C') toggleCleanMode();
   else if (e.key === 't' || e.key === 'T') toggleTheme();
+  else if (e.key === 'b' || e.key === 'B' || e.key === 'm' || e.key === 'M') toggleGalleryRoom();
   else if (e.key === 'r' || e.key === 'R') rebuildStreamlines();
   else if (e.key === 'f' || e.key === 'F') {
     simState.floorGridVisible = !simState.floorGridVisible;
@@ -7983,6 +8630,7 @@ renderer.domElement.addEventListener('webglcontextrestored', () => {
   buildChromaticHalos();
   buildCallouts();
   initWatershedShells();
+  initHooleilanaBaoShell();
   buildZoneOfAvoidance();
   generateFullCF4Catalog();
   if (typeof buildErositaOverlays === 'function') buildErositaOverlays();
@@ -9257,6 +9905,12 @@ const CATALOG_SEARCH_ALIASES = {
     'ngc 224', 'pgc 2557', 'triangulum', 'triangulum galaxy', 'm33', 'messier 33',
     'ngc 598', 'pgc 17223', 'large magellanic cloud', 'lmc', 'small magellanic cloud',
     'smc', '0,0,0', 'origin'
+  ],
+
+  hooleilana_bao: [
+    'hooleilana', 'hoʻoleilana', 'ho\'oleilana', 'bao shell', 'baryon acoustic oscillation',
+    'primordial sound wave', 'fossil sound wave', 'bootes bao', 'tully 2023 bao', 'pomarede 2023',
+    'sound horizon shell', 'primordial relic'
   ],
 
   // --------------------------------------------------------------------------
@@ -11306,12 +11960,134 @@ function initPrimerModal() {
   });
 }
 
+function initBaoPrimerModal() {
+  const modal = document.getElementById('bao-primer-modal');
+  const btnClose = document.getElementById('btn-close-bao-modal');
+  const btnDismiss = document.getElementById('btn-dismiss-bao-modal');
+  const btnOpen = document.getElementById('btn-open-bao-primer');
+  const btnFly = document.getElementById('btn-modal-fly-bao');
+
+  function openBaoModal() { if (modal) modal.style.display = 'flex'; }
+  function closeBaoModal() { if (modal) modal.style.display = 'none'; }
+
+  if (btnOpen) btnOpen.addEventListener('click', openBaoModal);
+  if (btnClose) btnClose.addEventListener('click', closeBaoModal);
+  if (btnDismiss) btnDismiss.addEventListener('click', closeBaoModal);
+  if (btnFly) {
+    btnFly.addEventListener('click', () => {
+      closeBaoModal();
+      if (typeof flyToHooleilana === 'function') flyToHooleilana();
+    });
+  }
+}
+
+function initBaoPaneControls() {
+  const btnFly = document.getElementById('btn-fly-hooleilana');
+  if (btnFly) {
+    btnFly.addEventListener('click', () => {
+      if (typeof flyToHooleilana === 'function') flyToHooleilana();
+    });
+  }
+
+  const chkShell = document.getElementById('chk-bao-shell');
+  if (chkShell) {
+    chkShell.addEventListener('change', e => {
+      simState.hooleilanaBaoVisible = e.target.checked;
+      const valEl = document.getElementById('val-bao-shell');
+      if (valEl) valEl.textContent = e.target.checked ? 'Active' : 'Hidden';
+      if (typeof initHooleilanaBaoShell === 'function') initHooleilanaBaoShell();
+    });
+  }
+
+  const rngOpac = document.getElementById('rng-bao-opacity');
+  if (rngOpac) {
+    rngOpac.addEventListener('input', e => {
+      simState.hooleilanaBaoOpacity = parseFloat(e.target.value);
+      const valEl = document.getElementById('val-bao-opacity');
+      if (valEl) valEl.textContent = Math.round(simState.hooleilanaBaoOpacity * 100) + '%';
+      if (typeof initHooleilanaBaoShell === 'function') initHooleilanaBaoShell();
+    });
+  }
+
+  const rngRad = document.getElementById('rng-bao-radius');
+  if (rngRad) {
+    rngRad.addEventListener('input', e => {
+      simState.hooleilanaBaoRadius = parseFloat(e.target.value);
+      const valEl = document.getElementById('val-bao-radius');
+      if (valEl) valEl.textContent = Math.round(simState.hooleilanaBaoRadius) + ' Mpc';
+      if (typeof initHooleilanaBaoShell === 'function') initHooleilanaBaoShell();
+      updateBaoCalculator();
+    });
+  }
+
+  const chkAnchors = document.getElementById('chk-bao-anchors');
+  if (chkAnchors) {
+    chkAnchors.addEventListener('change', e => {
+      simState.hooleilanaAnchorsVisible = e.target.checked;
+      const valEl = document.getElementById('val-bao-anchors');
+      if (valEl) valEl.textContent = e.target.checked ? 'Shown' : 'Hidden';
+      if (typeof initHooleilanaBaoShell === 'function') initHooleilanaBaoShell();
+    });
+  }
+
+  function updateBaoCalculator() {
+    const elH0 = document.getElementById('rng-bao-h0');
+    const elOmb = document.getElementById('rng-bao-omb');
+    const h0 = parseFloat(elH0?.value || 76.9);
+    const omb = parseFloat(elOmb?.value || 0.02237);
+    const valH0 = document.getElementById('val-bao-h0');
+    if (valH0) valH0.textContent = h0.toFixed(1) + ' km/s/Mpc';
+    const valOmb = document.getElementById('val-bao-omb');
+    if (valOmb) valOmb.textContent = omb.toFixed(4);
+
+    const h = h0 / 100.0;
+    const omm = 0.315;
+    const omch2 = (omm * h * h) - omb;
+    const ommh2 = Math.max(0.08, omb + omch2);
+    const rd = 147.1 * Math.pow(0.143 / ommh2, 0.25) * Math.pow(0.02237 / omb, 0.13);
+
+    const obsR = simState.hooleilanaBaoRadius || 155.0;
+    const diffPct = ((obsR - rd) / rd * 100).toFixed(1);
+    const tension = (h0 - 67.4).toFixed(1);
+
+    const calcRd = document.getElementById('calc-bao-rd');
+    if (calcRd) calcRd.textContent = rd.toFixed(1) + ' Mpc';
+    const calcObs = document.getElementById('calc-bao-obs');
+    if (calcObs) calcObs.textContent = `${obsR.toFixed(1)} Mpc (${diffPct >= 0 ? '+' : ''}${diffPct}%)`;
+    const calcTen = document.getElementById('calc-bao-tension');
+    if (calcTen) calcTen.textContent = `${tension >= 0 ? '+' : ''}${tension} km/s/Mpc vs Planck`;
+  }
+
+  document.getElementById('rng-bao-h0')?.addEventListener('input', updateBaoCalculator);
+  document.getElementById('rng-bao-omb')?.addEventListener('input', updateBaoCalculator);
+  updateBaoCalculator();
+}
+
+function initPowersOfTenUI() {
+  const potToggleBtn = document.getElementById('btn-powers-of-ten-toggle');
+  if (potToggleBtn) {
+    potToggleBtn.addEventListener('click', () => {
+      if (typeof window.openPowersOfTen === 'function') window.openPowersOfTen(0);
+    });
+  }
+  const specPotBtn = document.getElementById('btn-spec-powers-of-ten');
+  if (specPotBtn) {
+    specPotBtn.addEventListener('click', () => {
+      closeDossier();
+      if (typeof window.openPowersOfTen === 'function') window.openPowersOfTen(0);
+    });
+  }
+}
+
 function initCosmographyApp() {
   initCosmicSearchEngine();
   initCosmicTooltips();
   initCosmicTips();
   initVideoModalEventListeners();
   initPrimerModal();
+  initBaoPrimerModal();
+  initBaoPaneControls();
+  initPowersOfTenUI();
   initTooltipModeToggle();
   initCameraSettingsModal();
   initGPUStatsHUD();
@@ -11879,5 +12655,93 @@ if (document.readyState === 'loading') {
   </div>
 </div>
 
+<!-- EDUCATIONAL BAO PRIMER & PRIMORDIAL SOUND WAVE MODAL -->
+<div id="bao-primer-modal" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(3,6,12,0.85); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+  <div style="background:var(--panel-bg); border:1.5px solid #38bdf8; border-radius:14px; max-width:800px; width:92%; max-height:88vh; display:flex; flex-direction:column; padding:24px; box-shadow:0 24px 60px rgba(0,0,0,0.85); color:var(--text-main); font-family:inherit;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--panel-border); padding-bottom:12px; margin-bottom:16px;">
+      <h3 style="margin:0; font-size:18px; font-weight:800; color:var(--text-bright); display:flex; align-items:center; gap:8px;">
+        <span>🪐</span> <span>Hoʻoleilana: Primordial Baryon Acoustic Oscillation (BAO) Primer</span>
+      </h3>
+      <button id="btn-close-bao-modal" style="background:transparent; border:none; font-size:24px; color:var(--text-dim); cursor:pointer; font-weight:700;">&times;</button>
+    </div>
+    
+    <div style="flex:1; overflow-y:auto; font-size:13px; line-height:1.65; padding-right:8px; display:flex; flex-direction:column; gap:16px;">
+      
+      <!-- Card 1: What is a BAO? -->
+      <div style="background:rgba(56, 189, 248, 0.05); border:1.5px solid var(--panel-border); border-left:4px solid #38bdf8; border-radius:10px; padding:16px;">
+        <h4 style="margin:0 0 8px 0; color:#38bdf8; font-size:14.5px; font-weight:800;">1. What is a Baryon Acoustic Oscillation (BAO)?</h4>
+        <p style="margin:0 0 10px 0; color:var(--text-main);">
+          A <b>Baryon Acoustic Oscillation (BAO)</b> is a fossil sound wave from the infant universe. Before atoms formed (<i>t</i> &lt; 380,000 years), normal matter (baryons) and photons existed as an ultra-hot, coupled plasma. Gravity pulled matter inward toward dense spots, while radiation pressure pushed violently outward, generating spherical acoustic pressure waves that traveled outward at relativistic speeds:
+        </p>
+        <div style="background:var(--panel-header); border:1px solid var(--panel-border); border-radius:8px; padding:10px 14px; margin-bottom:10px; font-family:'Times New Roman', serif; font-size:14.5px; color:var(--text-bright); text-align:center;">
+          <i>c</i><sub>s</sub>(<i>z</i>) = <i>c</i> / &radic;( 3 [ 1 + (3 &Omega;<sub>b</sub> / 4 &Omega;<sub>&gamma;</sub>) (1+<i>z</i>)<sup>&minus;1</sup> ] )
+        </div>
+        <p style="margin:0; color:var(--text-dim); font-size:12px;">
+          When the universe cooled enough for photons to decouple from matter (the drag epoch at <i>z</i> &approx; 1060), this outward sound wave froze in place at the comoving sound horizon (<i>r</i><sub>d</sub> &approx; 147&ndash;155 Mpc). Over billions of years, galaxies formed preferentially along both the central dense core and this spherical acoustic rim.
+        </p>
+      </div>
+
+      <!-- Card 2: What Ho'oleilana actually is -->
+      <div style="background:rgba(217, 119, 6, 0.05); border:1.5px solid var(--panel-border); border-left:4px solid var(--accent-amber); border-radius:10px; padding:16px;">
+        <h4 style="margin:0 0 8px 0; color:var(--accent-amber); font-size:14.5px; font-weight:800;">2. What Hoʻoleilana Actually Is</h4>
+        <p style="margin:0 0 10px 0; color:var(--text-main);">
+          In September 2023, R. Brent Tully, Cullan Howlett, and Daniel Pomar&egrave;de published the discovery of <b>Hoʻoleilana</b> (<i>The Astrophysical Journal</i> 954:169). They identified a roughly spherical shell of galaxies with a radius of &approx; 155 Mpc (&approx; 505 million light-years), giving it a diameter of nearly <b>1 billion light-years</b>. Its center lies &approx; 820 million light-years from Earth.
+        </p>
+        <div style="background:var(--panel-header); border:1px solid var(--panel-border); border-radius:8px; padding:10px 14px; font-size:12.5px; color:var(--text-bright); line-height:1.6;">
+          <b>&bull; Boötes Supercluster:</b> Sits near the geometric core of the shell.<br>
+          <b>&bull; Constituent Walls:</b> Structures astronomers named separately&mdash;including the <b>Sloan Great Wall</b>, <b>CfA2 Great Wall</b>, and the <b>Hercules Complex</b>&mdash;appear to be pieces of this single, gargantuan spherical shell.<br>
+          <b>&bull; Laniākea Scale Comparison:</b> Laniākea is 500 million light-years across, yet reaches only toward the near perimeter of Hoʻoleilana.
+        </div>
+      </div>
+
+      <!-- Card 3: Dynamic Basins vs Acoustic Relics -->
+      <div style="background:rgba(16, 185, 129, 0.05); border:1.5px solid var(--panel-border); border-left:4px solid var(--accent-green); border-radius:10px; padding:16px;">
+        <h4 style="margin:0 0 8px 0; color:var(--accent-green); font-size:14.5px; font-weight:800;">3. Cosmic Address Paradigm: Dynamic Basins vs. Acoustic Relics</h4>
+        <p style="margin:0 0 10px 0; color:var(--text-main);">
+          This discovery shifts cosmic cartography from a static classification hierarchy to an origin-based taxonomy:
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+          <div style="background:var(--panel-bg); border:1px solid var(--panel-border); padding:10px; border-radius:8px;">
+            <b style="color:var(--accent-amber);">Dynamic Flow Basin (Laniākea):</b><br>
+            Defined dynamically by galaxy peculiar velocities collapsing toward gravitational attractors today.
+            <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">&rarr; Tells us where matter is flowing <i>now</i>.</div>
+          </div>
+          <div style="background:var(--panel-bg); border:1px solid var(--panel-border); padding:10px; border-radius:8px;">
+            <b style="color:#38bdf8;">Primordial Acoustic Relic (Hoʻoleilana):</b><br>
+            Surviving spatial imprint of a relativistic plasma pressure wave frozen at recombination.
+            <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">&rarr; Tells us where a sound wave traveled <i>&gt; 13 billion years ago</i>.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Hubble Tension & Scientific Caution -->
+      <div style="background:rgba(168, 85, 247, 0.05); border:1.5px solid var(--panel-border); border-left:4px solid var(--accent-purple); border-radius:10px; padding:16px;">
+        <h4 style="margin:0 0 8px 0; color:var(--accent-purple); font-size:14.5px; font-weight:800;">4. The Hubble Tension &amp; Scientific Caution</h4>
+        <p style="margin:0 0 8px 0; color:var(--text-main);">
+          Interpreting Hoʻoleilana as a standard acoustic ruler yields an inferred expansion rate:
+        </p>
+        <div style="background:var(--panel-header); border:1px solid var(--panel-border); border-radius:8px; padding:8px 12px; margin-bottom:8px; font-family:'Times New Roman', serif; font-size:14.5px; color:var(--text-bright); text-align:center;">
+          <i>H</i><sub>0</sub> &approx; 76.9 <sup>+8.2</sup><sub>&minus;4.8</sub> km/s/Mpc
+        </div>
+        <p style="margin:0 0 8px 0; font-size:12px; color:var(--text-dim);">
+          This central value aligns with local late-universe measurements (SH0ES Cepheids / SN Ia at 73.04 &plusmn; 1.04 km/s/Mpc) rather than Planck early-universe &Lambda;CDM (67.4 &plusmn; 0.5 km/s/Mpc). However, the uncertainty (+8.2 / &minus;4.8) is too broad to single-handedly resolve the Hubble tension.
+        </p>
+        <div style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:8px; font-size:11px; color:var(--text-main);">
+          <b>Scientific Caution:</b> The statistical BAO phenomenon is confirmed beyond doubt across millions of galaxies. However, isolating an <i>individual</i> nearby cosmic shell carries statistical variance. Hoʻoleilana is a compelling scientific proposal, marked with epistemic status <b>◌ Candidate Relic / Low-Precision BAO</b>.
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1.5px solid var(--panel-border); padding-top:14px; margin-top:14px;">
+      <button id="btn-modal-fly-bao" class="action-btn primary" style="display:flex; align-items:center; gap:6px; padding:8px 16px;">
+        <span>🚀</span> <span>Fly Camera to Hoʻoleilana</span>
+      </button>
+      <button id="btn-dismiss-bao-modal" style="background:#38bdf8; color:#020617; border:none; padding:8px 20px; border-radius:8px; font-weight:800; font-size:12.5px; cursor:pointer; box-shadow:0 2px 10px rgba(56,189,248,0.35);">Got It</button>
+    </div>
+  </div>
+</div>
+
+<script src="src/ui/powers_of_ten_modal.js"></script>
 </body>
 </html>
