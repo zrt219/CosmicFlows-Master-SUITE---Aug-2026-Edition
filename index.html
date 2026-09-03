@@ -281,6 +281,7 @@ window.onerror = function(msg, url, line, col, error) {
     font-family: inherit; font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase;
     color: var(--text-dim); background: rgba(8, 12, 18, 0.88); border: 1px solid var(--panel-border);
     padding: 6px 12px; border-radius: 6px; backdrop-filter: blur(14px);
+    contain: layout style; will-change: transform;
   }
   #dark-telemetry-hud .hud-row { display: flex; gap: 12px; }
   #dark-telemetry-hud .hud-val { color: var(--accent-cyan); font-weight: 700; font-family: ui-monospace, "SF Mono", monospace; }
@@ -6372,6 +6373,9 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2(-1000, -1000);
 const hoverCard = document.getElementById('hover-card');
 
+let hoverRaycastRafId = null;
+let lastPointerMoveEvent = null;
+
 window.addEventListener('pointermove', e => {
   if (isPointerActive) {
     const dragDist = Math.hypot(e.clientX - pointerDownInfo.x, e.clientY - pointerDownInfo.y);
@@ -6381,61 +6385,70 @@ window.addEventListener('pointermove', e => {
     }
   }
 
-  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #bao-primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud')) {
-    if (hoverCard) hoverCard.style.display = 'none';
-    return;
-  }
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-  if (!simState.calloutsVisible || !calloutsGroup || calloutsGroup.children.length === 0) {
+  if (e.target && e.target.closest('#panel, #topbar, #top-actions, #cam-shortcuts, #cosmic-time-bar, #spectroscopy-modal, #caption-modal, #publication-inset, #tour-overlay, #camera-settings-modal, #shortcuts-modal, #error-dossier-modal, #video-player-modal, #primer-modal, #bao-primer-modal, #error-hud-pill, #hover-card, #dark-telemetry-hud, #powers-of-ten-modal')) {
     if (hoverCard) hoverCard.style.display = 'none';
     return;
   }
 
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(calloutsGroup.children, true);
+  lastPointerMoveEvent = { clientX: e.clientX, clientY: e.clientY };
+  if (!hoverRaycastRafId) {
+    hoverRaycastRafId = requestAnimationFrame(() => {
+      hoverRaycastRafId = null;
+      if (!lastPointerMoveEvent) return;
+      const ev = lastPointerMoveEvent;
+      mouse.x = (ev.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(ev.clientY / window.innerHeight) * 2 + 1;
 
-  let hitItem = null;
-  for (let i = 0; i < intersects.length; i++) {
-    let cur = intersects[i].object;
-    while (cur && cur !== calloutsGroup) {
-      if (cur.userData && cur.userData.feature) {
-        hitItem = cur.userData.feature;
-        break;
+      if (!simState.calloutsVisible || !calloutsGroup || calloutsGroup.children.length === 0) {
+        if (hoverCard) hoverCard.style.display = 'none';
+        return;
       }
-      cur = cur.parent;
-    }
-    if (hitItem) break;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(calloutsGroup.children, true);
+
+      let hitItem = null;
+      for (let i = 0; i < intersects.length; i++) {
+        let cur = intersects[i].object;
+        while (cur && cur !== calloutsGroup) {
+          if (cur.userData && cur.userData.feature) {
+            hitItem = cur.userData.feature;
+            break;
+          }
+          cur = cur.parent;
+        }
+        if (hitItem) break;
+      }
+
+      if (hitItem && hoverCard) {
+        const typeSpan = `<span class="hc-type" id="hc-type">${(hitItem.cat || 'NODE').toUpperCase()}</span>`;
+        const nameEl = document.getElementById('hc-name');
+        if (nameEl) nameEl.innerHTML = `${hitItem.name} ${typeSpan}`;
+        const coordsEl = document.getElementById('hc-coords');
+        if (coordsEl) coordsEl.textContent = `[${hitItem.pos.x >= 0 ? '+' : ''}${Math.round(hitItem.pos.x).toLocaleString()}, ${hitItem.pos.y >= 0 ? '+' : ''}${Math.round(hitItem.pos.y).toLocaleString()}, ${hitItem.pos.z >= 0 ? '+' : ''}${Math.round(hitItem.pos.z).toLocaleString()}] km/s`;
+        const distEl = document.getElementById('hc-dist');
+        if (distEl) distEl.textContent = `${hitItem.dist} Mpc (${(hitItem.dist * 3.26).toFixed(1)} Mly)`;
+        const massStr = hitItem.mass !== undefined ? (hitItem.mass > 0 ? (hitItem.mass >= 1e12 ? hitItem.mass.toExponential(2) : hitItem.mass) : '-' + Math.abs(hitItem.mass).toExponential(2)) + ' M☉' : 'N/A';
+        const velEl = document.getElementById('hc-vel');
+        if (velEl) velEl.textContent = `cz = ${hitItem.cz >= 0 ? '+' : ''}${Math.round(hitItem.cz).toLocaleString()} km/s | Mass: ${massStr}`;
+        const citeEl = document.getElementById('hc-cite');
+        if (citeEl) citeEl.textContent = hitItem.citation || 'Cosmicflows-4 WF/CR Reconstruction';
+
+        const cardW = 280, cardH = 140;
+        let left = ev.clientX + 16;
+        let top = ev.clientY + 16;
+        if (left + cardW > window.innerWidth) left = ev.clientX - cardW - 16;
+        if (top + cardH > window.innerHeight) top = ev.clientY - cardH - 16;
+
+        hoverCard.style.left = `${Math.max(10, left)}px`;
+        hoverCard.style.top = `${Math.max(10, top)}px`;
+        hoverCard.style.display = 'block';
+      } else {
+        if (hoverCard) hoverCard.style.display = 'none';
+      }
+    });
   }
-
-  if (hitItem && hoverCard) {
-    const typeSpan = `<span class="hc-type" id="hc-type">${(hitItem.cat || 'NODE').toUpperCase()}</span>`;
-    const nameEl = document.getElementById('hc-name');
-    if (nameEl) nameEl.innerHTML = `${hitItem.name} ${typeSpan}`;
-    const coordsEl = document.getElementById('hc-coords');
-    if (coordsEl) coordsEl.textContent = `[${hitItem.pos.x >= 0 ? '+' : ''}${Math.round(hitItem.pos.x).toLocaleString()}, ${hitItem.pos.y >= 0 ? '+' : ''}${Math.round(hitItem.pos.y).toLocaleString()}, ${hitItem.pos.z >= 0 ? '+' : ''}${Math.round(hitItem.pos.z).toLocaleString()}] km/s`;
-    const distEl = document.getElementById('hc-dist');
-    if (distEl) distEl.textContent = `${hitItem.dist} Mpc (${(hitItem.dist * 3.26).toFixed(1)} Mly)`;
-    const massStr = hitItem.mass !== undefined ? (hitItem.mass > 0 ? (hitItem.mass >= 1e12 ? hitItem.mass.toExponential(2) : hitItem.mass) : '-' + Math.abs(hitItem.mass).toExponential(2)) + ' M☉' : 'N/A';
-    const velEl = document.getElementById('hc-vel');
-    if (velEl) velEl.textContent = `cz = ${hitItem.cz >= 0 ? '+' : ''}${Math.round(hitItem.cz).toLocaleString()} km/s | Mass: ${massStr}`;
-    const citeEl = document.getElementById('hc-cite');
-    if (citeEl) citeEl.textContent = hitItem.citation || 'Cosmicflows-4 WF/CR Reconstruction';
-
-    const cardW = 280, cardH = 140;
-    let left = e.clientX + 16;
-    let top = e.clientY + 16;
-    if (left + cardW > window.innerWidth) left = e.clientX - cardW - 16;
-    if (top + cardH > window.innerHeight) top = e.clientY - cardH - 16;
-
-    hoverCard.style.left = `${Math.max(10, left)}px`;
-    hoverCard.style.top = `${Math.max(10, top)}px`;
-    hoverCard.style.display = 'block';
-  } else {
-    if (hoverCard) hoverCard.style.display = 'none';
-  }
-});
+}, { passive: true });
 
 // ==========================================
 // 10. COSMOLOGICAL TIME EVOLUTION ENGINE (R1)
@@ -8480,6 +8493,7 @@ document.getElementById('btn-tfr-latex')?.addEventListener('click', () => export
 // 13. MAIN ANIMATION LOOP & LIVE TELEMETRY
 // ==========================================
 let lastFrameTime = performance.now();
+let lastHudUpdateTime = 0;
 let rollingFps = 60.0;
 let animFrameId = null;
 
@@ -8496,9 +8510,10 @@ function animate() {
   }
   lastFrameTime = now;
 
-  // Dark Mode Telemetry HUD Live Stream
+  // Dark Mode Telemetry HUD Live Stream (Throttled to 10 Hz to prevent DOM layout thrashing)
   const darkHud = document.getElementById('dark-telemetry-hud');
-  if (darkHud && currentTheme === 'dark') {
+  if (darkHud && currentTheme === 'dark' && (lastHudUpdateTime === 0 || now - lastHudUpdateTime >= 100)) {
+    lastHudUpdateTime = now;
     const lines = simState.linesCount || 2600;
     const rkSteps = 420;
     const evals = lines * rkSteps * 4;
