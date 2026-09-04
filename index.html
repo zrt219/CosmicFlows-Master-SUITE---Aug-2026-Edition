@@ -4153,30 +4153,65 @@ let galaxyGlowTexture = null;
 let galaxyGlowTextureWhite = null;
 
 function createGalaxyGlowTexture(isWhiteTheme) {
-  const size = 64;
+  const size = 128;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  const center = size / 2;
-  const grad = ctx.createRadialGradient(center, center, 0, center, center, center);
+  const center = size / 2; // 64
 
+  // 1. Soft radial stellar halo with Gaussian Airy-disc falloff
+  const grad = ctx.createRadialGradient(center, center, 0, center, center, center);
   if (isWhiteTheme) {
-    grad.addColorStop(0, 'rgba(30, 41, 59, 1.0)');
-    grad.addColorStop(0.2, 'rgba(51, 65, 85, 0.85)');
-    grad.addColorStop(0.5, 'rgba(100, 116, 139, 0.35)');
-    grad.addColorStop(0.8, 'rgba(148, 163, 184, 0.10)');
+    grad.addColorStop(0, 'rgba(15, 23, 42, 1.0)');
+    grad.addColorStop(0.12, 'rgba(30, 41, 59, 0.92)');
+    grad.addColorStop(0.28, 'rgba(51, 65, 85, 0.70)');
+    grad.addColorStop(0.50, 'rgba(100, 116, 139, 0.30)');
+    grad.addColorStop(0.75, 'rgba(148, 163, 184, 0.08)');
     grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
   } else {
     grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-    grad.addColorStop(0.18, 'rgba(255, 255, 255, 0.90)');
-    grad.addColorStop(0.45, 'rgba(240, 248, 255, 0.40)');
-    grad.addColorStop(0.75, 'rgba(200, 230, 255, 0.10)');
-    grad.addColorStop(1.0, 'rgba(180, 220, 255, 0.0)');
+    grad.addColorStop(0.10, 'rgba(255, 255, 255, 0.95)');
+    grad.addColorStop(0.24, 'rgba(235, 245, 255, 0.72)');
+    grad.addColorStop(0.48, 'rgba(180, 220, 255, 0.32)');
+    grad.addColorStop(0.75, 'rgba(130, 190, 255, 0.08)');
+    grad.addColorStop(1.0, 'rgba(100, 160, 255, 0.0)');
   }
-
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
+
+  // 2. Subtle 4-point telescope diffraction cross (Hubble/JWST starlight signature)
+  if (!isWhiteTheme) {
+    ctx.save();
+    const spikeGradH = ctx.createLinearGradient(0, center, size, center);
+    spikeGradH.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+    spikeGradH.addColorStop(0.40, 'rgba(255, 255, 255, 0.15)');
+    spikeGradH.addColorStop(0.50, 'rgba(255, 255, 255, 0.75)');
+    spikeGradH.addColorStop(0.60, 'rgba(255, 255, 255, 0.15)');
+    spikeGradH.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = spikeGradH;
+    ctx.fillRect(4, center - 1, size - 8, 2);
+
+    const spikeGradV = ctx.createLinearGradient(center, 0, center, size);
+    spikeGradV.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+    spikeGradV.addColorStop(0.40, 'rgba(255, 255, 255, 0.15)');
+    spikeGradV.addColorStop(0.50, 'rgba(255, 255, 255, 0.75)');
+    spikeGradV.addColorStop(0.60, 'rgba(255, 255, 255, 0.15)');
+    spikeGradV.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = spikeGradV;
+    ctx.fillRect(center - 1, 4, 2, size - 8);
+
+    // 3. Ultra-bright pinpoint stellar nucleus
+    const coreGrad = ctx.createRadialGradient(center, center, 0, center, center, 8);
+    coreGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+    coreGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.8)');
+    coreGrad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(center, center, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.generateMipmaps = false;
@@ -11214,13 +11249,19 @@ function buildCriticalPointOverlays() {
       const mat = new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true });
       mesh = new THREE.Mesh(geo, mat);
     } else if (cp.type === 'saddle-filament') {
-      const geo = new THREE.OctahedronGeometry(300);
-      const mat = new THREE.MeshBasicMaterial({ color: 0x8b5cf6 });
+      const geo = new THREE.OctahedronGeometry(220);
+      const mat = new THREE.MeshBasicMaterial({ color: isWhite ? 0x6d28d9 : 0xa78bfa, transparent: true, opacity: 0.55, wireframe: true });
       mesh = new THREE.Mesh(geo, mat);
+      const innerMat = new THREE.MeshBasicMaterial({ color: isWhite ? 0x7c3aed : 0xc4b5fd, transparent: true, opacity: 0.35 });
+      const innerMesh = new THREE.Mesh(new THREE.OctahedronGeometry(140), innerMat);
+      mesh.add(innerMesh);
     } else { // saddle-wall
-      const geo = new THREE.BoxGeometry(360, 360, 80);
-      const mat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.7 });
+      const geo = new THREE.BoxGeometry(240, 240, 50);
+      const mat = new THREE.MeshBasicMaterial({ color: isWhite ? 0x0891b2 : 0x22d3ee, transparent: true, opacity: 0.45, wireframe: true });
       mesh = new THREE.Mesh(geo, mat);
+      const innerMat = new THREE.MeshBasicMaterial({ color: isWhite ? 0x06b6d4 : 0x67e8f9, transparent: true, opacity: 0.25 });
+      const innerMesh = new THREE.Mesh(new THREE.BoxGeometry(180, 180, 30), innerMat);
+      mesh.add(innerMesh);
     }
 
     mesh.position.copy(pos);
