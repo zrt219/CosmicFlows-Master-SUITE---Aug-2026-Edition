@@ -660,6 +660,153 @@ window.onerror = function(msg, url, line, col, error) {
     transform: translateY(1px) scale(0.96);
   }
 
+  /* FLOATING SUPERCLUSTER VIEW HUD BAR */
+  #supercluster-nav-bar {
+    position: absolute;
+    bottom: calc(62px * var(--ui-scale));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 22;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(8px * var(--ui-scale));
+    pointer-events: auto;
+    max-width: 92vw;
+    animation: scBarFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes scBarFadeIn {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  .sc-bar-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(8px * var(--ui-scale));
+    background: var(--panel-bg);
+    border: 1.5px solid var(--panel-border);
+    border-radius: calc(30px * var(--ui-scale));
+    padding: calc(6px * var(--ui-scale)) calc(12px * var(--ui-scale));
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(20px);
+  }
+
+  .sc-pills-row {
+    display: flex;
+    align-items: center;
+    gap: calc(6px * var(--ui-scale));
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sc-title-badge {
+    display: flex;
+    align-items: center;
+    gap: calc(5px * var(--ui-scale));
+    font-size: calc(10px * var(--ui-scale));
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    padding: calc(4px * var(--ui-scale)) calc(8px * var(--ui-scale));
+    border-right: 1.5px solid var(--panel-border);
+    margin-right: calc(4px * var(--ui-scale));
+  }
+
+  .sc-pill {
+    background: var(--panel-header);
+    border: 1.5px solid var(--panel-border);
+    color: var(--text-main);
+    padding: calc(5px * var(--ui-scale)) calc(10px * var(--ui-scale));
+    border-radius: calc(20px * var(--ui-scale));
+    font-size: calc(11px * var(--ui-scale));
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: calc(6px * var(--ui-scale));
+    transition: all 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .sc-pill:hover {
+    border-color: var(--accent-cyan);
+    color: var(--text-bright);
+    transform: translateY(-1px);
+  }
+
+  .sc-pill.active {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: var(--accent-cyan);
+    color: var(--text-bright);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  }
+
+  body.theme-white .sc-pill.active {
+    background: rgba(2, 132, 199, 0.15);
+    border-color: var(--accent-cyan);
+    color: #0f172a;
+  }
+
+  .sc-dot {
+    width: calc(8px * var(--ui-scale));
+    height: calc(8px * var(--ui-scale));
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+
+  .sc-close-btn {
+    background: transparent;
+    border: 1.5px solid var(--panel-border);
+    color: var(--text-dim);
+    width: calc(26px * var(--ui-scale));
+    height: calc(26px * var(--ui-scale));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: calc(11px * var(--ui-scale));
+    font-weight: 800;
+    transition: all 0.15s ease;
+    margin-left: calc(4px * var(--ui-scale));
+  }
+
+  .sc-close-btn:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .sc-dossier-card {
+    display: none;
+    width: 100%;
+    max-width: calc(640px * var(--ui-scale));
+    background: rgba(8, 14, 24, 0.95);
+    border: 1px solid var(--panel-border);
+    border-radius: calc(14px * var(--ui-scale));
+    padding: calc(10px * var(--ui-scale)) calc(14px * var(--ui-scale));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px);
+    animation: scDossierFadeIn 0.2s ease-out;
+  }
+
+  body.theme-white .sc-dossier-card {
+    background: rgba(248, 250, 252, 0.98);
+    border-color: rgba(15, 23, 42, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  @keyframes scDossierFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   /* LOADING */
   #loading {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -1486,6 +1633,9 @@ window.onerror = function(msg, url, line, col, error) {
       <button class="top-btn room-btn active" id="btn-room-toggle" data-tooltip="Toggle 3D Pure White Gallery Room Environment [Key: B / M]" title="3D Gallery Room [Key: B / M]">
         <span id="room-icon">🏛️</span> <b id="room-label">Room (B)</b>
       </button>
+      <button class="top-btn supercluster-btn" id="btn-supercluster-toggle" data-tooltip="Toggle Vivid Supercluster View: Laniakea, Shapley & cosmic basins [Key: S]" title="Supercluster View [Key: S]">
+        <span>🌌</span> <b id="supercluster-label">Superclusters (S)</b>
+      </button>
       <button class="top-btn" id="btn-callouts-toggle" data-tooltip="Toggle 3D cluster pins and galaxy name labels [Key: A]" title="Toggle Cluster Pins [Key: A]">
         <span>🏷️</span> <b>Pins (A)</b>
       </button>
@@ -1607,6 +1757,44 @@ window.onerror = function(msg, url, line, col, error) {
   <div class="hc-row"><span>Hubble Dist:</span><span id="hc-dist">0 Mpc</span></div>
   <div class="hc-row"><span>Kinematics / Mass:</span><span id="hc-vel">+0 km/s</span></div>
   <div class="hc-cite" id="hc-cite">Cosmicflows-4 WF/CR Reconstruction</div>
+</div>
+
+<!-- FLOATING SUPERCLUSTER NAVIGATION DOCK & TELEMETRY -->
+<div id="supercluster-nav-bar">
+  <div class="sc-bar-inner">
+    <div class="sc-pills-row">
+      <div class="sc-title-badge">
+        <span>🌌</span> <b>SUPERCLUSTERS</b>
+      </div>
+      <button class="sc-pill active" data-sc="all" title="Full cosmography suite overview">
+        <span>🌐</span> <b>All (Overview)</b>
+      </button>
+      <button class="sc-pill" data-sc="laniakea" title="Isolate Laniakea gravitational watershed">
+        <span class="sc-dot" style="background:#f59e0b;"></span> <b>Laniakea</b>
+      </button>
+      <button class="sc-pill" data-sc="shapley" title="Isolate Shapley Mega-Concentration">
+        <span class="sc-dot" style="background:#00e5ff;"></span> <b>Shapley</b>
+      </button>
+      <button class="sc-pill" data-sc="perseus" title="Isolate Perseus-Pisces filament spine">
+        <span class="sc-dot" style="background:#a855f7;"></span> <b>Perseus-Pisces</b>
+      </button>
+      <button class="sc-pill" data-sc="coma" title="Isolate Coma Supercluster & Great Wall">
+        <span class="sc-dot" style="background:#10b981;"></span> <b>Coma Wall</b>
+      </button>
+      <button class="sc-pill" data-sc="vela" title="Isolate Vela ZoA Supercluster">
+        <span class="sc-dot" style="background:#14b8a6;"></span> <b>Vela ZoA</b>
+      </button>
+      <button class="sc-pill" data-sc="sloan" title="Isolate Sloan Great Wall basin">
+        <span class="sc-dot" style="background:#d946ef;"></span> <b>Sloan Wall</b>
+      </button>
+      <button class="sc-close-btn" id="btn-close-sc-view" title="Exit Supercluster View [Key: S]">
+        <span>✕</span>
+      </button>
+    </div>
+
+    <!-- Dynamic Supercluster Telemetry Dossier -->
+    <div id="supercluster-dossier-card" class="sc-dossier-card"></div>
+  </div>
 </div>
 
 <!-- COSMOLOGICAL TIME EVOLUTION SCRUBBER & TRANSPORT (R1) -->
@@ -4119,7 +4307,172 @@ scene.add(desiGroup);
 let desiBaoGroup = null;
 let galaxyBasePositions = null;
 let galaxyBaseVelocities = null;
+let galaxyBaseColors = null;
+let galaxyBasinIds = [];
+let isSuperclusterViewActive = false;
+let activeSuperclusterId = 'laniakea';
 const galaxyCatalogData = [];
+
+// ==========================================
+// 6A. SUPERCLUSTER COSMOGRAPHY SUITE & FRESNEL SHADER
+// ==========================================
+const SUPERCLUSTER_SUITE = [
+  {
+    id: 'laniakea',
+    name: 'Laniakea Gravitational Basin',
+    shortLabel: 'Laniakea Core',
+    colorHex: '#f59e0b',
+    colorThree: 0xf59e0b,
+    centerSg: [-4700, 700, -300],
+    scale: [1.48, 1.15, 1.28],
+    baseRadius: 7800,
+    massStr: '1.2 × 10¹⁷ M☉',
+    extentStr: '160 Mpc/h (~520 Mly)',
+    flowSink: 'Great Attractor / Norma (A3627) [~480 km/s]',
+    cite: 'Tully et al. (Nature 2014); Dupuy & Courtois (2023)',
+    desc: 'Our home dynamic watershed where ~100,000 galaxies converge toward the Great Attractor core.',
+    camPos: [-22000, 16000, 32000],
+    camTarget: [-4700, 700, -300],
+    matchKeywords: ['laniakea', 'great attractor', 'centaurus', 'hydra', 'norma', 'virgo']
+  },
+  {
+    id: 'shapley',
+    name: 'Shapley Mega-Concentration Basin',
+    shortLabel: 'Shapley Basin',
+    colorHex: '#00e5ff',
+    colorThree: 0x00e5ff,
+    centerSg: [7200, -8600, -2400],
+    scale: [1.38, 1.25, 1.45],
+    baseRadius: 11800,
+    massStr: '4.5 × 10¹⁷ M☉',
+    extentStr: '240 Mpc/h (~780 Mly)',
+    flowSink: 'A3558 / Dominant Cosmic Attractor [~650 km/s]',
+    cite: 'Hoffman et al. (2024); Tully et al. (2014)',
+    desc: 'The most massive bound gravitational attractor in the local universe, pulling Laniakea across the cosmic divide.',
+    camPos: [-4000, 18000, 24000],
+    camTarget: [7200, -8600, -2400],
+    matchKeywords: ['shapley', 'a3558']
+  },
+  {
+    id: 'perseus',
+    name: 'Perseus-Pisces Supercluster Spine',
+    shortLabel: 'Perseus-Pisces',
+    colorHex: '#a855f7',
+    colorThree: 0xa855f7,
+    centerSg: [4500, -3000, 0],
+    scale: [1.75, 0.92, 0.95],
+    baseRadius: 8200,
+    massStr: '8.5 × 10¹⁶ M☉',
+    extentStr: '140 Mpc/h (~455 Mly)',
+    flowSink: 'Perseus Cluster (Abell 426) [~390 km/s]',
+    cite: 'Haynes & Giovanelli (1988); Courtois et al. (2023)',
+    desc: 'Massive linear filamentary spine opposing Laniakea across the Local Void along the Supergalactic equator.',
+    camPos: [18000, 14000, 26000],
+    camTarget: [4500, -3000, 0],
+    matchKeywords: ['perseus', 'pisces', 'pp spine', 'a426']
+  },
+  {
+    id: 'coma',
+    name: 'Coma Supercluster & Great Wall',
+    shortLabel: 'Coma Wall',
+    colorHex: '#10b981',
+    colorThree: 0x10b981,
+    centerSg: [500, 7000, 1500],
+    scale: [1.55, 1.10, 1.25],
+    baseRadius: 8500,
+    massStr: '1.1 × 10¹⁷ M☉',
+    extentStr: '150 Mpc/h (~490 Mly)',
+    flowSink: 'Coma Cluster (Abell 1656) Knot [~340 km/s]',
+    cite: 'CF4++ Delineated Autonomous Supercluster (2024)',
+    desc: 'Dense galactic wall hub anchoring the northern celestial cap, bridged dynamically to Virgo.',
+    camPos: [-12000, 28000, 18000],
+    camTarget: [500, 7000, 1500],
+    matchKeywords: ['coma', 'abell 1656', 'coma-virgo bridge', 'great wall']
+  },
+  {
+    id: 'vela',
+    name: 'Vela Supercluster (Zone of Avoidance)',
+    shortLabel: 'Vela ZoA',
+    colorHex: '#14b8a6',
+    colorThree: 0x14b8a6,
+    centerSg: [-8500, -12000, -3200],
+    scale: [1.30, 1.38, 1.22],
+    baseRadius: 9200,
+    massStr: '3.4 × 10¹⁷ M☉',
+    extentStr: '170 Mpc/h (~550 Mly)',
+    flowSink: 'Vela Southern Mass Singularity [~520 km/s]',
+    cite: 'Hollinger et al. (2026) ZOA Hybrid + MeerKAT',
+    desc: 'Colossal southern supercluster previously masked behind Milky Way dust, unveiled by 21cm H I piercing.',
+    camPos: [-24000, -6000, 16000],
+    camTarget: [-8500, -12000, -3200],
+    matchKeywords: ['vela', 'southern', 'puppis']
+  },
+  {
+    id: 'sloan',
+    name: 'Sloan Great Wall Basin',
+    shortLabel: 'Sloan Wall',
+    colorHex: '#d946ef',
+    colorThree: 0xd946ef,
+    centerSg: [12000, 14000, 11000],
+    scale: [1.62, 1.05, 1.48],
+    baseRadius: 14200,
+    massStr: '2.8 × 10¹⁷ M☉',
+    extentStr: '280 Mpc/h (~910 Mly)',
+    flowSink: 'SDSS Hyper-Filament Core [~280 km/s]',
+    cite: 'Dupuy et al. (Nature Astronomy 2024)',
+    desc: 'The largest contiguous megastructure recovered in volume by Cosmicflows-4 watershed analysis.',
+    camPos: [30000, 32000, 26000],
+    camTarget: [12000, 14000, 11000],
+    matchKeywords: ['sloan', 'sdss']
+  }
+];
+
+function createSuperclusterFresnelMaterial(colorVal, isWhite, baseOpacity = 0.35, rimPower = 2.2, rimIntensity = 1.8) {
+  const col = new THREE.Color(colorVal);
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uColor: { value: col },
+      uOpacity: { value: isWhite ? baseOpacity * 0.70 : baseOpacity },
+      uRimPower: { value: rimPower },
+      uRimIntensity: { value: rimIntensity },
+      uCoreGlow: { value: isWhite ? 0.04 : 0.10 }
+    },
+    vertexShader: `
+      precision highp float;
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewPosition = -mvPosition.xyz;
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      precision highp float;
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      uniform float uRimPower;
+      uniform float uRimIntensity;
+      uniform float uCoreGlow;
+
+      void main() {
+        vec3 normal = normalize(vNormal);
+        vec3 viewDir = normalize(vViewPosition);
+        float rim = 1.0 - max(dot(viewDir, normal), 0.0);
+        rim = pow(max(rim, 0.0), max(uRimPower, 0.1));
+        float alpha = clamp(uCoreGlow + rim * uRimIntensity, 0.0, 1.0) * uOpacity;
+        gl_FragColor = vec4(uColor, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+  });
+}
 
 // -------------------------------------------------------
 // CF4 GROUPED CATALOG CACHE (31,561 real groups)
@@ -4335,6 +4688,18 @@ function generateFullCF4Catalog() {
   const cf4PosReal = [];
   const cf4PosRedshift = [];
   const cf4Colors = [];
+  galaxyBasinIds = [];
+
+  function getSuperclusterBasinId(srcName) {
+    const s = (srcName || '').toLowerCase();
+    if (s.includes('laniakea') || s.includes('attractor') || s.includes('centaurus') || s.includes('hydra') || s.includes('norma') || s.includes('virgo')) return 'laniakea';
+    if (s.includes('shapley') || s.includes('a3558')) return 'shapley';
+    if (s.includes('perseus') || s.includes('pisces') || s.includes('pp spine') || s.includes('a426')) return 'perseus';
+    if (s.includes('coma') || s.includes('abell 1656') || s.includes('great wall')) return 'coma';
+    if (s.includes('vela') || s.includes('southern') || s.includes('puppis')) return 'vela';
+    if (s.includes('sloan') || s.includes('sdss')) return 'sloan';
+    return 'field';
+  }
 
   const cf4Clusters = [
     { name: 'Virgo Cluster', pos: [-280, 1300, -100], count: Math.round(1850 * lodScale), spread: 900, vRad: 1150 },
@@ -4432,6 +4797,7 @@ function generateFullCF4Catalog() {
           const distMpc = rKms * KM_TO_MPC;
           const col = buildGalaxyColorCF4(src, distMpc, g.cz, isWhite, colorMode, isCore);
           cf4Colors.push(col.r, col.g, col.b);
+          galaxyBasinIds.push(getSuperclusterBasinId(src));
 
           if (isCore && galaxyCatalogData.length < 500 && (i % 25 === 0 || isMajorCluster)) {
             galaxyCatalogData.push({
@@ -4480,6 +4846,7 @@ function generateFullCF4Catalog() {
           const distMpc = rKms * KM_TO_MPC;
           const col = buildGalaxyColorCF4(cl.name, distMpc, cl.vRad, isWhite, colorMode, i === 0);
           cf4Colors.push(col.r, col.g, col.b);
+          galaxyBasinIds.push(getSuperclusterBasinId(cl.name));
 
           if (i < 2 && galaxyCatalogData.length < 100) {
             galaxyCatalogData.push({
@@ -4528,6 +4895,7 @@ function generateFullCF4Catalog() {
       cf4PosRedshift.push(tpZ.x, tpZ.y, tpZ.z);
       const col = isWhite ? new THREE.Color(0x334155) : new THREE.Color(0x38bdf8);
       cf4Colors.push(col.r, col.g, col.b);
+      galaxyBasinIds.push('field');
     }
   }
 
@@ -4559,6 +4927,7 @@ function generateFullCF4Catalog() {
       cf4PosRedshift.push(tpZ.x, tpZ.y, tpZ.z);
       const col = isWhite ? new THREE.Color(0x334155) : new THREE.Color(0x38bdf8);
       cf4Colors.push(col.r, col.g, col.b);
+      galaxyBasinIds.push('field');
     }
   }
 
@@ -4587,11 +4956,13 @@ function generateFullCF4Catalog() {
       cf4PosRedshift.push(tpZ.x, tpZ.y, tpZ.z);
       const col = isWhite ? new THREE.Color(0x334155) : new THREE.Color(0x38bdf8);
       cf4Colors.push(col.r, col.g, col.b);
+      galaxyBasinIds.push('vela');
     }
   }
 
   galaxyBasePositions = new Float32Array(cf4Positions);
   galaxyBaseVelocities = new Float32Array(cf4Positions.length);
+  galaxyBaseColors = new Float32Array(cf4Colors);
   const tmpV = new THREE.Vector3();
   const tmpSg = new THREE.Vector3();
   for (let i = 0; i < cf4Positions.length; i += 3) {
@@ -4629,6 +5000,9 @@ function generateFullCF4Catalog() {
   cf4PointsMesh.visible = (simState.cf4Visible !== false) && (simState.subCf4 !== false);
   galaxyPointsMesh = cf4PointsMesh;
   scene.add(cf4PointsMesh);
+  if (typeof isSuperclusterViewActive !== 'undefined' && isSuperclusterViewActive) {
+    applySuperclusterAdaptiveContrast(activeSuperclusterId);
+  }
 
   // -------------------------------------------------------------
   // 2. SLOAN DIGITAL SKY SURVEY (SDSS) GREAT WALL POINT CLOUD (~5,000 pts)
@@ -5286,55 +5660,335 @@ function initWatershedShells() {
   disposeHierarchy(watershedGroup);
   scene.remove(watershedGroup);
   watershedGroup = new THREE.Group();
+  watershedGroup.name = 'supercluster-watershed-envelopes';
 
   const isWhite = currentTheme === 'white';
 
-  // 1. Laniakea Sub-Basin Geodesic Shell (Amber)
-  const laniakeaGeo = new THREE.IcosahedronGeometry(7200, 3);
-  const laniakeaMat = new THREE.MeshBasicMaterial({
-    color: 0xffaa00, wireframe: true, transparent: true,
-    opacity: isWhite ? 0.18 : 0.38,
-    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
-  });
-  const laniakeaMesh = new THREE.Mesh(laniakeaGeo, laniakeaMat);
-  laniakeaMesh.position.copy(sgToThree(-4700, 700, -300));
-  laniakeaMesh.scale.set(1.45, 1.1, 1.25);
-  laniakeaMesh.userData = { basin: 'laniakea' };
-  laniakeaMesh.visible = simState.basinLaniakea !== false;
-  watershedGroup.add(laniakeaMesh);
+  SUPERCLUSTER_SUITE.forEach(sc => {
+    // 1. Volumetric Fresnel Limb-Glow Envelope
+    const fresnelMat = createSuperclusterFresnelMaterial(sc.colorThree, isWhite, 0.32, 2.2, 1.8);
+    const fresnelGeo = new THREE.SphereGeometry(sc.baseRadius, 32, 24);
+    const fresnelMesh = new THREE.Mesh(fresnelGeo, fresnelMat);
+    fresnelMesh.position.copy(sgToThree(sc.centerSg[0], sc.centerSg[1], sc.centerSg[2]));
+    fresnelMesh.scale.set(sc.scale[0], sc.scale[1], sc.scale[2]);
+    fresnelMesh.userData = {
+      isFresnelEnvelope: true,
+      scId: sc.id,
+      basin: sc.id,
+      baseColor: sc.colorThree
+    };
+    watershedGroup.add(fresnelMesh);
 
-  // 2. Shapley Mega-Basin Geodesic Shell (Cyan)
-  const shapleyGeo = new THREE.IcosahedronGeometry(11500, 2);
-  const shapleyMat = new THREE.MeshBasicMaterial({
-    color: 0x00e5ff, wireframe: true, transparent: true,
-    opacity: isWhite ? 0.14 : 0.28,
-    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
-  });
-  const shapleyMesh = new THREE.Mesh(shapleyGeo, shapleyMat);
-  shapleyMesh.position.copy(sgToThree(7200, -8600, -2400));
-  shapleyMesh.scale.set(1.3, 1.2, 1.4);
-  shapleyMesh.userData = { basin: 'shapley' };
-  shapleyMesh.visible = simState.basinShapley !== false;
-  watershedGroup.add(shapleyMesh);
+    // 2. Delicate Mathematical Geodesic Lattice
+    const wireGeo = new THREE.IcosahedronGeometry(sc.baseRadius * 1.006, 2);
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: sc.colorThree,
+      wireframe: true,
+      transparent: true,
+      opacity: isWhite ? 0.08 : 0.16,
+      blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+    });
+    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+    wireMesh.position.copy(sgToThree(sc.centerSg[0], sc.centerSg[1], sc.centerSg[2]));
+    wireMesh.scale.set(sc.scale[0], sc.scale[1], sc.scale[2]);
+    wireMesh.userData = {
+      isWireLattice: true,
+      scId: sc.id,
+      basin: sc.id
+    };
+    watershedGroup.add(wireMesh);
 
-  // 3. Sloan Great Wall Basin Shell (Magenta)
-  const sloanGeo = new THREE.IcosahedronGeometry(14000, 2);
-  const sloanMat = new THREE.MeshBasicMaterial({
-    color: 0xd946ef, wireframe: true, transparent: true,
-    opacity: isWhite ? 0.12 : 0.24,
-    blending: isWhite ? THREE.NormalBlending : THREE.AdditiveBlending
+    // 3. Central Convergence Core Beacon
+    const coreGeo = new THREE.SphereGeometry(sc.baseRadius * 0.08, 16, 12);
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: isWhite ? 0.35 : 0.70,
+      blending: THREE.AdditiveBlending
+    });
+    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+    coreMesh.position.copy(sgToThree(sc.centerSg[0], sc.centerSg[1], sc.centerSg[2]));
+    coreMesh.userData = {
+      isCoreAnchor: true,
+      scId: sc.id,
+      basin: sc.id
+    };
+    watershedGroup.add(coreMesh);
   });
-  const sloanMesh = new THREE.Mesh(sloanGeo, sloanMat);
-  sloanMesh.position.copy(sgToThree(12000, 14000, 11000));
-  sloanMesh.scale.set(1.6, 1.0, 1.5);
-  sloanMesh.userData = { basin: 'sloan' };
-  sloanMesh.visible = simState.basinSloan !== false;
-  watershedGroup.add(sloanMesh);
 
-  watershedGroup.visible = simState.watershedShellsVisible;
+  watershedGroup.visible = simState.watershedShellsVisible !== false;
   scene.add(watershedGroup);
+
+  updateSuperclusterEnvelopes(isSuperclusterViewActive ? activeSuperclusterId : 'off');
 }
 initWatershedShells();
+
+function updateSuperclusterEnvelopes(activeScId) {
+  if (!watershedGroup) return;
+  const isWhite = currentTheme === 'white';
+
+  watershedGroup.children.forEach(child => {
+    const uData = child.userData || {};
+    const scId = uData.scId;
+    if (!scId) return;
+
+    if (!isSuperclusterViewActive) {
+      // Classic mode: honor drawer checkboxes
+      let vis = true;
+      if (scId === 'laniakea') vis = simState.basinLaniakea !== false;
+      else if (scId === 'shapley') vis = simState.basinShapley !== false;
+      else if (scId === 'sloan') vis = simState.basinSloan !== false;
+      else vis = false;
+
+      child.visible = vis;
+      if (uData.isFresnelEnvelope && child.material && child.material.uniforms) {
+        child.material.uniforms.uOpacity.value = isWhite ? 0.18 : 0.28;
+        child.material.uniforms.uRimIntensity.value = 1.4;
+      }
+      if (uData.isWireLattice && child.material) {
+        child.material.opacity = isWhite ? 0.08 : 0.14;
+      }
+      if (uData.isCoreAnchor && child.material) {
+        child.material.opacity = isWhite ? 0.25 : 0.45;
+      }
+      return;
+    }
+
+    // Supercluster View Mode is ACTIVE:
+    child.visible = true;
+    const isTarget = (scId === activeScId);
+    const isAll = (activeScId === 'all');
+
+    if (uData.isFresnelEnvelope && child.material && child.material.uniforms) {
+      if (isAll) {
+        child.material.uniforms.uOpacity.value = isWhite ? 0.28 : 0.40;
+        child.material.uniforms.uRimIntensity.value = 2.0;
+      } else if (isTarget) {
+        child.material.uniforms.uOpacity.value = isWhite ? 0.48 : 0.68;
+        child.material.uniforms.uRimIntensity.value = 2.8;
+      } else {
+        child.material.uniforms.uOpacity.value = isWhite ? 0.07 : 0.12;
+        child.material.uniforms.uRimIntensity.value = 0.8;
+      }
+    }
+
+    if (uData.isWireLattice && child.material) {
+      if (isAll || isTarget) {
+        child.material.opacity = isWhite ? 0.14 : 0.25;
+      } else {
+        child.material.opacity = 0.03;
+      }
+    }
+
+    if (uData.isCoreAnchor && child.material) {
+      child.material.opacity = (isAll || isTarget) ? (isWhite ? 0.45 : 0.85) : 0.12;
+    }
+  });
+}
+
+function applySuperclusterAdaptiveContrast(activeId) {
+  if (!cf4PointsMesh || !cf4PointsMesh.geometry || !galaxyBaseColors) return;
+  const colAttr = cf4PointsMesh.geometry.attributes.color;
+  if (!colAttr) return;
+  const colors = colAttr.array;
+  const baseCols = galaxyBaseColors;
+  const n = baseCols.length / 3;
+  const isWhite = currentTheme === 'white';
+
+  if (!isSuperclusterViewActive) {
+    colors.set(baseCols);
+    colAttr.needsUpdate = true;
+    cf4PointsMesh.material.opacity = isWhite ? (simState.cf4Opacity || 0.45) * 0.75 : (simState.cf4Opacity || 0.45);
+    cf4PointsMesh.material.size = isWhite ? (simState.cf4PtSize || 35) * 0.7 : (simState.cf4PtSize || 35);
+    if (window.sdssPointsMesh && window.sdssPointsMesh.material) {
+      window.sdssPointsMesh.material.opacity = isWhite ? (simState.survey_sdss_opacity || 0.45) * 0.75 : (simState.survey_sdss_opacity || 0.45);
+    }
+    return;
+  }
+
+  const isAll = (activeId === 'all');
+  for (let i = 0; i < n; i++) {
+    const gBasin = (galaxyBasinIds && galaxyBasinIds[i]) ? galaxyBasinIds[i] : 'field';
+    const br = baseCols[i * 3];
+    const bg = baseCols[i * 3 + 1];
+    const bb = baseCols[i * 3 + 2];
+
+    let scale = 0.15;
+    if (isAll) {
+      if (gBasin !== 'field') scale = 1.25;
+      else scale = 0.18;
+    } else {
+      if (gBasin === activeId) scale = 1.35;
+      else if (gBasin !== 'field') scale = 0.45;
+      else scale = 0.12;
+    }
+
+    colors[i * 3] = Math.min(1.0, br * scale);
+    colors[i * 3 + 1] = Math.min(1.0, bg * scale);
+    colors[i * 3 + 2] = Math.min(1.0, bb * scale);
+  }
+  colAttr.needsUpdate = true;
+
+  cf4PointsMesh.material.opacity = isWhite ? 0.72 : 0.88;
+  cf4PointsMesh.material.size = (isWhite ? (simState.cf4PtSize || 35) * 0.7 : (simState.cf4PtSize || 35)) * 1.25;
+
+  if (window.sdssPointsMesh && window.sdssPointsMesh.material) {
+    if (activeId === 'all' || activeId === 'sloan') {
+      window.sdssPointsMesh.material.opacity = isWhite ? 0.65 : 0.85;
+    } else {
+      window.sdssPointsMesh.material.opacity = 0.14;
+    }
+  }
+}
+
+function renderSuperclusterDossier(scId) {
+  const dossier = document.getElementById('supercluster-dossier-card');
+  if (!dossier) return;
+
+  if (scId === 'all') {
+    dossier.style.display = 'block';
+    dossier.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:14px;">🌐</span>
+          <b style="font-size:12px; color:var(--text-bright); text-transform:uppercase; letter-spacing:0.5px;">Cosmic Basin Decomposition (CF4)</b>
+        </div>
+        <button id="btn-close-sc-dossier" style="background:transparent; border:none; color:var(--text-dim); font-size:16px; cursor:pointer; font-weight:700; padding:0 4px;">&times;</button>
+      </div>
+      <div style="font-size:10px; color:var(--text-dim); line-height:1.45;">
+        Showing the 6 dominant cosmological watershed basins recovering the large-scale matter divergence and velocity sinks out to 300 Mpc/h. Select any supercluster above to isolate its boundary envelope and fly to its attractor core.
+      </div>
+      <div style="margin-top:6px; font-size:9px; color:var(--accent-cyan); display:flex; justify-content:space-between; border-top:1px solid var(--panel-border); padding-top:4px;">
+        <span><b>6 Watersheds:</b> Laniakea · Shapley · Perseus-Pisces · Coma · Vela · Sloan</span>
+        <span style="color:var(--text-dim);">Tully et al. (2014); Dupuy &amp; Courtois (2023)</span>
+      </div>
+    `;
+    document.getElementById('btn-close-sc-dossier')?.addEventListener('click', () => {
+      dossier.style.display = 'none';
+    });
+    return;
+  }
+
+  const sc = SUPERCLUSTER_SUITE.find(s => s.id === scId);
+  if (!sc) {
+    dossier.style.display = 'none';
+    return;
+  }
+
+  dossier.style.display = 'block';
+  dossier.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="sc-dot" style="background:${sc.colorHex};"></span>
+          <h3 style="margin:0; font-size:13px; font-weight:800; color:var(--text-bright);">${sc.name}</h3>
+        </div>
+        <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">${sc.desc}</div>
+      </div>
+      <button id="btn-close-sc-dossier" style="background:transparent; border:none; color:var(--text-dim); font-size:16px; cursor:pointer; font-weight:700; padding:0 4px;">&times;</button>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:6px; font-size:10px; margin-top:6px; border-top:1px solid var(--panel-border); padding-top:6px;">
+      <div style="background:rgba(255,255,255,0.03); padding:4px 8px; border-radius:4px; border:1px solid var(--panel-border);">
+        <span style="color:var(--text-dim);">Gravitational Mass:</span><br>
+        <b style="color:${sc.colorHex}; font-size:11px;">${sc.massStr}</b>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:4px 8px; border-radius:4px; border:1px solid var(--panel-border);">
+        <span style="color:var(--text-dim);">Basin Extent:</span><br>
+        <b style="color:var(--text-bright); font-size:11px;">${sc.extentStr}</b>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:4px 8px; border-radius:4px; border:1px solid var(--panel-border);">
+        <span style="color:var(--text-dim);">Attractor Sink:</span><br>
+        <b style="color:var(--accent-cyan); font-size:11px;">${sc.flowSink}</b>
+      </div>
+    </div>
+    <div style="margin-top:6px; font-size:9px; color:var(--text-dim); border-top:1px solid var(--panel-border); padding-top:4px; display:flex; justify-content:space-between; align-items:center;">
+      <span><b>Provenance:</b> ${sc.cite}</span>
+      <span style="color:var(--accent-cyan); cursor:pointer; font-weight:700;" onclick="flyToSupercluster('${sc.id}')">🎯 Re-Center View</span>
+    </div>
+  `;
+
+  document.getElementById('btn-close-sc-dossier')?.addEventListener('click', () => {
+    dossier.style.display = 'none';
+  });
+}
+
+function selectSuperclusterPill(scId) {
+  activeSuperclusterId = scId;
+
+  document.querySelectorAll('.sc-pill').forEach(pill => {
+    if (pill.dataset.sc === scId) {
+      pill.classList.add('active');
+    } else {
+      pill.classList.remove('active');
+    }
+  });
+
+  updateSuperclusterEnvelopes(scId);
+  applySuperclusterAdaptiveContrast(scId);
+  renderSuperclusterDossier(scId);
+}
+
+function flyToSupercluster(scId) {
+  if (!isSuperclusterViewActive) {
+    toggleSuperclusterView(true);
+  }
+  selectSuperclusterPill(scId);
+
+  if (scId === 'all') {
+    setCameraView(new THREE.Vector3(-32000, 24000, 48000), new THREE.Vector3(0, 0, 0), 1400);
+  } else {
+    const sc = SUPERCLUSTER_SUITE.find(s => s.id === scId);
+    if (sc) {
+      const target = sgToThree(sc.centerSg[0], sc.centerSg[1], sc.centerSg[2]);
+      const camPos = new THREE.Vector3(sc.camPos[0], sc.camPos[1], sc.camPos[2]);
+      setCameraView(camPos, target, 1300);
+    }
+  }
+}
+
+function toggleSuperclusterView(forcedState) {
+  if (typeof forcedState === 'boolean') {
+    isSuperclusterViewActive = forcedState;
+  } else {
+    isSuperclusterViewActive = !isSuperclusterViewActive;
+  }
+
+  const btn = document.getElementById('btn-supercluster-toggle');
+  const navBar = document.getElementById('supercluster-nav-bar');
+  const label = document.getElementById('supercluster-label');
+
+  if (isSuperclusterViewActive) {
+    if (btn) btn.classList.add('active');
+    if (label) label.textContent = 'Superclusters: ON (S)';
+    if (navBar) navBar.style.display = 'flex';
+
+    simState.watershedShellsVisible = true;
+    watershedGroup.visible = true;
+    simState.lineOpac = 0.52;
+
+    selectSuperclusterPill(activeSuperclusterId || 'laniakea');
+  } else {
+    if (btn) btn.classList.remove('active');
+    if (label) label.textContent = 'Superclusters (S)';
+    if (navBar) navBar.style.display = 'none';
+
+    simState.lineOpac = 0.32;
+    updateSuperclusterEnvelopes('off');
+    applySuperclusterAdaptiveContrast('off');
+  }
+}
+
+window.toggleSuperclusterView = toggleSuperclusterView;
+window.flyToSupercluster = flyToSupercluster;
+window.selectSuperclusterPill = selectSuperclusterPill;
+Object.defineProperty(window, 'isSuperclusterViewActive', {
+  get: () => isSuperclusterViewActive,
+  set: (v) => { isSuperclusterViewActive = v; }
+});
+Object.defineProperty(window, 'activeSuperclusterId', {
+  get: () => activeSuperclusterId,
+  set: (v) => { activeSuperclusterId = v; }
+});
 
 // ==========================================
 // 7C. HOʻOLEILANA PRIMORDIAL BAO RELIC SHELL (1 Gly ACOUSTIC WAVE)
@@ -7152,6 +7806,14 @@ function toggleGalleryRoom(forceState = null) {
 window.toggleGalleryRoom = toggleGalleryRoom;
 document.getElementById('btn-room-toggle')?.addEventListener('click', () => toggleGalleryRoom());
 document.getElementById('chk-gallery-room')?.addEventListener('change', e => toggleGalleryRoom(e.target.checked));
+document.getElementById('btn-supercluster-toggle')?.addEventListener('click', () => toggleSuperclusterView());
+document.getElementById('btn-close-sc-view')?.addEventListener('click', () => toggleSuperclusterView(false));
+document.querySelectorAll('.sc-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const scId = pill.dataset.sc;
+    flyToSupercluster(scId);
+  });
+});
 
 function toggleCleanMode() {
   cleanMode = !cleanMode;
@@ -7161,6 +7823,9 @@ function toggleCleanMode() {
   if (cam) cam.style.opacity = cleanMode ? '0' : '1';
   const tb = document.getElementById('topbar');
   if (tb) tb.style.opacity = cleanMode ? '0.35' : '1';
+  const scBar = document.getElementById('supercluster-nav-bar');
+  if (scBar && cleanMode) scBar.style.opacity = '0';
+  else if (scBar) scBar.style.opacity = '1';
   const cl = document.getElementById('clean-label');
   if (cl) cl.textContent = cleanMode ? 'Exit (C)' : 'Clean (C)';
 }
@@ -9636,6 +10301,7 @@ window.addEventListener('keydown', e => {
   else if (e.key === 'c' || e.key === 'C') toggleCleanMode();
   else if (e.key === 't' || e.key === 'T') toggleTheme();
   else if (e.key === 'b' || e.key === 'B' || e.key === 'm' || e.key === 'M') toggleGalleryRoom();
+  else if (e.key === 's' || e.key === 'S') toggleSuperclusterView();
   else if (e.key === 'r' || e.key === 'R') rebuildStreamlines();
   else if (e.key === 'f' || e.key === 'F') {
     simState.floorGridVisible = !simState.floorGridVisible;
@@ -14111,6 +14777,9 @@ if (document.readyState === 'loading') {
       </div>
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>Toggle 3D Leader Callouts</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">A</kbd>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Toggle Vivid Superclusters</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">S</kbd>
       </div>
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
         <span>Toggle 2D Equatorial Inset Map</span> <kbd style="background:var(--panel-header); border:1px solid var(--panel-border); padding:3px 8px; border-radius:4px; font-weight:800; color:var(--accent-cyan);">I</kbd>

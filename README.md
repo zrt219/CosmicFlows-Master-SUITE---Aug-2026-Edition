@@ -978,6 +978,20 @@ Below is the verified photographic and astrometric atlas of the **52 canonical l
 
 ---
 
+### 4.0B Supercluster View Mode & Volumetric Cosmic Basin Envelopes
+
+A dedicated cosmography mode (**Key: S** or top-bar toggle) elevating the scientific visualization of Laniakea and its surrounding gravitational basins:
+- **Volumetric Fresnel Limb-Glow Envelopes**: Custom WebGL GLSL shader evaluating view-direction and normal incidence for atmospheric depth and luminous silhouette edge-glow.
+- **Adaptive Cosmic Contrast**: Attenuates background field galaxies to $15\%$ opacity while boosting supercluster member galaxies and flow streamlines to $125\%-135\%$ luminous brightness.
+- **Floating Supercluster Navigation Dock & Telemetry**: Direct fly-to navigation across the 6 dominant local basins (Laniakea, Shapley, Perseus-Pisces, Coma, Vela, Sloan) with live astrophysical mass, comoving radius, and velocity sink dossiers.
+
+| Laniakea Gravitational Basin Core | Shapley Mega-Concentration Basin | 6-Basin Cosmic Web Overview |
+| :---: | :---: | :---: |
+| ![Laniakea Supercluster Core](assets/screenshots/supercluster_laniakea_vivid.png) | ![Shapley Basin](assets/screenshots/supercluster_shapley_basin.png) | ![Cosmic Basin Suite](assets/screenshots/supercluster_overview_suite.png) |
+| *Laniakea home watershed ($1.2 \times 10^{17} M_{\odot}$) with amber Fresnel envelope & Great Attractor sink.* | *Shapley Mega-Concentration ($4.5 \times 10^{17} M_{\odot}$) with cyan envelope & A3558 convergence funnel.* | *Full 6-basin cosmic web partition out to $300\text{ Mpc}/h$ showing interconnected flow rivers.* |
+
+---
+
 ### 4.1 Tier 1: Major Superclusters & Convergence Basins (01–10)
 
 #### 01. Laniakea Supercluster Core & Great Attractor
