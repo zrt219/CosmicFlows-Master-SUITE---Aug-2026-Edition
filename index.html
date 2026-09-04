@@ -1522,13 +1522,13 @@ window.onerror = function(msg, url, line, col, error) {
     </div>
 
     <div id="top-survey-pills" class="survey-pills-cluster">
-      <button class="top-btn survey-pill active" id="btn-pill-desi" data-survey="desi" data-tooltip="Toggle DESI Y1 BAO Acoustic Shell (147.1 Mpc)" title="Toggle DESI Y1 BAO">
+      <button class="top-btn survey-pill" id="btn-pill-desi" data-survey="desi" data-tooltip="Toggle DESI Y1 BAO Acoustic Shell (147.1 Mpc)" title="Toggle DESI Y1 BAO">
         <span class="survey-dot desi-dot"></span> <b>DESI</b>
       </button>
-      <button class="top-btn survey-pill active" id="btn-pill-sdss" data-survey="sdss" data-tooltip="Toggle SDSS Great Wall Extragalactic Point Cloud" title="Toggle SDSS Great Wall">
+      <button class="top-btn survey-pill" id="btn-pill-sdss" data-survey="sdss" data-tooltip="Toggle SDSS Great Wall Extragalactic Point Cloud" title="Toggle SDSS Great Wall">
         <span class="survey-dot sdss-dot"></span> <b>SDSS</b>
       </button>
-      <button class="top-btn survey-pill active" id="btn-pill-2mrs" data-survey="2mrs" data-tooltip="Toggle 2MASS Redshift Survey (2MRS) Near-Infrared Galaxy Layer" title="Toggle 2MRS Infrared">
+      <button class="top-btn survey-pill" id="btn-pill-2mrs" data-survey="2mrs" data-tooltip="Toggle 2MASS Redshift Survey (2MRS) Near-Infrared Galaxy Layer" title="Toggle 2MRS Infrared">
         <span class="survey-dot mrs-dot"></span> <b>2MRS</b>
       </button>
       <button class="top-btn survey-pill active" id="btn-pill-hooleilana" data-survey="hooleilana" data-tooltip="Toggle Hoʻoleilana BAO Acoustic Shell (155 Mpc)" title="Toggle Hoʻoleilana Relic">
@@ -1844,7 +1844,7 @@ window.onerror = function(msg, url, line, col, error) {
             <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#00f3ff;"></span>
             <span>DESI Y1 BAO Shell</span>
           </label>
-          <input type="checkbox" id="chk-survey-desi" checked>
+          <input type="checkbox" id="chk-survey-desi">
           <span class="val" id="val-survey-desi">147.1 Mpc Shell</span>
         </div>
         <div class="ctrl-row">
@@ -1859,7 +1859,7 @@ window.onerror = function(msg, url, line, col, error) {
             <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#ffaa00;"></span>
             <span>SDSS Great Wall Slice</span>
           </label>
-          <input type="checkbox" id="chk-survey-sdss" checked>
+          <input type="checkbox" id="chk-survey-sdss">
           <span class="val" id="val-survey-sdss">~5,000 spec-z</span>
         </div>
         <div class="ctrl-row">
@@ -1879,7 +1879,7 @@ window.onerror = function(msg, url, line, col, error) {
             <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#ff2a55;"></span>
             <span>2MRS All-Sky Infrared</span>
           </label>
-          <input type="checkbox" id="chk-survey-2mrs" checked>
+          <input type="checkbox" id="chk-survey-2mrs">
           <span class="val" id="val-survey-2mrs">~10,000 galaxies</span>
         </div>
         <div class="ctrl-row">
@@ -2914,17 +2914,17 @@ const simState = {
   hooleilanaBaoOpacity: 0.28,
   hooleilanaBaoRadius: 155,
   hooleilanaAnchorsVisible: true,
-  desiBaoVisible: true,
+  desiBaoVisible: false,
   desiBaoOpacity: 0.32,
   desiBaoRadius: 147.1,
   desiBaoCenter: 'bootes',
   surveyRsdEnabled: false,
   rsdMorph: 0.0,
-  survey_desi_visible: true,
-  survey_sdss_visible: true,
-  survey_2mrs_visible: true,
-  survey_twomrs_visible: true,
-  survey_hooleilana_visible: true,
+  survey_desi_visible: false,
+  survey_sdss_visible: false,
+  survey_2mrs_visible: false,
+  survey_twomrs_visible: false,
+  survey_hooleilana_visible: false,
   survey_desi_opacity: 0.35,
   survey_sdss_opacity: 0.45,
   survey_sdss_size: 24,
@@ -2934,13 +2934,13 @@ const simState = {
   survey_twomrs_size: 26,
   survey_hooleilana_opacity: 0.28,
   survey_hooleilana_size: 25,
-  desiVisible: true,
+  desiVisible: false,
   desiOpacity: 0.35,
   desiPtSize: 36,
-  sdssVisible: true,
+  sdssVisible: false,
   sdssOpacity: 0.45,
   sdssPtSize: 24,
-  twoMrsVisible: true,
+  twoMrsVisible: false,
   twoMrsOpacity: 0.40,
   twoMrsPtSize: 26,
   cf4Visible: true,
@@ -4715,6 +4715,7 @@ function generateFullCF4Catalog() {
     size: isWhite ? (simState.sdssPtSize || 34) * 0.7 : (simState.sdssPtSize || 34),
     vertexColors: true,
     color: isWhite ? 0xd97706 : 0xffaa00,
+    map: glowTex,
     transparent: true,
     opacity: isWhite ? (simState.sdssOpacity || 0.55) * 0.7 : (simState.sdssOpacity || 0.55),
     depthWrite: false,
@@ -4820,6 +4821,7 @@ function generateFullCF4Catalog() {
     size: isWhite ? (simState.twoMrsPtSize || 30) * 0.7 : (simState.twoMrsPtSize || 30),
     vertexColors: true,
     color: isWhite ? 0xbe123c : 0xff2a55,
+    map: glowTex,
     transparent: true,
     opacity: isWhite ? (simState.twoMrsOpacity || 0.50) * 0.7 : (simState.twoMrsOpacity || 0.50),
     depthWrite: false,
@@ -4909,6 +4911,7 @@ function generateFullCF4Catalog() {
     size: isWhite ? (simState.desiPtSize || 36) * 0.7 : (simState.desiPtSize || 36),
     vertexColors: true,
     color: isWhite ? 0x0284c7 : 0x00f3ff,
+    map: glowTex,
     transparent: true,
     opacity: isWhite ? (simState.desiOpacity || 0.65) * 0.7 : (simState.desiOpacity || 0.65),
     depthWrite: false,
@@ -5019,9 +5022,16 @@ function applySurveyRSD(t) {
     const pos = posAttr.array;
     const r = realAttr.array;
     const z = zAttr.array;
-    const len = pos.length;
-    for (let i = 0; i < len; i++) {
-      pos[i] = (1.0 - morph) * r[i] + morph * z[i];
+    if (morph === 0.0) {
+      pos.set(r);
+    } else if (morph === 1.0) {
+      pos.set(z);
+    } else {
+      const oneMinus = 1.0 - morph;
+      const len = pos.length;
+      for (let i = 0; i < len; i++) {
+        pos[i] = oneMinus * r[i] + morph * z[i];
+      }
     }
     posAttr.needsUpdate = true;
   }
@@ -5052,13 +5062,6 @@ function setSurveyRsdMode(enabled) {
   try {
     localStorage.setItem('cf4_survey_rsd_enabled', isEnabled ? 'true' : 'false');
   } catch(e) {}
-
-  if (typeof renderCurrentScene === 'function') renderCurrentScene();
-  else if (typeof renderer !== 'undefined' && renderer && typeof scene !== 'undefined' && typeof camera !== 'undefined') {
-    if (typeof currentTheme !== 'undefined' && currentTheme === 'white') renderer.render(scene, camera);
-    else if (typeof composer !== 'undefined' && composer) composer.render();
-    else renderer.render(scene, camera);
-  }
 }
 window.setSurveyRsdMode = setSurveyRsdMode;
 
@@ -5430,15 +5433,6 @@ function initDesiBaoShell() {
     }
   }
   desiBaoGroup = new THREE.Group();
-
-  if (!simState.desiBaoVisible) {
-    scene.add(desiBaoGroup);
-    if (typeof desiGroup !== 'undefined' && desiGroup) {
-      desiGroup.bao = desiBaoGroup;
-      desiGroup.add(desiBaoGroup);
-    }
-    return;
-  }
 
   const isWhite = currentTheme === 'white';
   const centerPos = (simState.desiBaoCenter === 'origin')
