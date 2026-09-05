@@ -289,7 +289,7 @@ window.onerror = function(msg, url, line, col, error) {
   /* 10-TAB FLOATING SCIENCE & LAYER DRAWER */
   #panel {
     position: absolute; top: 108px; left: 16px;
-    width: 480px; max-width: calc(100vw - 32px);
+    width: min(540px, calc(100vw - 32px)); max-width: calc(100vw - 32px);
     background: var(--panel-bg);
     border: 1.5px solid var(--panel-border);
     border-radius: 10px;
@@ -320,10 +320,11 @@ window.onerror = function(msg, url, line, col, error) {
     display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
   }
 
-  /* TABS BAR: Clean Auto-Fit Grid for Tabs (Rule 18) */
+  /* TABS BAR: Fluid Auto-Sizing Flex Pills (Zero Ellipsis Truncation) */
   .tabs {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
     gap: 6px;
     padding: 8px;
     background: var(--panel-header);
@@ -387,10 +388,25 @@ window.onerror = function(msg, url, line, col, error) {
   .survey-badge.cf4 { background: rgba(56,189,248,0.15); border: 1px solid #38bdf8; color: #38bdf8; }
   .survey-badge.hooleilana { background: rgba(168,85,247,0.15); border: 1px solid #a855f7; color: #c084fc; }
   .tab-btn {
-    padding: 8px 6px; font-family: inherit; font-size: 11px; text-transform: uppercase;
-    letter-spacing: 0.02em; background: rgba(0,0,0,0.08); border: 2px solid var(--panel-border);
-    border-radius: 6px; color: var(--text-main); cursor: pointer; transition: all 0.15s ease;
-    text-align: center; white-space: nowrap; font-weight: 800; overflow: hidden; text-overflow: ellipsis;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: max-content;
+    padding: 7px 11px;
+    font-family: inherit;
+    font-size: calc(11px * var(--ui-scale));
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background: rgba(0,0,0,0.08);
+    border: 2px solid var(--panel-border);
+    border-radius: 6px;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 800;
+    overflow: visible;
+    text-overflow: clip;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 4px rgba(0, 0, 0, 0.2);
   }
   .tab-btn:hover {
@@ -1136,6 +1152,8 @@ window.onerror = function(msg, url, line, col, error) {
       font-size: 10.5px;
       min-height: 32px;
       white-space: nowrap;
+      overflow: visible;
+      text-overflow: clip;
     }
 
     .tab-content {
